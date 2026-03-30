@@ -1,7 +1,0 @@
-name: 'RabbitMQ Integration'
-type: module
-description: 'Integrates Drupal with RabbitMQ for publishing and consuming messages (user registration, event data, etc.).'
-core_version_requirement: ^10 || ^11
-package: Custom
-dependencies:
-  - drupal:user
