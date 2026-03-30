@@ -1,0 +1,38 @@
+# RabbitMQ connection settings
+host: localhost
+port: 5672
+username: guest
+password: guest
+vhost: /
+connection_timeout: 3.0
+read_write_timeout: 3.0
+ssl_enabled: false
+
+# Exchange configuration
+exchange_name: drupal_exchange
+exchange_type: topic
+exchange_durable: true
+
+# Queues this Drupal site PUBLISHES to (outgoing)
+publish_queues:
+  user_registration:
+    queue_name: user.registration
+    routing_key: user.registered
+    enabled: true
+  user_update:
+    queue_name: user.update
+    routing_key: user.updated
+    enabled: false
+
+# Queues this Drupal site CONSUMES from (incoming)
+consume_queues:
+  event_companies:
+    queue_name: event.companies
+    routing_key: event.companies.#
+    enabled: true
+    prefetch_count: 10
+  event_updates:
+    queue_name: event.updates
+    routing_key: event.update.#
+    enabled: false
+    prefetch_count: 5

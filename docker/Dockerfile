@@ -6,21 +6,19 @@ FROM composer:2.7 AS composer
 WORKDIR /app
 
 # Copy composer files first for better layer caching.
-# composer.lock is optional here — if it doesn't exist yet Docker won't fail.
-COPY composer.json ./
-COPY composer.lock* ./
+# composer.lock* uses a glob — copies the file if it exists, skips if not.
+COPY composer.json composer.lock* ./
 
-# Install dependencies (no dev in prod; we'll add them back in dev stage)
+# Copy the custom module so Composer can resolve the local path repository.
+COPY modules/custom/rabbitmq_integration ./modules/custom/rabbitmq_integration
+
+# Install dependencies.
+# --no-dev keeps the image lean; composer.lock is used when present.
 RUN composer install \
     --no-dev \
     --no-interaction \
     --no-progress \
     --optimize-autoloader \
-    --prefer-dist \
-    || composer install \
-    --no-dev \
-    --no-interaction \
-    --no-progress \
     --prefer-dist
 
 # Copy the rest of the project
@@ -28,6 +26,7 @@ COPY . .
 
 # ============================================================
 # Stage 2 — Base PHP-FPM image (shared by dev and prod)
+# Drupal 11 requires PHP 8.3 minimum.
 # ============================================================
 FROM php:8.3-fpm AS base
 

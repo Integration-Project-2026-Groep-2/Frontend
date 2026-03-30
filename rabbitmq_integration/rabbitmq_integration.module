@@ -1,0 +1,87 @@
+<?php
+
+/**
+ * @file
+ * RabbitMQ Integration module hooks.
+ *
+ * We use hook_user_insert and hook_user_update here because Drupal core
+ * does not dispatch generic entity events by default — hook-based approach
+ * is the most reliable way to catch user lifecycle events without extra modules.
+ */
+
+use Drupal\user\UserInterface;
+
+/**
+ * Implements hook_user_insert().
+ *
+ * Fires when a new user account is created (registration).
+ */
+function rabbitmq_integration_user_insert(UserInterface $account): void {
+  /** @var \Drupal\rabbitmq_integration\Service\RabbitMQPublisher $publisher */
+  $publisher = \Drupal::service('rabbitmq_integration.publisher');
+  $config    = \Drupal::config('rabbitmq_integration.settings');
+  $queues    = $config->get('publish_queues') ?? [];
+
+  if (!($queues['user_registration']['enabled'] ?? true)) {
+    return;
+  }
+
+  $roles = array_values(array_filter(
+    $account->getRoles(),
+    fn($r) => $r !== 'authenticated'
+  ));
+
+  $extraFields = [];
+  foreach ($account->getFields(false) as $fieldName => $field) {
+    if ($field->isEmpty()) {
+      continue;
+    }
+    try {
+      $extraFields[$fieldName] = $field->getString();
+    }
+    catch (\Exception $e) {
+      // Skip un-serializable fields.
+    }
+  }
+
+  $publisher->publishUserRegistration([
+    'uid'          => (int) $account->id(),
+    'uuid'         => $account->uuid(),
+    'name'         => $account->getAccountName(),
+    'email'        => $account->getEmail(),
+    'created'      => date('c', $account->getCreatedTime()),
+    'roles'        => $roles,
+    'language'     => $account->getPreferredLangcode(),
+    'status'       => (int) $account->isActive(),
+    'extra_fields' => $extraFields,
+  ]);
+}
+
+/**
+ * Implements hook_user_update().
+ *
+ * Fires when an existing user account is updated.
+ */
+function rabbitmq_integration_user_update(UserInterface $account): void {
+  /** @var \Drupal\rabbitmq_integration\Service\RabbitMQPublisher $publisher */
+  $publisher = \Drupal::service('rabbitmq_integration.publisher');
+  $config    = \Drupal::config('rabbitmq_integration.settings');
+  $queues    = $config->get('publish_queues') ?? [];
+
+  if (!($queues['user_update']['enabled'] ?? false)) {
+    return;
+  }
+
+  $publisher->publish('user.updated', [
+    'event'     => 'user.updated',
+    'timestamp' => (new \DateTime())->format(\DateTime::ATOM),
+    'source'    => 'drupal',
+    'user'      => [
+      'uid'     => (int) $account->id(),
+      'uuid'    => $account->uuid(),
+      'name'    => $account->getAccountName(),
+      'email'   => $account->getEmail(),
+      'changed' => date('c'),
+    ],
+  ]);
+}

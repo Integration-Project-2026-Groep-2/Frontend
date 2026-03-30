@@ -27,6 +27,7 @@ $databases['default']['default'] = [
   'port'      => getenv('DRUPAL_DB_PORT')     ?: '3306',
   'prefix'    => '',
   'collation' => 'utf8mb4_general_ci',
+  // Drupal 11 database driver namespace.
   'namespace' => 'Drupal\\mysql\\Driver\\Database\\mysql',
   'autoload'  => 'core/modules/mysql/src/Driver/Database/mysql/',
 ];

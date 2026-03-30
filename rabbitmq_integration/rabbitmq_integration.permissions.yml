@@ -1,0 +1,8 @@
+administer rabbitmq integration:
+  title: 'Administer RabbitMQ Integration'
+  description: 'Configure RabbitMQ connection settings, queues, and exchanges.'
+  restrict access: true
+
+access rabbitmq event data:
+  title: 'Access RabbitMQ Event Data'
+  description: 'View companies and event data fetched from external applications via RabbitMQ.'
