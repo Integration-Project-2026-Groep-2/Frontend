@@ -1,2 +1,0 @@
-# Test traits are API, so we want to export those.
-/tests/src/Functional export-ignore

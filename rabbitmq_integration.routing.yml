@@ -1,0 +1,15 @@
+rabbitmq_integration.settings:
+  path: '/admin/config/services/rabbitmq'
+  defaults:
+    _form: '\Drupal\rabbitmq_integration\Form\RabbitMQSettingsForm'
+    _title: 'RabbitMQ Integration Settings'
+  requirements:
+    _permission: 'administer rabbitmq integration'
+
+rabbitmq_integration.event_companies:
+  path: '/admin/rabbitmq/event-companies'
+  defaults:
+    _controller: '\Drupal\rabbitmq_integration\Controller\EventDataController::listCompanies'
+    _title: 'Companies at Events'
+  requirements:
+    _permission: 'access rabbitmq event data'

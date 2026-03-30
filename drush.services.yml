@@ -1,0 +1,9 @@
+services:
+  rabbitmq_integration.drush_commands:
+    class: Drupal\rabbitmq_integration\Drush\Commands\RabbitMQCommands
+    arguments:
+      - '@rabbitmq_integration.consumer'
+      - '@rabbitmq_integration.publisher'
+      - '@rabbitmq_integration.event_data'
+    tags:
+      - { name: drush.command }

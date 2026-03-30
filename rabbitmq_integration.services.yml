@@ -1,0 +1,44 @@
+services:
+
+  # Core RabbitMQ connection manager
+  rabbitmq_integration.connection_manager:
+    class: Drupal\rabbitmq_integration\Service\RabbitMQConnectionManager
+    arguments:
+      - '@config.factory'
+      - '@logger.factory'
+
+  # Publisher: sends messages TO other apps
+  rabbitmq_integration.publisher:
+    class: Drupal\rabbitmq_integration\Service\RabbitMQPublisher
+    arguments:
+      - '@rabbitmq_integration.connection_manager'
+      - '@config.factory'
+      - '@logger.factory'
+
+  # Consumer: receives messages FROM other apps
+  rabbitmq_integration.consumer:
+    class: Drupal\rabbitmq_integration\Service\RabbitMQConsumer
+    arguments:
+      - '@rabbitmq_integration.connection_manager'
+      - '@config.factory'
+      - '@logger.factory'
+      - '@entity_type.manager'
+
+  # Event data service: fetches companies/events from external apps
+  rabbitmq_integration.event_data:
+    class: Drupal\rabbitmq_integration\Service\EventDataService
+    arguments:
+      - '@rabbitmq_integration.publisher'
+      - '@rabbitmq_integration.consumer'
+      - '@cache.default'
+      - '@logger.factory'
+
+  # Subscriber: hooks into Drupal user registration
+  rabbitmq_integration.user_registration_subscriber:
+    class: Drupal\rabbitmq_integration\EventSubscriber\UserRegistrationSubscriber
+    arguments:
+      - '@rabbitmq_integration.publisher'
+      - '@config.factory'
+      - '@logger.factory'
+    tags:
+      - { name: event_subscriber }
