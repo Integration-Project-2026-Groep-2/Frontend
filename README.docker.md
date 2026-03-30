@@ -6,7 +6,7 @@ Place the Docker files in your **existing Drupal project root** like this:
 
 ```
 your-drupal-project/
-├── docker/
+├── frontend/
 │   ├── Dockerfile
 │   ├── docker-compose.dev.yml
 │   ├── docker-compose.prod.yml
@@ -29,7 +29,7 @@ your-drupal-project/
 ├── web/
 │   └── sites/default/
 │       ├── settings.php
-│       └── settings.docker.php       ← copied from docker/
+│       └── settings.docker.php       ← copied from frontend/
 ├── composer.json
 └── composer.lock
 ```
@@ -47,7 +47,7 @@ composer require php-amqplib/php-amqplib:^3.6
 ### 2. Place the settings file
 
 ```bash
-cp docker/settings.docker.php web/sites/default/settings.docker.php
+cp frontend/settings.docker.php web/sites/default/settings.docker.php
 ```
 
 Then add to the **bottom** of `web/sites/default/settings.php`:
@@ -61,7 +61,7 @@ if (file_exists($app_root . '/' . $site_path . '/settings.docker.php')) {
 ### 3. Add to .gitignore
 
 ```
-docker/.env
+frontend/.env
 web/sites/default/settings.docker.php
 web/sites/default/files/
 private/
@@ -110,8 +110,8 @@ make dev-logs
 ### 1. Create your .env file
 
 ```bash
-cp docker/.env.example docker/.env
-# Edit docker/.env — fill in real passwords
+cp frontend/.env.example frontend/.env
+# Edit frontend/.env — fill in real passwords
 ```
 
 ### 2. Build and start
@@ -124,7 +124,7 @@ make prod-up
 ### 3. Run Drupal database install / update
 
 ```bash
-docker compose -f docker/docker-compose.prod.yml exec -u www-data drupal \
+docker compose -f frontend/docker-compose.prod.yml exec -u www-data drupal \
   vendor/bin/drush updatedb -y && vendor/bin/drush cr
 ```
 

@@ -6,7 +6,7 @@ services:
   drupal:
     build:
       context: .
-      dockerfile: docker/Dockerfile
+      dockerfile: frontend/Dockerfile
       target: prod         # Uses the hardened production stage
     image: your-registry/drupal-app:${IMAGE_TAG:-latest}
     container_name: drupal_app
@@ -49,9 +49,9 @@ services:
       - "443:443"
     volumes:
       - drupal_files:/var/www/html/web/sites/default/files:ro
-      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./frontend/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
       # Mount TLS certificates (e.g. from Certbot / Let's Encrypt)
-      - ./docker/nginx/certs:/etc/nginx/certs:ro
+      - ./frontend/nginx/certs:/etc/nginx/certs:ro
     depends_on:
       - drupal
     networks:

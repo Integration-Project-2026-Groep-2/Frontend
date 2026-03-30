@@ -1,8 +1,8 @@
 # ── Makefile — Docker shortcuts ───────────────────────────────────────────────
 # Usage: make <target>
 
-COMPOSE_DEV  = docker compose -f docker/docker-compose.dev.yml
-COMPOSE_PROD = docker compose -f docker/docker-compose.prod.yml --env-file docker/.env
+COMPOSE_DEV  = docker compose -f frontend/docker-compose.dev.yml
+COMPOSE_PROD = docker compose -f frontend/docker-compose.prod.yml --env-file frontend/.env
 
 .PHONY: help dev-up dev-down dev-logs prod-up prod-down drush cr install test-rmq
 
