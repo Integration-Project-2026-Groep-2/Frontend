@@ -64,8 +64,8 @@ RUN docker-php-ext-configure gd \
 RUN pecl install apcu && docker-php-ext-enable apcu
 
 # Copy PHP config
-COPY docker/php/php.ini /usr/local/etc/php/conf.d/drupal.ini
-COPY docker/php/php-fpm.conf /usr/local/etc/php-fpm.d/www.conf
+COPY Frontend/php/php.ini /usr/local/etc/php/conf.d/drupal.ini
+COPY Frontend/php/php-fpm.conf /usr/local/etc/php-fpm.d/www.conf
 
 # Set working directory
 WORKDIR /var/www/html
@@ -93,7 +93,7 @@ RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html/web/sites
 
 # Copy Supervisor config (runs PHP-FPM + RabbitMQ consumer)
-COPY docker/supervisor/supervisord.dev.conf /etc/supervisor/conf.d/supervisord.conf
+COPY Frontend/supervisor/supervisord.dev.conf /etc/supervisor/conf.d/supervisord.conf
 
 EXPOSE 9000
 
@@ -105,7 +105,7 @@ CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
 FROM base AS prod
 
 # Production PHP settings
-COPY docker/php/php.prod.ini /usr/local/etc/php/conf.d/drupal-prod.ini
+COPY Frontend/php/php.prod.ini /usr/local/etc/php/conf.d/drupal-prod.ini
 
 # Copy application files from composer stage (no dev deps, optimized autoloader)
 COPY --from=composer /app /var/www/html
@@ -120,7 +120,7 @@ RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/web/sites/default/files
 
 # Copy Supervisor config (runs PHP-FPM + RabbitMQ consumer)
-COPY docker/supervisor/supervisord.prod.conf /etc/supervisor/conf.d/supervisord.conf
+COPY Frontend/supervisor/supervisord.prod.conf /etc/supervisor/conf.d/supervisord.conf
 
 # Drop to non-root user
 USER www-data
