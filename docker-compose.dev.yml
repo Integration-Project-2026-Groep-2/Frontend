@@ -5,7 +5,7 @@ services:
   # ── PHP-FPM + Drupal ─────────────────────────────────────────────────────
   drupal:
     build:
-      context: .
+      context: ..          # Project root — where composer.json lives
       dockerfile: frontend/Dockerfile
       target: dev          # Uses the development stage
     container_name: drupal_app_dev

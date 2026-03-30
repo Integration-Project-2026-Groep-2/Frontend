@@ -5,7 +5,7 @@ services:
   # ── PHP-FPM + Drupal ─────────────────────────────────────────────────────
   drupal:
     build:
-      context: .
+      context: ..          # Project root — where composer.json lives
       dockerfile: frontend/Dockerfile
       target: prod         # Uses the hardened production stage
     image: your-registry/drupal-app:${IMAGE_TAG:-latest}

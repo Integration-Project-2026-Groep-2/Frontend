@@ -5,8 +5,10 @@ FROM composer:2.7 AS composer
 
 WORKDIR /app
 
-# Copy composer files first for better layer caching
-COPY composer.json composer.lock ./
+# Copy composer files first for better layer caching.
+# composer.lock is optional here — if it doesn't exist yet Docker won't fail.
+COPY composer.json ./
+COPY composer.lock* ./
 
 # Install dependencies (no dev in prod; we'll add them back in dev stage)
 RUN composer install \
@@ -14,6 +16,11 @@ RUN composer install \
     --no-interaction \
     --no-progress \
     --optimize-autoloader \
+    --prefer-dist \
+    || composer install \
+    --no-dev \
+    --no-interaction \
+    --no-progress \
     --prefer-dist
 
 # Copy the rest of the project
