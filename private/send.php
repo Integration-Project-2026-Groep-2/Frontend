@@ -1,6 +1,4 @@
 <?php
-require_once __DIR__.'/../vendor/autoload.php';
-
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 
@@ -34,7 +32,7 @@ if (!empty($phone)) {
 $xmlString = $xml->asXML();
 
 // connect
-$connection = new AMQPStreamConnection('host.docker.internal', 5672, 'guest', 'guest');
+$connection = new AMQPStreamConnection('host.docker.internal', 5672, $_ENV['RABBITMQ_USER'], $_ENV['RABBITMQ_PASS']);
 $channel = $connection->channel();
 
 // declare TOPIC exchange

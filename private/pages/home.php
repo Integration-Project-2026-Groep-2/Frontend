@@ -1,0 +1,1 @@
+<a href="/registration">registration</a>

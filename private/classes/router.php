@@ -14,19 +14,19 @@
 			}
 		}
 
-		static function Default($url="/home"){
+		static function Default($url="home"){
 			if (parse_url(self::GetUrl(), PHP_URL_PATH)=="/") {
-				header("Location: $url");
+				header("Location: /$url");
 			}
 		}
 		
 		static function Add($aliases,$path){
 			if (is_string($aliases)) {
-				self::AddList($aliases,$path);
+				self::AddList("/".$aliases,"/".$path);
 
 			} elseif (is_array($aliases)) {
 				foreach ($aliases as $alias) {
-					self::AddList($alias,$path);
+					self::AddList("/".$alias,"/".$path);
 				}
 			}	
 		}

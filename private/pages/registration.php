@@ -1,6 +1,6 @@
 <?php
 	if ($_SERVER['REQUEST_METHOD']=='POST') {
-		include __DIR__.'/private/send.php';
+		include __DIR__.'/../../private/send.php';
 	}
 ?>
 
