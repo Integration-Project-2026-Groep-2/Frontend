@@ -1,8 +1,8 @@
 FROM composer:latest AS composer
 
 WORKDIR /app
-COPY src/composer.json src/composer.lock ./
-RUN composer install --no-dev --optimize-autoloader
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --optimize-autoloader --ignore-platform-reqs
 
 FROM php:8.5-apache
 RUN a2enmod rewrite && \
@@ -10,6 +10,6 @@ RUN a2enmod rewrite && \
     sed -i 's/AllowOverride None/AllowOverride All/g' \
         /etc/apache2/apache2.conf
 
-COPY ./ /var/www/html
+COPY --from=composer /app/vendor /var/www/html/vendor
 
-COPY --from=composer /app/vendor /var/www/hml/vendor
+COPY ./ /var/www/html
