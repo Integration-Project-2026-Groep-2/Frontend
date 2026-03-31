@@ -32,7 +32,7 @@ if (!empty($phone)) {
 $xmlString = $xml->asXML();
 
 // connect
-$connection = new AMQPStreamConnection('host.docker.internal', 5672, $_ENV['RABBITMQ_USER'], $_ENV['RABBITMQ_PASS']);
+$connection = new AMQPStreamConnection($_ENV['RABBITMQ_HOST'], 5672, $_ENV['RABBITMQ_USER'], $_ENV['RABBITMQ_PASS']);
 $channel = $connection->channel();
 
 // declare TOPIC exchange
