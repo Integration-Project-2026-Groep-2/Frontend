@@ -11,3 +11,5 @@ RUN a2enmod rewrite && \
         /etc/apache2/apache2.conf
 
 COPY ./ /var/www/html
+
+COPY --from=composer /app/vendor /var/www/hml/vendor
