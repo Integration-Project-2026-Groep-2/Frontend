@@ -5,3 +5,15 @@ services:
       - "80:80"
     volumes:
       - ./:/var/www/html
+    environment:
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASS: ${RABBITMQ_PASS}
+
+  heartbeat:
+    build: .
+    command: php /var/www/html/rabbitmq/heartbeat.php
+    environment:
+      RABBITMQ_HOST: ${RABBITMQ_HOST}
+      RABBITMQ_USER: ${RABBITMQ_USER}
+      RABBITMQ_PASS: ${RABBITMQ_PASS}
