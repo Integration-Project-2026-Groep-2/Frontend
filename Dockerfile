@@ -10,4 +10,4 @@ RUN a2enmod rewrite && \
     sed -i 's/AllowOverride None/AllowOverride All/g' \
         /etc/apache2/apache2.conf
 
-COPY ./ /var/www/src/html
+COPY ./ /var/www/html
