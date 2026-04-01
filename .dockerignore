@@ -2,37 +2,8 @@
 .git
 .gitignore
 
-# Docker files themselves
-frontend/
+# Docker
 .dockerignore
 
-# Drupal generated files (rebuilt inside container)
-web/sites/default/files/
-web/sites/default/settings.php
-web/sites/default/settings.local.php
-private/
-
-# Vendor (rebuilt by Composer inside the image)
-vendor/
-web/core/
-web/modules/contrib/
-web/themes/contrib/
-web/libraries/
-
-# Dev tooling
-node_modules/
-.npm/
-.yarn/
-
-# IDE files
-.idea/
-.vscode/
-*.swp
-*.swo
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Logs
-*.log
+# PHP composer
+vendor
