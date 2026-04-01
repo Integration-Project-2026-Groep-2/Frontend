@@ -9,11 +9,13 @@
 	<input type="text" name="lastName" placeholder="Last name" required>*
 	<input type="email" name="email" placeholder="Email" required>*
 	<input type="text" name="phone" placeholder="Phone">
+	<input type="password" name="password" placeholder="Password" required>
 	
 	<label>
 		<input type="checkbox" name="gdprConsent" value="1" required>
 		GDPR Consent
 	</label>
 
-	<button type="submit">Register</button>
+	<button type="submit">Register</button><br>
+	<?=$registrationError??'';?>
 </form>
