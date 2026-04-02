@@ -9,7 +9,6 @@ services:
     environment:
       - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
       - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS}
-      - RABBITMQ_DEFAULT_VHOST=${RABBITMQ_VHOST}
       - RABBITMQ_ERLANG_COOKIE=securecookie
     healthcheck:
       test: ["CMD-SHELL", "rabbitmq-diagnostics -q check_running && rabbitmq-diagnostics -q check_local_alarms"]
@@ -42,6 +41,8 @@ services:
     image: mariadb:12
     container_name: frontend_db
     restart: unless-stopped
+    volumes:
+      - frontend_db_data:/var/lib/mysql
     environment:
       MARIADB_DATABASE: ${FRONTEND_DB_NAME}
       MARIADB_USER: ${FRONTEND_DB_USER}
@@ -53,3 +54,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+
+volumes:
+  frontend_db_data:

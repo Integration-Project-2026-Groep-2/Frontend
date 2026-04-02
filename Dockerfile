@@ -4,6 +4,10 @@ FROM drupal:11
 # Set working directory
 WORKDIR /opt/drupal
 
+RUN apt-get update && apt-get install -y libgmp-dev \
+    && docker-php-ext-install bcmath \
+    && rm -rf /var/lib/apt/lists/*
+
 # Copy composer files and install dependencies
 RUN composer require "php-amqplib/php-amqplib"
 

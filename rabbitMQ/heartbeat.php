@@ -5,11 +5,6 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
-use Dotenv\Dotenv;
-
-
-$dotenv = Dotenv::createImmutable(__DIR__.'/');
-$dotenv->load();
 
 $connection = new AMQPStreamConnection($_ENV['RABBITMQ_HOST'], 5672, $_ENV['RABBITMQ_USER'], $_ENV['RABBITMQ_PASS']);
 $channel = $connection->channel();
