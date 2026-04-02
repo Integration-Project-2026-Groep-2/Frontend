@@ -1,40 +1,55 @@
 services:
-  drupal:
-    image: drupal:11
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: rabbitmq_management
+    hostname: rabbitmq
+    restart: unless-stopped
     ports:
-      - "8080:80"
-    volumes:
-      - ./modules:/var/www/html/modules
-      - drupal_profiles:/var/www/html/profiles
-      - drupal_themes:/var/www/html/themes
-      - drupal_sites:/var/www/html/sites
-    depends_on:
-      - db
-
-  db:
-    image: mysql:9.6
+      - "15672:15672"
     environment:
-      MYSQL_DATABASE: drupal
-      MYSQL_USER: drupal
-      MYSQL_PASSWORD: drupal
-      MYSQL_ROOT_PASSWORD: root
-    volumes:
-      - db_data:/var/lib/mysql
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS}
+      - RABBITMQ_DEFAULT_VHOST=${RABBITMQ_VHOST}
+      - RABBITMQ_ERLANG_COOKIE=securecookie
+    healthcheck:
+      test: ["CMD-SHELL", "rabbitmq-diagnostics -q check_running && rabbitmq-diagnostics -q check_local_alarms"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
 
-  heartbeat:
+  frontend:
     build:
       context: .
-      dockerfile: docker/heartbeat/Dockerfile
-    volumes:
-      - ./rabbitMQ:/scripts
-      - heartbeat_vendor:/scripts/vendor
-      - ./.env:/scripts/.env:ro
-    command: php /scripts/heartbeat.php
+      dockerfile: Dockerfile
+    container_name: frontend_drupal
     restart: unless-stopped
-    
-volumes:
-  drupal_profiles:
-  drupal_themes:
-  drupal_sites:
-  db_data:
-  heartbeat_vendor:
+    depends_on:
+      frontend_db:
+        condition: service_healthy
+    ports:
+      - "8080:80"
+    environment:
+      - DRUPAL_DB_HOST=frontend_db
+      - DRUPAL_DB_NAME=${FRONTEND_DB_NAME}
+      - DRUPAL_DB_USER=${FRONTEND_DB_USER}
+      - DRUPAL_DB_PASS=${FRONTEND_DB_PASS}
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASS=${RABBITMQ_PASS}
+
+  frontend_db:
+    image: mariadb:12
+    container_name: frontend_db
+    restart: unless-stopped
+    environment:
+      MARIADB_DATABASE: ${FRONTEND_DB_NAME}
+      MARIADB_USER: ${FRONTEND_DB_USER}
+      MARIADB_PASSWORD: ${FRONTEND_DB_PASS}
+      MARIADB_ROOT_PASSWORD: ${FRONTEND_DB_ROOT_PASS}
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 3
