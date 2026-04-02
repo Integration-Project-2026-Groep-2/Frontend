@@ -1,35 +1,41 @@
 services:
   drupal:
-    build: .
+    image: drupal:11
     ports:
       - "8080:80"
-    environment:
-      - DRUPAL_DB_HOST=db
-      - DRUPAL_DB_NAME=drupal
-      - DRUPAL_DB_USER=drupal
-      - DRUPAL_DB_PASSWORD=drupal
+    volumes:
+      - drupal_modules:/var/www/html/modules
+      - drupal_profiles:/var/www/html/profiles
+      - drupal_themes:/var/www/html/themes
+      - drupal_sites:/var/www/html/sites
     depends_on:
       - db
-    entrypoint: >
-      bash -c "
-        echo 'Waiting for DB...' &&
-        until php -r \"new PDO('mysql:host=db;dbname=drupal', 'drupal', 'drupal');\" 2>/dev/null; do
-          echo 'DB not ready, retrying...' && sleep 2;
-        done &&
-        echo 'DB is ready!' &&
-        cd /opt/drupal &&
-        vendor/bin/drush site:install standard --db-url=mysql://drupal:drupal@db/drupal --site-name='My Drupal Site' --account-name=admin --account-pass=admin --yes --no-interaction &&
-        vendor/bin/drush en custom_module --yes &&
-        vendor/bin/drush cr &&
-        apache2-foreground
-      "
 
   db:
-    image: mariadb:11
+    image: mysql:9.6
     environment:
-      MARIADB_DATABASE: drupal
-      MARIADB_USER: drupal
-      MARIADB_PASSWORD: drupal
-      MARIADB_ROOT_PASSWORD: root
+      MYSQL_DATABASE: drupal
+      MYSQL_USER: drupal
+      MYSQL_PASSWORD: drupal
+      MYSQL_ROOT_PASSWORD: root
     volumes:
-      - ./db_data:/var/lib/mysql
+      - db_data:/var/lib/mysql
+
+  heartbeat:
+    build:
+      context: .
+      dockerfile: docker/heartbeat/Dockerfile
+    volumes:
+      - ./rabbitMQ:/scripts
+      - heartbeat_vendor:/scripts/vendor
+      - ./.env:/scripts/.env:ro
+    command: php /scripts/heartbeat.php
+    restart: unless-stopped
+    
+volumes:
+  drupal_modules:
+  drupal_profiles:
+  drupal_themes:
+  drupal_sites:
+  db_data:
+  heartbeat_vendor:
