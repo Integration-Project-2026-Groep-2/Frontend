@@ -6,7 +6,22 @@ require_once __DIR__ . '/vendor/autoload.php';
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 
-$connection = new AMQPStreamConnection($_ENV['RABBITMQ_HOST'], 5672, $_ENV['RABBITMQ_USER'], $_ENV['RABBITMQ_PASS']);
+$maxRetries = 10;
+$retry = 0;
+while ($retry < $maxRetries) {
+    try {
+        $connection = new AMQPStreamConnection(
+            $_ENV['RABBITMQ_HOST'], 5672,
+            $_ENV['RABBITMQ_USER'], $_ENV['RABBITMQ_PASS']
+        );
+        break;
+    } catch (\Exception $e) {
+        echo "RabbitMQ not ready, retrying in 5s...\n";
+        $retry++;
+        sleep(5);
+    }
+}
+
 $channel = $connection->channel();
 
 $channel->exchange_declare(

@@ -26,6 +26,8 @@ services:
     depends_on:
       frontend_db:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
     ports:
       - "8080:80"
     environment:
