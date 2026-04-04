@@ -24,6 +24,7 @@ RUN chown -R www-data:www-data /opt/drupal/web/modules/custom/module \
 
 # Use an entrypoint script to start the heartbeat and Apache
 COPY ./docker-entrypoint.sh /docker-entrypoint-custom.sh
-RUN chmod +x /docker-entrypoint-custom.sh
+RUN sed -i 's/\r//' /docker-entrypoint-custom.sh \
+    && chmod +x /docker-entrypoint-custom.sh
 
 ENTRYPOINT ["/docker-entrypoint-custom.sh"]
