@@ -1,0 +1,5 @@
+name: Hello World
+type: module
+description: A simple Hello World module for Drupal.
+package: Custom
+core_version_requirement: ^10 || ^11
