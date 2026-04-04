@@ -4,7 +4,6 @@ namespace Drupal\hello_world\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
 
-
 class AdminController extends ControllerBase {
     
     public function page(): array {
