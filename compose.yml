@@ -22,6 +22,8 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: frontend_drupal
+    volumes:
+      - drupal_sites:/opt/drupal/web/sites
     restart: unless-stopped
     depends_on:
       frontend_db:
@@ -59,3 +61,4 @@ services:
 
 volumes:
   frontend_db_data:
+  drupal_sites:
