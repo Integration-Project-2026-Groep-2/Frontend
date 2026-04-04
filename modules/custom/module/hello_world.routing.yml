@@ -5,3 +5,11 @@ hello_world.hello:
     _title: 'Hello World'
   requirements:
     _permission: 'access content'
+
+registration_visitor.register:
+  path: '/register_visitor'
+  defaults:
+    _controller: '\Drupal\hello_world\Controller\RegisterVisitorController::registerVisitor'
+    _title: 'Registration visitor'
+  requirements:
+    _permission: 'access content'
