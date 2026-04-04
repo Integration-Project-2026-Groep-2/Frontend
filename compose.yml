@@ -30,6 +30,8 @@ services:
         condition: service_healthy
     ports:
       - "8080:80"
+    volumes:
+      - ./web/modules/custom:/opt/drupal/web/modules/custom
     environment:
       - DRUPAL_DB_HOST=frontend_db
       - DRUPAL_DB_NAME=${FRONTEND_DB_NAME}

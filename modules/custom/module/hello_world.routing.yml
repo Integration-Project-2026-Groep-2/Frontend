@@ -5,3 +5,11 @@ hello_world.hello:
     _title: 'Hello World'
   requirements:
     _permission: 'access content'
+
+hello_world.admin_page:
+  path: '/hello-admin'
+  defaults:
+    _controller: '\Drupal\hello_world\Controller\AdminController::page'
+    _title: 'Hello World Admin'
+  requirements:
+    _permission: 'administer site configuration'
