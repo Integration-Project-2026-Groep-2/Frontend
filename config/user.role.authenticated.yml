@@ -1,0 +1,31 @@
+uuid: 6a4664a1-f1f7-4676-8dd3-7ad822d402bd
+langcode: en
+status: true
+dependencies:
+  config:
+    - filter.format.basic_html
+    - node.type.bedrijf
+  module:
+    - comment
+    - file
+    - filter
+    - node
+    - search
+    - shortcut
+    - system
+_core:
+  default_config_hash: hcfESiA8tr3D1muRk2KF7tbcun16ZJlG1R5SzKGed6g
+id: authenticated
+label: 'Authenticated user'
+weight: 1
+is_admin: false
+permissions:
+  - 'access comments'
+  - 'access content'
+  - 'access shortcuts'
+  - 'create bedrijf content'
+  - 'delete own files'
+  - 'post comments'
+  - 'search content'
+  - 'skip comment approval'
+  - 'use text format basic_html'

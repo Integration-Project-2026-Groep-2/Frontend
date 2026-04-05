@@ -1,0 +1,97 @@
+uuid: 1b3680e8-dbf7-412e-b359-1b063c9c1ef7
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.field.node.bedrijf.field_adres
+    - field.field.node.bedrijf.field_bedrijfsnaam
+    - field.field.node.bedrijf.field_bedrijfsomschrijving
+    - field.field.node.bedrijf.field_btw_nummer
+    - field.field.node.bedrijf.field_e_mailadres
+    - field.field.node.bedrijf.field_logo
+    - field.field.node.bedrijf.field_telefoonnummer
+    - field.field.node.bedrijf.field_website
+    - node.type.bedrijf
+  module:
+    - image
+    - link
+    - user
+id: node.bedrijf.default
+targetEntityType: node
+bundle: bedrijf
+mode: default
+content:
+  field_adres:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 106
+    region: content
+  field_bedrijfsnaam:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 101
+    region: content
+  field_bedrijfsomschrijving:
+    type: basic_string
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 108
+    region: content
+  field_btw_nummer:
+    type: string
+    label: above
+    settings:
+      link_to_entity: false
+    third_party_settings: {  }
+    weight: 102
+    region: content
+  field_e_mailadres:
+    type: basic_string
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 103
+    region: content
+  field_logo:
+    type: image
+    label: above
+    settings:
+      image_link: ''
+      image_style: ''
+      image_loading:
+        attribute: lazy
+    third_party_settings: {  }
+    weight: 107
+    region: content
+  field_telefoonnummer:
+    type: basic_string
+    label: above
+    settings: {  }
+    third_party_settings: {  }
+    weight: 104
+    region: content
+  field_website:
+    type: link
+    label: above
+    settings:
+      trim_length: 80
+      url_only: false
+      url_plain: false
+      rel: ''
+      target: ''
+    third_party_settings: {  }
+    weight: 105
+    region: content
+  links:
+    settings: {  }
+    third_party_settings: {  }
+    weight: 100
+    region: content
+hidden: {  }

@@ -1,0 +1,19 @@
+uuid: 5e83b7ad-a3cd-496f-8b4f-50b150b966f3
+langcode: en
+status: true
+dependencies:
+  config:
+    - field.storage.node.field_adres
+    - node.type.bedrijf
+id: node.bedrijf.field_adres
+field_name: field_adres
+entity_type: node
+bundle: bedrijf
+label: Adres
+description: ''
+required: true
+translatable: false
+default_value: {  }
+default_value_callback: ''
+settings: {  }
+field_type: string

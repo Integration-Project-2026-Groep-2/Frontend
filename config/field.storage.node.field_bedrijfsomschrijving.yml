@@ -1,0 +1,19 @@
+uuid: 03410cd8-fe0e-44c7-b282-165120e3f1e8
+langcode: en
+status: true
+dependencies:
+  module:
+    - node
+id: node.field_bedrijfsomschrijving
+field_name: field_bedrijfsomschrijving
+entity_type: node
+type: string_long
+settings:
+  case_sensitive: false
+module: core
+locked: false
+cardinality: 1
+translatable: true
+indexes: {  }
+persist_with_no_fields: false
+custom_storage: false
