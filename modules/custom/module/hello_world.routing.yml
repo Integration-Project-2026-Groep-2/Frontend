@@ -6,6 +6,14 @@ hello_world.hello:
   requirements:
     _permission: 'access content'
 
+registration_visitor.register:
+  path: '/register_visitor'
+  defaults:
+    _controller: '\Drupal\hello_world\Controller\RegisterVisitorController::registerVisitor'
+    _title: 'Registration visitor'
+  requirements:
+    _permission: 'access content'
+
 hello_world.admin_page:
   path: '/hello/admin'
   defaults:

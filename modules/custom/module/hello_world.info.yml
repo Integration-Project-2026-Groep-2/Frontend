@@ -1,5 +1,5 @@
-name: Hello World
+name: The integration module
 type: module
-description: A simple Hello World module for Drupal.
+description: A module for Drupal.
 package: Custom
 core_version_requirement: ^10 || ^11
