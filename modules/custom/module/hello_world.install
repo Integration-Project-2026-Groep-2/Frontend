@@ -1,0 +1,63 @@
+<?php
+
+use Drupal\user\Entity\Role;
+
+/**
+ * Runs when the module is installed.
+ */
+function hello_world_install() {
+    \Drupal::logger('hello_world')->notice('hello_world_install ran');
+  _hello_world_create_roles_and_permissions();
+}
+
+/**
+ * Create custom roles.
+ */
+function hello_world_update_9001() {
+  _hello_world_create_roles_and_permissions();
+}
+
+/**
+ * Ensure permissions are present on updates too.
+ */
+function hello_world_update_9002() {
+  _hello_world_create_roles_and_permissions();
+}
+
+/**
+ * Helper: create roles and grant permissions.
+ */
+function _hello_world_create_roles_and_permissions() {
+  $roles = [
+    'company' => 'Company',
+    'speaker' => 'Speaker',
+  ];
+
+  foreach ($roles as $id => $label) {
+    $role = Role::load($id);
+    if (!$role) {
+      $role = Role::create([
+        'id' => $id,
+        'label' => $label,
+      ]);
+    }
+
+    $permissions = ['access content'];
+
+    if ($id === 'company') {
+      $permissions[] = 'create article content';
+      $permissions[] = 'edit own article content';
+    }
+
+    if ($id === 'speaker') {
+      $permissions[] = 'create page content';
+      $permissions[] = 'edit own page content';
+    }
+
+    foreach ($permissions as $permission) {
+      $role->grantPermission($permission);
+    }
+
+    $role->save();
+  }
+}
