@@ -56,26 +56,28 @@ class AdminController extends ControllerBase {
                                 <button type="submit">Sort/Search</button>
                             </form>
 
-                            {% if companies is not empty %}
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>Name</th>
-                                            <th>Email</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for company in companies %}
+                            <div style="max-height: 420px; overflow-y: auto; border: 1px solid #ddd;">
+                                {% if companies is not empty %}
+                                    <table style="width: 100%; border-collapse: separate; border-spacing: 0;">
+                                        <thead>
                                             <tr>
-                                                <td>{{ company.name }}</td>
-                                                <td>{{ company.mail }}</td>
+                                                <th style="position: sticky; top: 0; background: #fff; z-index: 1;">Name</th>
+                                                <th style="position: sticky; top: 0; background: #fff; z-index: 1;">Email</th>
                                             </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            {% else %}
-                                <p>Geen bedrijven gevonden.</p>
-                            {% endif %}
+                                        </thead>
+                                        <tbody>
+                                            {% for company in companies %}
+                                                <tr>
+                                                    <td>{{ company.name }}</td>
+                                                    <td>{{ company.mail }}</td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                {% else %}
+                                    <p>Geen bedrijven gevonden.</p>
+                                {% endif %}
+                            </div>
                         </div>
 
                         <div class="admin-card">
@@ -96,26 +98,28 @@ class AdminController extends ControllerBase {
                                 <button type="submit">Sort/Search</button>
                             </form>
 
-                            {% if visitors is not empty %}
-                                <table>
-                                    <thead>
-                                        <tr>
-                                            <th>Name</th>
-                                            <th>Email</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {% for visitor in visitors %}
+                            <div style="max-height: 420px; overflow-y: auto; border: 1px solid #ddd;">
+                                {% if visitors is not empty %}
+                                    <table style="width: 100%; border-collapse: separate; border-spacing: 0;">
+                                        <thead>
                                             <tr>
-                                                <td>{{ visitor.name }}</td>
-                                                <td>{{ visitor.mail }}</td>
+                                                <th style="position: sticky; top: 0; background: #fff; z-index: 1;">Name</th>
+                                                <th style="position: sticky; top: 0; background: #fff; z-index: 1;">Email</th>
                                             </tr>
-                                        {% endfor %}
-                                    </tbody>
-                                </table>
-                            {% else %}
-                                <p>Geen bezoekers gevonden.</p>
-                            {% endif %}
+                                        </thead>
+                                        <tbody>
+                                            {% for visitor in visitors %}
+                                                <tr>
+                                                    <td>{{ visitor.name }}</td>
+                                                    <td>{{ visitor.mail }}</td>
+                                                </tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                {% else %}
+                                    <p>Geen bezoekers gevonden.</p>
+                                {% endif %}
+                            </div>
                         </div>
 
                         <div class="admin-card">
