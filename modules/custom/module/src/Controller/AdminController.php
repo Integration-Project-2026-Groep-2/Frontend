@@ -9,12 +9,14 @@ class AdminController extends ControllerBase {
     public function page(): array {
         $vOption = $this->getSortOption('v', 'name_asc');
         $cOption = $this->getSortOption('c', 'name_asc');
+        $vQuery = $this->getSearchTerm('v');
+        $cQuery = $this->getSearchTerm('c');
 
         [$vField, $vDir] = $this->mapSortOption($vOption);
         [$cField, $cDir] = $this->mapSortOption($cOption);
 
-        $visitors = $this->getVisitors($vField, $vDir);
-        $companies = $this->getCompanies($cField, $cDir);
+        $visitors = $this->getVisitors($vField, $vDir, $vQuery);
+        $companies = $this->getCompanies($cField, $cDir, $cQuery);
 
         return [
             '#type' => 'inline_template',
@@ -41,6 +43,7 @@ class AdminController extends ControllerBase {
 
                             <form method="get" style="margin-bottom:10px;">
                                 <input type="hidden" name="v_sort" value="{{ v_option }}">
+                                <input type="hidden" name="v_q" value="{{ v_query }}">
                                 <select name="c_sort">
                                     <option value="name_asc" {{ c_option == "name_asc" ? "selected" : "" }}>Alphabetical A → Z</option>
                                     <option value="name_desc" {{ c_option == "name_desc" ? "selected" : "" }}>Alphabetical Z → A</option>
@@ -49,7 +52,8 @@ class AdminController extends ControllerBase {
                                     <option value="access_asc" {{ c_option == "access_asc" ? "selected" : "" }}>Last online ↑</option>
                                     <option value="access_desc" {{ c_option == "access_desc" ? "selected" : "" }}>Last online ↓</option>
                                 </select>
-                                <button type="submit">Sort</button>
+                                <input type="text" name="c_q" value="{{ c_query }}" placeholder="Search name">
+                                <button type="submit">Sort/Search</button>
                             </form>
 
                             {% if companies is not empty %}
@@ -79,6 +83,7 @@ class AdminController extends ControllerBase {
 
                             <form method="get" style="margin-bottom:10px;">
                                 <input type="hidden" name="c_sort" value="{{ c_option }}">
+                                <input type="hidden" name="c_q" value="{{ c_query }}">
                                 <select name="v_sort">
                                     <option value="name_asc" {{ v_option == "name_asc" ? "selected" : "" }}>Alphabetical A → Z</option>
                                     <option value="name_desc" {{ v_option == "name_desc" ? "selected" : "" }}>Alphabetical Z → A</option>
@@ -87,7 +92,8 @@ class AdminController extends ControllerBase {
                                     <option value="access_asc" {{ v_option == "access_asc" ? "selected" : "" }}>Last online ↑</option>
                                     <option value="access_desc" {{ v_option == "access_desc" ? "selected" : "" }}>Last online ↓</option>
                                 </select>
-                                <button type="submit">Sort</button>
+                                <input type="text" name="v_q" value="{{ v_query }}" placeholder="Search name">
+                                <button type="submit">Sort/Search</button>
                             </form>
 
                             {% if visitors is not empty %}
@@ -132,18 +138,25 @@ class AdminController extends ControllerBase {
                 'companies' => $companies,
                 'v_option' => $vOption,
                 'c_option' => $cOption,
+                'v_query' => $vQuery,
+                'c_query' => $cQuery,
             ],
             '#cache' => ['max-age' => 0],
         ];
     }
 
-    private function getVisitors(string $sortField = 'name', string $sortDir = 'ASC'): array {
-        $uids = $this->entityTypeManager()->getStorage('user')->getQuery()
+    private function getVisitors(string $sortField = 'name', string $sortDir = 'ASC', string $search = ''): array {
+        $query = $this->entityTypeManager()->getStorage('user')->getQuery()
             ->accessCheck(FALSE)
             ->condition('roles', 'visitor')
             ->sort($sortField, strtoupper($sortDir))
-            ->range(0, 50)
-            ->execute();
+            ->range(0, 50);
+
+        if ($search !== '') {
+            $query->condition('name', '%' . $search . '%', 'LIKE');
+        }
+
+        $uids = $query->execute();
 
         if (empty($uids)) return [];
 
@@ -160,13 +173,18 @@ class AdminController extends ControllerBase {
         return $result;
     }
 
-    private function getCompanies(string $sortField = 'name', string $sortDir = 'ASC'): array {
-        $uids = $this->entityTypeManager()->getStorage('user')->getQuery()
+    private function getCompanies(string $sortField = 'name', string $sortDir = 'ASC', string $search = ''): array {
+        $query = $this->entityTypeManager()->getStorage('user')->getQuery()
             ->accessCheck(FALSE)
             ->condition('roles', 'company')
             ->sort($sortField, strtoupper($sortDir))
-            ->range(0, 50)
-            ->execute();
+            ->range(0, 50);
+
+        if ($search !== '') {
+            $query->condition('name', '%' . $search . '%', 'LIKE');
+        }
+
+        $uids = $query->execute();
 
         if (empty($uids)) return [];
 
@@ -181,6 +199,10 @@ class AdminController extends ControllerBase {
         }
 
         return $result;
+    }
+
+    private function getSearchTerm(string $prefix): string {
+        return trim((string) \Drupal::request()->query->get($prefix . '_q', ''));
     }
 
     private function getSortOption(string $prefix, string $default): string {
