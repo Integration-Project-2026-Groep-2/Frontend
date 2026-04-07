@@ -1,0 +1,10 @@
+# This file is part of Drupal.
+# This adds a admin menu link for the admin page of the Hello World module.
+
+
+hello_world.admin_page:       # Unique key for the menu link
+  title: 'Admin Dashboard'    # Name that is displayed in the toolbar
+  route_name: hello_world.admin_page  # Points to the route in hello_world.routing.yml
+  menu_name: admin            # Places the link in the admin menu
+  parent: system.admin        # Places the link next to Content, Structure, Appearance...
+  weight: 10                  # Order in the toolbar, higher number = further to the right
