@@ -8,6 +8,7 @@ class AdminController extends ControllerBase {
     
     public function page(): array {
         $visitors = $this->getVisitors();
+        $companies = $this->getCompanies();
 
         return [
             '#type' => 'inline_template',
@@ -31,6 +32,26 @@ class AdminController extends ControllerBase {
 
                         <div class="admin-card">
                             <h2> Bedrijven </h2>
+                            {% if companies is not empty %}
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for company in companies %}
+                                            <tr>
+                                                <td>{{ company.name }}</td>
+                                                <td>{{ company.mail }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            {% else %}
+                                <p>Geen bedrijven gevonden.</p>
+                            {% endif %}
                         </div>
 
                         <div class="admin-card">
@@ -74,6 +95,7 @@ class AdminController extends ControllerBase {
             ',
             '#context' => [
                 'visitors' => $visitors,
+                'companies' => $companies,
             ],
             '#cache' => [
                 'max-age' => 0,
@@ -87,6 +109,33 @@ class AdminController extends ControllerBase {
             ->getQuery()
             ->accessCheck(FALSE)
             ->condition('roles', 'visitor')
+            ->sort('created', 'DESC')
+            ->range(0, 10)
+            ->execute();
+
+        if (empty($uids)) {
+            return [];
+        }
+
+        $users = $this->entityTypeManager()->getStorage('user')->loadMultiple($uids);
+        $result = [];
+
+        foreach ($users as $user) {
+            $result[] = [
+                'name' => $user->getAccountName(),
+                'mail' => $user->getEmail(),
+            ];
+        }
+
+        return $result;
+    }
+
+    private function getCompanies(): array {
+        $uids = $this->entityTypeManager()
+            ->getStorage('user')
+            ->getQuery()
+            ->accessCheck(FALSE)
+            ->condition('roles', 'company')
             ->sort('created', 'DESC')
             ->range(0, 10)
             ->execute();
