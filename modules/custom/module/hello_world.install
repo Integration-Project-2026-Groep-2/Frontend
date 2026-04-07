@@ -6,7 +6,6 @@ use Drupal\user\Entity\Role;
  * Runs when the module is installed.
  */
 function hello_world_install() {
-  \Drupal::logger('hello_world')->notice('hello_world_install ran');
   _hello_world_create_roles_and_permissions();
 }
 
