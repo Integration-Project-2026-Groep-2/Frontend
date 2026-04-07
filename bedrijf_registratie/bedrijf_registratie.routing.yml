@@ -5,3 +5,11 @@ bedrijf_registratie.form:
     _title: 'Registreer uw bedrijf'
   requirements:
     _permission: 'access content'
+
+bedrijf_registratie.gegevens:
+  path: '/bedrijf/gegevens'
+  defaults:
+    _controller: '\Drupal\bedrijf_registratie\Controller\RegistratieController::gegevensPagina'
+    _title: 'Bedrijfsgegevens'
+  requirements:
+    _permission: 'access content'

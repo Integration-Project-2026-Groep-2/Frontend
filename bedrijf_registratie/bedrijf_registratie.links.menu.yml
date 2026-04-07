@@ -1,0 +1,6 @@
+bedrijf_registratie.admin_link:
+  title: 'Bedrijfsdashboard'
+  description: 'Beheer uw bedrijfsgegevens'
+  parent: main
+  route_name: bedrijf_registratie.gegevens
+  weight: 10
