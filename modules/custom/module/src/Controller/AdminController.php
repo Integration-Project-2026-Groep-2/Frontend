@@ -7,6 +7,8 @@ use Drupal\Core\Controller\ControllerBase;
 class AdminController extends ControllerBase {
     
     public function page(): array {
+        $visitors = $this->getVisitors();
+
         return [
             '#type' => 'inline_template',
             '#template' => '
@@ -33,6 +35,26 @@ class AdminController extends ControllerBase {
 
                         <div class="admin-card">
                             <h2> Bezoekers </h2>
+                            {% if visitors is not empty %}
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for visitor in visitors %}
+                                            <tr>
+                                                <td>{{ visitor.name }}</td>
+                                                <td>{{ visitor.mail }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            {% else %}
+                                <p>Geen bezoekers gevonden.</p>
+                            {% endif %}
                         </div>
 
                         <div class="admin-card">
@@ -50,8 +72,40 @@ class AdminController extends ControllerBase {
                     </div>
                 </div>
             ',
-            '#context' => [],
+            '#context' => [
+                'visitors' => $visitors,
+            ],
+            '#cache' => [
+                'max-age' => 0,
+            ],
         ];
+    }
+
+    private function getVisitors(): array {
+        $uids = $this->entityTypeManager()
+            ->getStorage('user')
+            ->getQuery()
+            ->accessCheck(FALSE)
+            ->condition('roles', 'visitor')
+            ->sort('created', 'DESC')
+            ->range(0, 10)
+            ->execute();
+
+        if (empty($uids)) {
+            return [];
+        }
+
+        $users = $this->entityTypeManager()->getStorage('user')->loadMultiple($uids);
+        $result = [];
+
+        foreach ($users as $user) {
+            $result[] = [
+                'name' => $user->getAccountName(),
+                'mail' => $user->getEmail(),
+            ];
+        }
+
+        return $result;
     }
 
 }
