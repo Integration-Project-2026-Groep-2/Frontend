@@ -1,5 +1,5 @@
-# This file is part of Drupal.
-# This adds a admin menu link for the admin page of the Hello World module.
+# This file is part of the Hello World module.
+# This adds an admin menu link for the admin page of the Hello World module.
 
 
 hello_world.admin_page:       # Unique key for the menu link
