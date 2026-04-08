@@ -21,3 +21,27 @@ bedrijf_registratie.medewerker_toevoegen:
     _title: 'Nieuwe Medewerker'
   requirements:
     _permission: 'access content'
+
+bedrijf_registratie.sessies:
+  path: '/bedrijf/sessies'
+  defaults:
+    _controller: '\Drupal\bedrijf_registratie\Controller\RegistratieController::sessiePagina'
+    _title: 'Sessies'
+  requirements:
+    _permission: 'access content'
+
+bedrijf_registratie.betalingen:
+  path: '/bedrijf/betalingen'
+  defaults:
+    _controller: '\Drupal\bedrijf_registratie\Controller\RegistratieController::betalingPagina'
+    _title: 'Betalingsgeschiedenis'
+  requirements:
+    _permission: 'access content'
+
+bedrijf_registratie.account:
+  path: '/bedrijf/account'
+  defaults:
+    _controller: '\Drupal\bedrijf_registratie\Controller\RegistratieController::accountPagina'
+    _title: 'Accountgegevens'
+  requirements:
+    _permission: 'access content'

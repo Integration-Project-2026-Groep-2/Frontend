@@ -30,5 +30,22 @@ class RegistratieController extends ControllerBase {
     ];
     return $output;
   }
+  public function sessiePagina() {
+    return [
+      '#markup' => '<h2>' . $this->t('Sessie Overzicht') . '</h2><p>' . $this->t('Hier komen de geplande sessies te staan.') . '</p>',
+    ];
+  }
+
+  public function betalingPagina() {
+    return [
+      '#markup' => '<h2>' . $this->t('Betalingsgeschiedenis') . '</h2><p>' . $this->t('Een overzicht van uw facturen en betalingen.') . '</p>',
+    ];
+  }
+
+  public function accountPagina() {
+    return [
+      '#markup' => '<h2>' . $this->t('Accountinstellingen') . '</h2><p>' . $this->t('Beheer hier uw inloggegevens en voorkeuren.') . '</p>',
+    ];
+  }
 
 }
