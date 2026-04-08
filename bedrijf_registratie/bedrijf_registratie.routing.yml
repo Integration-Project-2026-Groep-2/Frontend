@@ -13,3 +13,11 @@ bedrijf_registratie.gegevens:
     _title: 'Bedrijfsgegevens'
   requirements:
     _permission: 'access content'
+
+bedrijf_registratie.medewerker_toevoegen:
+  path: '/bedrijf/medewerker/toevoegen'
+  defaults:
+    _form: '\Drupal\bedrijf_registratie\Form\MedewerkerToevoegenForm'
+    _title: 'Nieuwe Medewerker'
+  requirements:
+    _permission: 'access content'

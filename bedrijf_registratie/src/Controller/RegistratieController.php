@@ -23,7 +23,10 @@ class RegistratieController extends ControllerBase {
                    '<li><strong>' . $this->t('E-mailadres') . ':</strong> ' . $email . '</li>' .
                    '<li><strong>' . $this->t('Telefoonnummer') . ':</strong> ' . $telefoon . '</li>' .
                    '<li><strong>' . $this->t('Maatschappelijke zetel') . ':</strong> ' . $zetel . '</li>' .
-                   '</ul>',
+                   '</ul>' . 
+                   '<p><a href="/bedrijf/medewerker/toevoegen" class="button">' . $this->t('+ Medewerker toevoegen') . '</a></p>' ,
+                   
+
     ];
     return $output;
   }
