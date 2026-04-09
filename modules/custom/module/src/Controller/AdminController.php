@@ -4,10 +4,24 @@ namespace Drupal\hello_world\Controller;
 
 use Drupal\Core\Cache\Cache;
 use Drupal\Core\Controller\ControllerBase;
-use Drupal\Core\Database\Database; 
+use Drupal\Core\Database\Database;
+use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 class AdminController extends ControllerBase {
-    
+
+    private RequestStack $requestStack;
+
+    public function __construct(RequestStack $requestStack) {
+        $this->requestStack = $requestStack;
+    }
+
+    public static function create(ContainerInterface $container): static {
+        return new static(
+            $container->get('request_stack')
+        );
+    }
+
     public function page(): array {
         $vOption = $this->getSortOption('v', 'name_asc');
         $cOption = $this->getSortOption('c', 'name_asc');
@@ -209,13 +223,16 @@ class AdminController extends ControllerBase {
     }
 
     private function getSearchTerm(string $prefix): string {
-        $value = trim((string) \Drupal::request()->query->get($prefix . '_q', ''));
-        return mb_substr($value, 0, 100); //max 100 Characters to prevent abuse
+        $request = $this->requestStack->getCurrentRequest();
+        $value = trim((string) $request->query->get($prefix . '_q', ''));
+        return mb_substr($value, 0, 100);
     }
 
     private function getSortOption(string $prefix, string $default): string {
         $allowed = ['name_asc', 'name_desc', 'created_asc', 'created_desc', 'access_asc', 'access_desc'];
-        $value = (string) \Drupal::request()->query->get($prefix . '_sort', $default);
+        $request = $this->requestStack->getCurrentRequest();
+        $value = (string) $request->query->get($prefix . '_sort', $default);
+
         return in_array($value, $allowed, TRUE) ? $value : $default;
     }
 
