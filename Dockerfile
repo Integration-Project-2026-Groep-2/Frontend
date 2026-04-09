@@ -13,6 +13,7 @@ RUN composer require "php-amqplib/php-amqplib"
 
 # Copy custom module(s) into the Drupal modules directory
 COPY ./modules/custom/module /opt/drupal/web/modules/custom/module
+COPY ./modules/custom/custom_roles /opt/drupal/web/modules/custom/custom_roles
 
 # Copy the heartbeat script
 COPY ./rabbitMQ/heartbeat.php /opt/drupal/heartbeat.php
