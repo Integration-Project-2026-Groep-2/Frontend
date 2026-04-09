@@ -20,4 +20,4 @@ hello_world.admin_page:
     _controller: '\Drupal\hello_world\Controller\AdminController::page'
     _title: 'Admin Dashboard'
   requirements:
-    _permission: 'administer site configuration'
+    _permission: 'administer users'
