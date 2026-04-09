@@ -2,6 +2,7 @@
 
 namespace Drupal\hello_world\Controller;
 
+use Drupal\Core\Cache\Cache;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Database\Database; 
 
@@ -118,10 +119,11 @@ class AdminController extends ControllerBase {
 
                         <div class="admin-card">
                             <h2> Feedback </h2>
+                            <a href="#">Bekijk feedback</a>
                         </div>
 
                         <div class="admin-instellingen">
-                            <a href="/hello-admin/instellingen">⚙️ Instellingen</a>
+                            <a href="#">⚙️ Instellingen</a>
                         </div>
 
                     </div>
@@ -135,7 +137,16 @@ class AdminController extends ControllerBase {
                 'v_query' => $vQuery,
                 'c_query' => $cQuery,
             ],
-            '#cache' => ['max-age' => 0],
+            '#cache' => [
+                'max-age' => Cache::PERMANENT,
+                'contexts' => [
+                    'url.query_args:v_sort',
+                    'url.query_args:v_q',
+                    'url.query_args:c_sort',
+                    'url.query_args:c_q',
+                ],
+                'tags' => ['user_list'],
+            ],
         ];
     }
 
