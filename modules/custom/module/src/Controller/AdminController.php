@@ -152,7 +152,7 @@ class AdminController extends ControllerBase {
 
     private function getVisitors(string $sortField = 'name', string $sortDir = 'ASC', string $search = ''): array {
         $query = $this->entityTypeManager()->getStorage('user')->getQuery()
-            ->accessCheck(TRUE) // changed from FALSE
+            ->accessCheck(TRUE)
             ->condition('roles', 'visitor')
             ->sort($sortField, strtoupper($sortDir))
             ->range(0, 50);
@@ -181,7 +181,7 @@ class AdminController extends ControllerBase {
 
     private function getCompanies(string $sortField = 'name', string $sortDir = 'ASC', string $search = ''): array {
         $query = $this->entityTypeManager()->getStorage('user')->getQuery()
-            ->accessCheck(TRUE) // changed from FALSE
+            ->accessCheck(TRUE)
             ->condition('roles', 'company')
             ->sort($sortField, strtoupper($sortDir))
             ->range(0, 50);
