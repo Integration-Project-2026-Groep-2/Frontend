@@ -3,6 +3,7 @@
 namespace Drupal\hello_world\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
+use Drupal\Core\Database\Database; 
 
 class AdminController extends ControllerBase {
     
@@ -26,17 +27,6 @@ class AdminController extends ControllerBase {
                     <p>Dit is de admin pagina. Hier kan je zaken zoals sessies beheren, gebruikers bekijken en inschrijvingen opvolgen.</p>
 
                     <div class="admin-cards">
-
-                        <div class="admin-card">
-                            <nav>
-                                <ul>
-                                    <li><a href="/admin/hello-world/sessies">Sessies</a></li>
-                                    <li><a href="/admin/hello-world/gebruikers">Gebruikers</a></li>
-                                    <li><a href="/admin/hello-world/inschrijvingen">Inschrijvingen</a></li>
-                                    <li><a href="/admin/hello-world/feedback">Feedback</a></li>
-                                </ul>
-                            </nav>
-                        </div>
 
                         <div class="admin-card">
                             <h2>Bedrijven</h2>
@@ -157,7 +147,8 @@ class AdminController extends ControllerBase {
             ->range(0, 50);
 
         if ($search !== '') {
-            $query->condition('name', '%' . $search . '%', 'LIKE');
+            $escaped = Database::getConnection()->escapeLike($search);
+            $query->condition('name', '%' . $escaped . '%', 'LIKE');
         }
 
         $uids = $query->execute();
@@ -185,7 +176,8 @@ class AdminController extends ControllerBase {
             ->range(0, 50);
 
         if ($search !== '') {
-            $query->condition('name', '%' . $search . '%', 'LIKE');
+            $escaped = Database::getConnection()->escapeLike($search);
+            $query->condition('name', '%' . $escaped . '%', 'LIKE');
         }
 
         $uids = $query->execute();
@@ -206,7 +198,8 @@ class AdminController extends ControllerBase {
     }
 
     private function getSearchTerm(string $prefix): string {
-        return trim((string) \Drupal::request()->query->get($prefix . '_q', ''));
+        $value = trim((string) \Drupal::request()->query->get($prefix . '_q', ''));
+        return mb_substr($value, 0, 100); //max 100 Characters to prevent abuse
     }
 
     private function getSortOption(string $prefix, string $default): string {
