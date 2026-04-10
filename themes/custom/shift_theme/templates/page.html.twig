@@ -1,0 +1,30 @@
+<header class="custom-navbar-wrapper">
+  <div class="navbar-container">
+    <div class="navbar-logo">
+      <a href="{{ front_page }}">
+        {# Hier roepen we het logo aan uit jouw images map #}
+        <img src="{{ base_path ~ directory ~ '/images/logonav.png' }}" class="nav-logo-img" alt="Shift Logo">
+      </a>
+    </div>
+
+    <nav class="navbar-menu">
+      {# Hier komen je links, of je roept de Drupal menu-regio aan #}
+      {{ page.header }}
+    </nav>
+  </div>
+</header>
+
+{% if is_front %}
+  <section class="hero-section hero-logo-only dark-theme">
+    <div class="hero-main-logo">
+      <div class="logo-wrapper">
+        <img src="{{ base_path ~ directory ~ '/images/logo1.png' }}" class="spiral-icon" alt="Shift Spiral">
+        <p class="hero-tagline">Talent is awarded here</p>
+      </div>
+    </div>
+  </section>
+{% endif %}
+
+<main>
+  {{ page.content }} {# Hier verschijnt je registratieformulier! #}
+</main>

@@ -1,5 +1,0 @@
-name: The integration module
-type: module
-description: A module for Drupal.
-package: Custom
-core_version_requirement: ^10 || ^11

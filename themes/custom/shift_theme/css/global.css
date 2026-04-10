@@ -1,0 +1,17 @@
+/* global.css */
+
+body {
+  background-color: #faf5ff !important;
+  margin: 0;
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Zorg dat alle containers van Drupal 'meekleuren' */
+#page-wrapper,
+#page,
+main,
+.layout-container {
+  background: transparent !important;
+  background-color: transparent !important;
+}
