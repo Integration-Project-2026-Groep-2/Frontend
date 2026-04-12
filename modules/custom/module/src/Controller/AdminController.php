@@ -31,8 +31,8 @@ class AdminController extends ControllerBase {
         [$vField, $vDir] = $this->mapSortOption($vOption);
         [$cField, $cDir] = $this->mapSortOption($cOption);
 
-        $visitors = $this->getVisitors($vField, $vDir, $vQuery);
-        $companies = $this->getCompanies($cField, $cDir, $cQuery);
+        $visitors = $this->getUserByRole('visitor', $vField, $vDir, $vQuery);
+        $companies = $this->getUserByRole('company', $cField, $cDir, $cQuery);
 
         return [
             '#type' => 'inline_template',
@@ -164,10 +164,15 @@ class AdminController extends ControllerBase {
         ];
     }
 
-    private function getVisitors(string $sortField = 'name', string $sortDir = 'ASC', string $search = ''): array {
+    private function getUserByRole(
+        string $role,
+        string $sortField = 'name',
+        string $sortDir = 'ASC',
+        string $search = ''
+    ): array {
         $query = $this->entityTypeManager()->getStorage('user')->getQuery()
             ->accessCheck(TRUE)
-            ->condition('roles', 'visitor')
+            ->condition('roles', $role)
             ->sort($sortField, strtoupper($sortDir))
             ->range(0, 50);
 
@@ -177,37 +182,9 @@ class AdminController extends ControllerBase {
         }
 
         $uids = $query->execute();
-
-        if (empty($uids)) return [];
-
-        $users = $this->entityTypeManager()->getStorage('user')->loadMultiple($uids);
-        $result = [];
-
-        foreach ($users as $user) {
-            $result[] = [
-                'name' => $user->getAccountName(),
-                'mail' => $user->getEmail(),
-            ];
+        if (empty($uids)) {
+            return [];
         }
-
-        return $result;
-    }
-
-    private function getCompanies(string $sortField = 'name', string $sortDir = 'ASC', string $search = ''): array {
-        $query = $this->entityTypeManager()->getStorage('user')->getQuery()
-            ->accessCheck(TRUE)
-            ->condition('roles', 'company')
-            ->sort($sortField, strtoupper($sortDir))
-            ->range(0, 50);
-
-        if ($search !== '') {
-            $escaped = Database::getConnection()->escapeLike($search);
-            $query->condition('name', '%' . $escaped . '%', 'LIKE');
-        }
-
-        $uids = $query->execute();
-
-        if (empty($uids)) return [];
 
         $users = $this->entityTypeManager()->getStorage('user')->loadMultiple($uids);
         $result = [];
