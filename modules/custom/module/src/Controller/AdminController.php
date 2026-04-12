@@ -164,12 +164,7 @@ class AdminController extends ControllerBase {
         ];
     }
 
-    private function getUserByRole(
-        string $role,
-        string $sortField = 'name',
-        string $sortDir = 'ASC',
-        string $search = ''
-    ): array {
+    private function getUserByRole(string $role, string $sortField = 'name', string $sortDir = 'ASC', string $search = ''): array {
         $query = $this->entityTypeManager()->getStorage('user')->getQuery()
             ->accessCheck(TRUE)
             ->condition('roles', $role)
