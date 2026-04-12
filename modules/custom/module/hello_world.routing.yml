@@ -21,3 +21,5 @@ hello_world.admin_page:
     _title: 'Admin Dashboard'
   requirements:
     _permission: 'administer users'
+  options:
+    _admin_route: TRUE
