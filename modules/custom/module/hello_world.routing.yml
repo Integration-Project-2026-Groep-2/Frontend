@@ -13,11 +13,3 @@ registration_visitor.register:
     _title: 'Registration visitor'
   requirements:
     _permission: 'access content'
-
-    hello_world.bespreker_home:
-  path: '/bespreker'
-  defaults:
-    _controller: '\Drupal\hello_world\Controller\BesprekerController::home'
-    _title: 'Bespreker'
-  requirements:
-    _permission: 'access content'
