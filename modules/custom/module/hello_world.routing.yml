@@ -53,3 +53,11 @@ hello_world.bespreker_betalingen:
     _title: 'Betalingsgeschiedenis'
   requirements:
     _permission: 'access content'
+    
+hello_world.bespreker_account_qr:
+  path: '/bespreker/account/qr'
+  defaults:
+    _controller: '\Drupal\hello_world\Controller\BesprekerController::qr'
+    _title: 'Mijn QR-code'
+  requirements:
+    _permission: 'access content'
