@@ -15,9 +15,41 @@ registration_visitor.register:
     _permission: 'access content'
 
 hello_world.bespreker_home:
-  path: '/bespreker-home'
+  path: '/bespreker'
   defaults:
     _controller: '\Drupal\hello_world\Controller\BesprekerController::home'
     _title: 'Bespreker Dashboard'
+  requirements:
+    _permission: 'access content'
+
+hello_world.bespreker_account:
+  path: '/bespreker/account'
+  defaults:
+    _controller: '\Drupal\hello_world\Controller\BesprekerController::account'
+    _title: 'Account gegevens'
+  requirements:
+    _permission: 'access content'
+
+hello_world.bespreker_account_edit:
+  path: '/bespreker/account/edit'
+  defaults:
+    _controller: '\Drupal\hello_world\Controller\BesprekerController::accountEdit'
+    _title: 'Account Bewerken'
+  requirements:
+    _permission: 'access content'
+
+hello_world.bespreker_sessies:
+  path: '/bespreker/sessies'
+  defaults:
+    _controller: '\Drupal\hello_world\Controller\BesprekerController::sessies'
+    _title: 'Mijn Sessies'
+  requirements:
+    _permission: 'access content'
+
+hello_world.bespreker_betalingen:
+  path: '/bespreker/betalingen'
+  defaults:
+    _controller: '\Drupal\hello_world\Controller\BesprekerController::betalingen'
+    _title: 'Betalingsgeschiedenis'
   requirements:
     _permission: 'access content'
