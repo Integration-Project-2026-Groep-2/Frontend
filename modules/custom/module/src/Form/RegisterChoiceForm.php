@@ -12,45 +12,48 @@ class RegisterChoiceForm extends FormBase {
   }
 
   public function buildForm(array $form, FormStateInterface $form_state): array {
-    $form['register_type'] = [
+    $form['choice'] = [
       '#type' => 'radios',
-      '#title' => $this->t('Register as'),
+      '#title' => $this->t('Choose registration type'),
       '#options' => [
         'visitor' => $this->t('Visitor'),
         'company' => $this->t('Company'),
       ],
-      '#default_value' => $form_state->getValue('register_type') ?? '',
+      '#default_value' => $form_state->getValue('choice') ?: '',
       '#ajax' => [
-        'callback' => '::ajaxLoadRegistrationForm',
-        'wrapper' => 'registration-form-wrapper',
+        'callback' => '::ajaxChoiceCallback',
         'event' => 'change',
+        'wrapper' => 'registration-choice-wrapper',
       ],
-      '#required' => TRUE,
     ];
 
-    $form['registration_form'] = [
+    $form['dynamic'] = [
       '#type' => 'container',
-      '#attributes' => [
-        'id' => 'registration-form-wrapper',
-      ],
+      '#attributes' => ['id' => 'registration-choice-wrapper'],
     ];
 
-    if ($type = $form_state->getValue('register_type')) {
-      $form['registration_form']['form'] = match ($type) {
-        'company' => \Drupal::formBuilder()->getForm('\Drupal\hello_world\Form\RegisterCompanyForm'),
-        default => \Drupal::formBuilder()->getForm('\Drupal\hello_world\Form\RegisterVisitorForm'),
-      };
+    $choice = $form_state->getValue('choice');
+
+    if ($choice === 'visitor') {
+      $form['dynamic']['content'] = [
+        '#markup' => '<p><a href="/visitor-registration">' . $this->t('Go to visitor registration') . '</a></p>',
+      ];
+    }
+    elseif ($choice === 'company') {
+      $form['dynamic']['content'] = [
+        '#markup' => '<p><a href="/registration-choice">' . $this->t('Go to company application') . '</a></p>',
+      ];
     }
 
     return $form;
   }
 
-  public function ajaxLoadRegistrationForm(array &$form, FormStateInterface $form_state): array {
-    return $form['registration_form'];
+  public function ajaxChoiceCallback(array &$form, FormStateInterface $form_state) {
+    return $form['dynamic'];
   }
 
-  public function submitForm(array &$form, FormStateInterface $form_state): void {
-    // No submit action needed on this selector form.
-  }
+  public function validateForm(array &$form, FormStateInterface $form_state): void {}
+
+  public function submitForm(array &$form, FormStateInterface $form_state): void {}
 
 }
