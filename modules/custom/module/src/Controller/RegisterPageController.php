@@ -6,6 +6,7 @@ use Drupal\Core\Controller\ControllerBase;
 class RegisterVisitorController extends ControllerBase {
 
   public function registerVisitor(): array {
-    return \Drupal::formBuilder()->getForm('Drupal\hello_world\Form\RegisterVisitorForm');
+    return \Drupal::formBuilder()->getForm('Drupal\hello_world\Form\RegisterChoiceForm');
   }
+
 }
