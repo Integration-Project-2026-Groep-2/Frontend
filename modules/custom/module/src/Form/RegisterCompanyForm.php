@@ -111,9 +111,10 @@ class RegisterCompanyForm extends FormBase {
       $form_state->setErrorByName('phone', $this->t('Phone number must be at least 10 digits.'));
     }
 
-    $kvk = preg_replace('/\D/', '', (string) $form_state->getValue('kvk_number'));
-    if (strlen($kvk) !== 8) {
-      $form_state->setErrorByName('kvk_number', $this->t('KvK number must contain 8 digits.'));
+    $email = (string) $form_state->getValue('email');
+    $existingMail = \Drupal::entityTypeManager()->getStorage('user')->loadByProperties(['mail' => $email]);
+    if (!empty($existingMail)) {
+      $form_state->setErrorByName('email', $this->t('A user with this email already exists.'));
     }
   }
 
