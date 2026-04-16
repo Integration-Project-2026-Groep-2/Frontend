@@ -4,8 +4,6 @@ namespace Drupal\hello_world\Form;
 
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
-use PhpAmqpLib\Connection\AMQPStreamConnection;
-use PhpAmqpLib\Message\AMQPMessage;
 
 class RegisterCompanyForm extends FormBase {
 
@@ -14,6 +12,11 @@ class RegisterCompanyForm extends FormBase {
   }
 
   public function buildForm(array $form, FormStateInterface $form_state): array {
+    $form['intro'] = [
+      '#type' => 'markup',
+      '#markup' => '<p>' . $this->t('This is an application to create a company account. Once you submit, an admin will review your application and send any updates to the provided email address.') . '</p>',
+    ];
+
     $form['contact_person'] = [
       '#type' => 'fieldset',
       '#title' => $this->t('Contact person information'),
@@ -50,7 +53,7 @@ class RegisterCompanyForm extends FormBase {
 
     $form['company']['company_name'] = [
       '#type' => 'textfield',
-      '#title' => $this->t('Company Name'),
+      '#title' => $this->t('Company name'),
       '#required' => TRUE,
     ];
 
@@ -99,7 +102,7 @@ class RegisterCompanyForm extends FormBase {
 
     $form['submit'] = [
       '#type' => 'submit',
-      '#value' => $this->t('Register Company'),
+      '#value' => $this->t('Submit application'),
     ];
 
     return $form;
@@ -110,54 +113,56 @@ class RegisterCompanyForm extends FormBase {
     if ($phone !== '' && strlen(preg_replace('/\D/', '', $phone)) < 10) {
       $form_state->setErrorByName('phone', $this->t('Phone number must be at least 10 digits.'));
     }
-
-    $email = (string) $form_state->getValue('email');
-    $existingMail = \Drupal::entityTypeManager()->getStorage('user')->loadByProperties(['mail' => $email]);
-    if (!empty($existingMail)) {
-      $form_state->setErrorByName('email', $this->t('A user with this email already exists.'));
-    }
   }
 
   public function submitForm(array &$form, FormStateInterface $form_state): void {
-    $xml = new \SimpleXMLElement('<CompanyCreated/>');
-    $xml->addChild('name', (string) $form_state->getValue('company_name'));
-    $xml->addChild('vatNumber', (string) $form_state->getValue('vat_number'));
-    $xml->addChild('email', (string) $form_state->getValue('email'));
+    $admin_to = \Drupal::config('system.site')->get('mail');
 
-    $phone = (string) $form_state->getValue('phone');
-    if ($phone !== '') {
-      $xml->addChild('phone', $phone);
-    }
+    $body = [
+      'A new company application has been submitted.',
+      '',
+      'Contact person:',
+      'First name: ' . $form_state->getValue('contact_first_name'),
+      'Last name: ' . $form_state->getValue('contact_last_name'),
+      'Email: ' . $form_state->getValue('email'),
+      'Phone: ' . ($form_state->getValue('phone') ?: '-'),
+      '',
+      'Company information:',
+      'Company name: ' . $form_state->getValue('company_name'),
+      'VAT number: ' . ($form_state->getValue('vat_number') ?: '-'),
+      'Street: ' . $form_state->getValue('street'),
+      'House number: ' . $form_state->getValue('house_number'),
+      'Postal code: ' . $form_state->getValue('postal_code'),
+      'City: ' . $form_state->getValue('city'),
+      'Country: ' . $form_state->getValue('country'),
+      '',
+      'GDPR consent: Yes',
+    ];
 
-    $xml->addChild('street', (string) $form_state->getValue('street'));
-    $xml->addChild('houseNumber', (string) $form_state->getValue('house_number'));
-    $xml->addChild('postalCode', (string) $form_state->getValue('postal_code'));
-    $xml->addChild('city', (string) $form_state->getValue('city'));
-    $xml->addChild('country', (string) $form_state->getValue('country'));
+    $params = [
+      'subject' => 'New company application: ' . $form_state->getValue('company_name'),
+      'body' => $body,
+      'reply_to' => $form_state->getValue('email'),
+    ];
 
-    $connection = new AMQPStreamConnection(
-      $_ENV['RABBITMQ_HOST'] ?? '',
-      5672,
-      $_ENV['RABBITMQ_USER'] ?? '',
-      $_ENV['RABBITMQ_PASS'] ?? ''
+    $langcode = \Drupal::service('language_manager')->getDefaultLanguage()->getId();
+
+    $result = \Drupal::service('plugin.manager.mail')->mail(
+      'hello_world',
+      'company_application',
+      $admin_to,
+      $langcode,
+      $params,
+      NULL,
+      TRUE
     );
 
-    $channel = $connection->channel();
-
-    $exchange = '';
-    $routing_key = '';
-
-    $msg = new AMQPMessage($xml->asXML(), [
-      'content_type' => 'text/xml',
-      'delivery_mode' => 2,
-    ]);
-
-    $channel->basic_publish($msg, $exchange, $routing_key);
-
-    $channel->close();
-    $connection->close();
-
-    $this->messenger()->addStatus($this->t('Company registration successful!'));
+    if (!empty($result['result'])) {
+      $this->messenger()->addStatus($this->t('Your application has been sent successfully.'));
+    }
+    else {
+      $this->messenger()->addError($this->t('Your application could not be sent. Please try again later.'));
+    }
   }
 
 }
