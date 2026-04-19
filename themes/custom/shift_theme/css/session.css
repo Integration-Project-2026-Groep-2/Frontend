@@ -1,0 +1,13 @@
+.session-card-simple a:hover {
+  background: #5125cc !important;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(99, 51, 234, 0.3);
+}
+
+.session-card-simple {
+  transition: transform 0.3s ease;
+}
+
+.session-card-simple:hover {
+  transform: translateY(-5px);
+}
