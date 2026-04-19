@@ -1,0 +1,45 @@
+<div class="sessions-wrapper" style="background-color: #f0eeff; min-height: 100vh; padding: 60px 10%;">
+
+  {# SECTIE 1: MIJN PROGRAMMA #}
+  <div style="margin-bottom: 40px;">
+    <h1 style="font-weight: 850; font-size: 32px; color: #1a1a1a;">Mijn Ingeschreven Sessies</h1>
+    <p style="color: #6333ea; font-weight: 600;">Jouw schema voor het Shift Festival.</p>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; margin-bottom: 60px;">
+    {% for session in my_sessions %}
+      <div style="background: white; border-radius: 16px; border: 2px solid #6333ea; display: flex; flex-direction: column; position: relative;">
+        <span style="position: absolute; top: -12px; right: 20px; background: #6333ea; color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 800;">INGESCHREVEN</span>
+        <div style="padding: 14px 20px; flex: 1;">
+          <h2 style="font-size: 18px; font-weight: 800; color: #0f0f1a; margin: 0 0 18px;">{{ session.sessionName }}</h2>
+          <div style="font-size: 13px; color: #5a5a7a;">📅 {{ session.startTime }} | 📍 {{ session.location }}</div>
+        </div>
+        <div style="margin: 18px 20px 20px; color: #6333ea; text-align: center; font-weight: 700;">Je bent aanwezig!</div>
+      </div>
+    {% endfor %}
+  </div>
+
+  <div style="display: flex; align-items: center; margin: 80px 0; gap: 20px;">
+    <div style="flex: 1; height: 3px; background: linear-gradient(to right, transparent, #6333ea);"></div>
+    <span style="color: #6333ea; font-weight: 800; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Einde van jouw programma</span>
+    <div style="flex: 1; height: 3px; background: linear-gradient(to left, transparent, #6333ea);"></div>
+  </div>
+
+  {# SECTIE 2: OPEN SESSIES #}
+  <div style="margin-bottom: 40px;">
+    <h1 style="font-weight: 850; font-size: 32px; color: #1a1a1a;">Beschikbare Sessies</h1>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px;">
+    {% for session in open_sessions %}
+      <div style="background: white; border-radius: 16px; border: 1px solid #e8e4f8; display: flex; flex-direction: column;">
+        <div style="padding: 14px 20px; flex: 1;">
+          <h2 style="font-size: 18px; font-weight: 800; color: #0f0f1a; margin: 0 0 18px;">{{ session.sessionName }}</h2>
+          <div style="font-size: 13px; color: #5a5a7a;">📅 {{ session.startTime }} | 📍 {{ session.location }}</div>
+        </div>
+        <a href="#" style="margin: 18px 20px 20px; background: #6333ea; color: white; text-align: center; padding: 14px; border-radius: 12px; font-weight: 700; text-decoration: none;">Registreer voor Sessie</a>
+      </div>
+    {% endfor %}
+  </div>
+
+</div>

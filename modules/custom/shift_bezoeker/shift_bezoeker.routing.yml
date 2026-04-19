@@ -1,0 +1,15 @@
+shift_bezoeker.sessions:
+  path: '/bezoeker/sessies'
+  defaults:
+    _controller: '\Drupal\shift_bezoeker\Controller\BezoekerController::sessionsPage'
+    _title: 'Sessie Overzicht'
+  requirements:
+    _permission: 'access content'
+
+shift_bezoeker.account:
+  path: '/bezoeker/account'
+  defaults:
+    _controller: '\Drupal\shift_bezoeker\Controller\BezoekerController::accountPage'
+    _title: 'Mijn Account'
+  requirements:
+    _permission: 'access content'

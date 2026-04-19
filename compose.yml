@@ -24,6 +24,8 @@ services:
     container_name: frontend_drupal
     volumes:
       - drupal_sites:/opt/drupal/web/sites
+      - ./modules:/opt/drupal/web/modules/custom
+      - ./themes:/opt/drupal/web/themes/custom
     restart: unless-stopped
     depends_on:
       frontend_db:
@@ -40,9 +42,6 @@ services:
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_USER=${RABBITMQ_USER}
       - RABBITMQ_PASS=${RABBITMQ_PASS}
-    volumes:
-      - ./modules:/opt/drupal/web/modules/custom
-      - ./themes:/opt/drupal/web/themes/custom
 
   frontend_db:
     image: mariadb:12
