@@ -1,0 +1,75 @@
+<div class="account-wrapper" style="background-color: #f0eeff; min-height: 100vh; padding: 40px 2%; font-family: sans-serif;">
+
+  {# De hoofdcontainer die de twee blokken naast elkaar zet #}
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 100%; align-items: start;">
+
+    {# LINKER BLOK: ACCOUNTGEGEVENS #}
+    <div style="background: white; border-radius: 12px; padding: 30px; border: 1px solid #e8e4f8; box-shadow: 0 4px 12px rgba(0,0,0,0.05); display: flex; flex-direction: column; height: 100%;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+         <span style="font-size: 20px;">👤</span>
+         <h2 style="margin: 0; font-size: 22px; color: #001529;">Accountgegevens</h2>
+      </div>
+      <p style="color: #666; margin: 0 0 30px 32px; font-size: 14px;">Beheer uw persoonlijke informatie</p>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; flex-grow: 1;">
+        <div>
+          <label style="display: block; font-weight: 600; margin-bottom: 8px; font-size: 14px;">Voornaam <span style="color: red;">*</span></label>
+          <input type="text" value="{{ user.firstName }}" style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 15px; box-sizing: border-box;">
+        </div>
+        <div>
+          <label style="display: block; font-weight: 600; margin-bottom: 8px; font-size: 14px;">Achternaam <span style="color: red;">*</span></label>
+          <input type="text" value="{{ user.lastName }}" style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 15px; box-sizing: border-box;">
+        </div>
+        <div style="grid-column: span 2;">
+          <label style="display: block; font-weight: 600; margin-bottom: 8px; font-size: 14px;">E-mailadres <span style="color: red;">*</span></label>
+          <input type="email" value="{{ user.email }}" style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 15px; box-sizing: border-box;">
+        </div>
+        <div>
+          <label style="display: block; font-weight: 600; margin-bottom: 8px; font-size: 14px;">Bedrijf</label>
+          <input type="text" value="{{ user.company }}" style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 15px; box-sizing: border-box;">
+        </div>
+        <div>
+          <label style="display: block; font-weight: 600; margin-bottom: 8px; font-size: 14px;">Rol <span style="color: red;">*</span></label>
+          <select style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 15px; background: white; box-sizing: border-box;">
+            <option>Kies een rol...</option>
+            <option selected>{{ user.role }}</option>
+            <option>Bezoeker</option>
+            <option>Spreker</option>
+          </select>
+        </div>
+        <div style="grid-column: span 2;">
+          <label style="display: block; font-weight: 600; margin-bottom: 8px; font-size: 14px;">Telefoonnummer</label>
+          <input type="tel" value="{{ user.phone }}" style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 15px; box-sizing: border-box;">
+        </div>
+      </div>
+
+      <button style="margin-top: 30px; background: #2d1a3d; color: white; border: none; padding: 14px 28px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 14px; align-self: flex-start;">Gegevens Opslaan</button>
+    </div>
+
+    {# RECHTER BLOK: WACHTWOORD WIJZIGEN #}
+    <div style="background: white; border-radius: 12px; padding: 40px; border: 1px solid #e8e4f8; box-shadow: 0 4px 12px rgba(0,0,0,0.05); display: flex; flex-direction: column; height: 100%;">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 5px;">
+         <span style="font-size: 20px;">🔒</span>
+         <h2 style="margin: 0; font-size: 22px; color: #001529;">Wachtwoord Wijzigen</h2>
+      </div>
+      <p style="color: #666; margin: 0 0 30px 32px; font-size: 14px;">Wijzig uw wachtwoord voor extra beveiliging</p>
+
+      <div style="display: grid; gap: 20px; flex-grow: 1;">
+        <div>
+          <label style="display: block; font-weight: 600; margin-bottom: 8px; font-size: 14px;">Huidig Wachtwoord <span style="color: red;">*</span></label>
+          <input type="password" placeholder="••••••••" style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 15px; box-sizing: border-box;">
+        </div>
+        <div>
+          <label style="display: block; font-weight: 600; margin-bottom: 8px; font-size: 14px;">Nieuw Wachtwoord <span style="color: red;">*</span></label>
+          <input type="password" placeholder="••••••••" style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 15px; box-sizing: border-box;">
+        </div>
+        <div>
+          <label style="display: block; font-weight: 600; margin-bottom: 8px; font-size: 14px;">Bevestig Nieuw Wachtwoord <span style="color: red;">*</span></label>
+          <input type="password" placeholder="••••••••" style="width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 8px; font-size: 15px; box-sizing: border-box;">
+        </div>
+      </div>
+
+      <button style="margin-top: 30px; background: #2d1a3d; color: white; border: none; padding: 14px 28px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 14px; align-self: flex-start;">Wachtwoord Wijzigen</button>
+    </div>
+
+  </div>

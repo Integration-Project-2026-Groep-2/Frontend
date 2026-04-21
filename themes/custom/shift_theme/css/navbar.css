@@ -1,0 +1,101 @@
+/* --- NAVBAR STYLING --- */
+.custom-navbar-wrapper {
+  background: #ffffff;
+  padding: 15px 0;
+  width: 100%;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+  border-bottom: 1px solid #e9ecef;
+}
+
+.navbar-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 95%;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.nav-logo-img {
+  height: 50px;
+  width: auto;
+  display: block;
+  transition: transform 0.3s ease;
+}
+
+.navbar-logo {
+  margin-left: -10px;
+}
+
+.navbar-menu {
+  display: flex;
+  gap: 30px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.navbar-menu li a {
+  color: #495057;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 15px;
+  padding: 8px 15px;
+  transition: color 0.3s ease;
+}
+
+.navbar-menu li a:hover {
+  color: #6333ea;
+}
+
+/* De Registreer Nu knop */
+.navbar-menu li:last-child a {
+  background-color: #6333ea;
+  color: #ffffff !important; /* Witte tekst moet blijven winnen */
+  border-radius: 50px;
+  padding: 10px 25px;
+  box-shadow: 0 4px 12px rgba(99, 51, 234, 0.3);
+}
+
+/* --- HERO SECTIE (Logo-Only) --- */
+.hero-section.hero-logo-only.dark-theme {
+  background:
+    linear-gradient(rgba(49, 19, 57, 0.9), rgba(49, 19, 57, 0.9)),
+    url('../images/event-bg.jpg');
+  background-size: cover;
+  background-position: center;
+  padding: 150px 0;
+  text-align: center;
+  min-height: 70vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.spiral-icon {
+  width: 500px;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+.hero-section h1.shift-title,
+.hero-section h1.festival-title {
+  color: white;
+  font-size: 84px;
+  font-weight: 850;
+  margin: 0;
+  line-height: 0.9;
+  letter-spacing: -2px;
+  text-transform: uppercase;
+}
+
+.hero-tagline {
+  color: white;
+  font-size: 22px;
+  font-weight: 300;
+  letter-spacing: 6px;
+  margin-top: 25px;
+  text-transform: uppercase;
+  text-shadow: 2px 2px 8px rgba(0,0,0,0.5);
+}

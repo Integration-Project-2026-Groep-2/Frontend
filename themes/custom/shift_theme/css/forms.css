@@ -1,0 +1,79 @@
+/* --- FORMULIER CONTAINER --- */
+#bezoeker-registratie-form {
+  max-width: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 60px 10%;
+  box-sizing: border-box;
+  background-color: transparent !important;
+}
+
+/* Sectie Titels */
+.form-section-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a1a;
+  display: block;
+  margin-top: 50px !important;
+  margin-bottom: 25px !important;
+  border-bottom: 2px solid #f0f0f5;
+  padding-bottom: 10px;
+}
+
+/* --- DE KEUZE KAARTEN --- */
+.form-item-registratie-type {
+  display: flex;
+  flex-direction: row;
+  gap: 30px;
+  margin-bottom: 50px;
+}
+
+.form-item-registratie-type input[type="radio"] {
+  display: none;
+}
+
+.form-item-registratie-type label {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  border: 2px solid #e2e2ed;
+  border-radius: 15px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  background: #fff;
+}
+
+.form-item-registratie-type input[type="radio"]:checked + label {
+  border-color: #6333ea;
+  background: #f9f8ff;
+  color: #6333ea;
+}
+
+/* --- GRID LAYOUT --- */
+.form-row {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  column-gap: 60px !important;
+  width: 100% !important;
+}
+
+/* --- INPUTS & BUTTONS --- */
+input[type="text"], input[type="email"], select {
+  width: 100%;
+  padding: 14px 20px;
+  border: 1px solid #e2e2ed;
+  border-radius: 10px;
+}
+
+input[type="submit"] {
+  background: #6333ea;
+  color: white;
+  padding: 18px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
