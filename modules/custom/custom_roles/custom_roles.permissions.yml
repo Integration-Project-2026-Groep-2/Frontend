@@ -1,0 +1,11 @@
+access visitor area:
+  title: 'Access visitor area'
+  description: 'Allows access to visitor-specific pages.'
+
+access company area:
+  title: 'Access company area'
+  description: 'Allows access to company-specific pages.'
+
+access speaker area:
+  title: 'Access speaker area'
+  description: 'Allows access to speaker-specific pages.'

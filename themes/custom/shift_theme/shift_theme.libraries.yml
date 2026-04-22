@@ -1,0 +1,8 @@
+global-styling:
+  css:
+    theme:
+      css/global.css: {}
+      css/layout.css: {}
+      css/navbar.css: {}
+      css/forms.css: {}
+      css/session.css: {}

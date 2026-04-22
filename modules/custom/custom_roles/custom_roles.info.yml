@@ -1,0 +1,7 @@
+name: 'Integration project custom roles'
+type: module
+description: 'Creates project roles and assigns baseline permissions.'
+core_version_requirement: ^10 || ^11
+package: 'Custom'
+dependencies:
+  - drupal:user

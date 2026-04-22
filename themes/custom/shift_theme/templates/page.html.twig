@@ -1,0 +1,50 @@
+<header class="custom-navbar-wrapper">
+  <div class="navbar-container">
+    <div class="navbar-logo">
+      <a href="{{ front_page }}">
+        {# Hier roepen we het logo aan uit jouw images map #}
+        <img src="{{ base_path ~ directory ~ '/images/logonav.png' }}" class="nav-logo-img" alt="Shift Logo">
+      </a>
+    </div>
+
+    <nav class="navbar-menu">
+      {# Hier komen je links, of je roept de Drupal menu-regio aan #}
+      {{ page.header }}
+    </nav>
+  </div>
+</header>
+
+{% if is_front %}
+  <section class="hero-section hero-logo-only dark-theme">
+    <div class="hero-main-logo">
+      <div class="logo-wrapper">
+        <img src="{{ base_path ~ directory ~ '/images/logo1.png' }}" class="spiral-icon" alt="Shift Spiral">
+        <p class="hero-tagline">Talent is awarded here</p>
+      </div>
+    </div>
+  </section>
+{% endif %}
+
+<main>
+  {{ page.content }} {# Hier verschijnt je registratieformulier! #}
+</main>
+
+<footer style="background-color: #0d121f; color: #ffffff; padding: 50px 5%; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.05);">
+
+  {# Linkerkant: Logo een stuk groter #}
+  <div style="display: flex; align-items: center;">
+    <img src="{{ base_path ~ directory ~ '/images/logo1.png' }}" alt="Shift Logo" style="height: 90px; width: auto; object-fit: contain; display: block;">
+  </div>
+
+  {# Midden: Copyright #}
+  <div style="font-size: 14px; color: #8a8f9d; font-weight: 400;">
+    © 2026 Shift Festival.
+  </div>
+
+  {# Rechterkant: Links #}
+  <div style="display: flex; gap: 30px;">
+    <a href="#" style="color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 500;">Contact</a>
+    <a href="#" style="color: #ffffff; text-decoration: none; font-size: 15px; font-weight: 500;">Privacy</a>
+  </div>
+
+</footer>
