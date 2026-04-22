@@ -70,14 +70,27 @@ class BesprekerController extends ControllerBase {
   public function accountEdit(): array {
     return [
       '#markup' => '
-        <div style="padding: 20px; font-family: sans-serif;">
-          <form>
-            <label>Naam:</label><br><input type="text" value="Bespreker Test"><br><br>
-            <button type="submit">Opslaan</button>
+        <div class="info-card">
+          <h2>Bewerk Profiel</h2>
+          <form class="shift-festival-form">
+            <div class="form-row" style="display: flex; gap: 20px; margin-bottom: 15px;">
+              <div style="flex: 1;">
+                <label>Voornaam</label><br>
+                <input type="text" value="Bespreker" style="width: 100%; padding: 8px;">
+              </div>
+              <div style="flex: 1;">
+                <label>Achternaam</label><br>
+                <input type="text" value="Test" style="width: 100%; padding: 8px;">
+              </div>
+            </div>
+            <div style="margin-bottom: 15px;">
+              <label>E-mailadres</label><br>
+              <input type="email" value="bespreker@example.com" style="width: 100%; padding: 8px;">
+            </div>
+            <button type="submit" class="btn-primary">Wijzigingen Opslaan</button>
           </form>
-          <br><a href="/bespreker/account">« Terug</a>
-        </div>',
-    ];
+        </div>
+        <p><a href="/bespreker/account" style="color: #6a0dad;">« Annuleren</a></p>',];
   }
 
   /**
