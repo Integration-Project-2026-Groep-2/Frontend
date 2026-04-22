@@ -61,3 +61,13 @@ hello_world.bespreker_account_qr:
     _title: 'Mijn QR-code'
   requirements:
     _permission: 'access content'
+
+hello_world.admin_page:
+  path: '/hello/admin'
+  defaults:
+    _controller: '\Drupal\hello_world\Controller\AdminController::page'
+    _title: 'Admin Dashboard'
+  requirements:
+    _permission: 'administer users'
+  options:
+    _admin_route: TRUE
