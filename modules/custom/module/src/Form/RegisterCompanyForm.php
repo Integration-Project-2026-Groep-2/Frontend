@@ -25,7 +25,7 @@ class RegisterCompanyForm extends FormBase {
     $form['contact_person'] = [
       '#type' => 'fieldset',
       '#title' => $this->t('Contact person information'),
-      '#description' => $this->t('This person\'s info will be used to create the first company manager account, Login details will be send via email once approved'),
+      '#description' => $this->t('This person\'s info will be used to create the first company manager account. Login details will be sent via email once approved.'),
     ];
 
     $form['contact_person']['contact_first_name'] = [
@@ -133,67 +133,23 @@ class RegisterCompanyForm extends FormBase {
   }
 
   public function submitForm(array &$form, FormStateInterface $form_state): void {
-    $admin_to = \Drupal::config('system.site')->get('mail');
-    $draft = $this->extractDraftValues($form_state);
+    $submission = $this->extractDraftValues($form_state);
 
-    $body = [
-      'A new company application has been submitted.',
-      '',
-      'Contact person:',
-      'First name: ' . $form_state->getValue('contact_first_name'),
-      'Last name: ' . $form_state->getValue('contact_last_name'),
-      'Email: ' . $form_state->getValue('email'),
-      'Phone: ' . ($form_state->getValue('phone') ?: '-'),
-      '',
-      'Company information:',
-      'Company name: ' . $form_state->getValue('company_name'),
-      'VAT number: ' . ($form_state->getValue('vat_number') ?: '-'),
-      'Street: ' . $form_state->getValue('street'),
-      'House number: ' . $form_state->getValue('house_number'),
-      'Postal code: ' . $form_state->getValue('postal_code'),
-      'City: ' . $form_state->getValue('city'),
-      'Country: ' . $form_state->getValue('country'),
-      '',
-      'GDPR consent: ' . (!empty($form_state->getValue('gdpr_consent')) ? 'Yes' : 'No'),
-    ];
+    // TODO: Replace with persistent storage (entity/table) and email workflow.
+    \Drupal::logger('hello_world')->notice(
+      'Company application received for @company from @email.',
+      [
+        '@company' => (string) ($submission['company_name'] ?? ''),
+        '@email' => (string) ($submission['email'] ?? ''),
+      ]
+    );
 
-    $params = [
-      'subject' => 'New company application: ' . $form_state->getValue('company_name'),
-      'body' => $body,
-      'reply_to' => $form_state->getValue('email'),
-    ];
+    // Clear any previous draft now that the submission is completed.
+    $this->clearDraft();
 
-    $langcode = \Drupal::service('language_manager')->getDefaultLanguage()->getId();
-
-    try {
-      $result = \Drupal::service('plugin.manager.mail')->mail(
-        'hello_world',
-        'company_application',
-        $admin_to,
-        $langcode,
-        $params,
-        NULL,
-        TRUE
-      );
-
-      if (!empty($result['result'])) {
-        $this->clearDraft();
-        $this->messenger()->addStatus($this->t('Your application has been sent successfully.'));
-      }
-      else {
-        $this->saveDraft($draft);
-        $form_state->setRebuild(TRUE);
-        $this->messenger()->addError($this->t('Unable to send email. Contact the site administrator if the problem persists.'));
-        $this->messenger()->addError($this->t('Your application could not be sent. Please try again later.'));
-      }
-    }
-    catch (\Throwable $e) {
-      \Drupal::logger('hello_world')->error('Company application email failed: @message', ['@message' => $e->getMessage()]);
-      $this->saveDraft($draft);
-      $form_state->setRebuild(TRUE);
-      $this->messenger()->addError($this->t('Unable to send email. Contact the site administrator if the problem persists.'));
-      $this->messenger()->addError($this->t('Your application could not be sent. Please try again later.'));
-    }
+    $this->messenger()->addStatus(
+      $this->t('Your application has been received. Email notifications will be added in a future update.')
+    );
   }
 
   private function getDraft(): array {
