@@ -12,10 +12,27 @@ class BesprekerController extends ControllerBase {
    */
   public function home(): array {
     return [
-      '#markup' => '
-        <div style="padding: 20px; font-family: sans-serif;">
-          <p>Welkom op je dashboard. Navigeer naar de verschillende onderdelen:</p>
-
+'#markup' => '
+        <div class="hero-section">
+          <h1>Sprekers Dashboard</h1>
+          <p>Welkom bij het Shift Festival. Beheer hier je sessies en gegevens.</p>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 30px;">
+          <div class="info-card">
+            <h3>👤 Mijn Profiel</h3>
+            <p>Bekijk je accountgegevens en persoonlijke QR-code.</p>
+            <a href="/bespreker/account" class="btn-primary">Naar Account</a>
+          </div>
+          <div class="info-card">
+            <h3>📅 Mijn Sessies</h3>
+            <p>Check de status van je presentaties en bezoekersaantallen.</p>
+            <a href="/bespreker/sessies" class="btn-primary">Naar Sessies</a>
+          </div>
+          <div class="info-card">
+            <h3>💰 Betalingen</h3>
+            <p>Overzicht van je financiële administratie.</p>
+            <a href="/bespreker/betalingen" class="btn-primary">Bekijk Facturen</a>
+          </div>
         </div>',
     ];
   }
