@@ -20,12 +20,26 @@ class RegisterPageController extends ControllerBase {
     }
 
     return [
-      '#type' => 'markup',
-      '#markup' => '<h2>' . $this->t('Choose registration type') . '</h2>
-        <p>
-          <a class="button button--primary" href="/register-visitor">' . $this->t('Visitor Registration') . '</a>
-          <a class="button button--primary" href="/register-company">' . $this->t('Company Application') . '</a>
-        </p>',
+      'title' => [
+        '#type' => 'html_tag',
+        '#tag' => 'h2',
+        '#value' => $this->t('Choose registration type'),
+      ],
+      'visitor_link' => [
+        '#type' => 'link',
+        '#title' => $this->t('Visitor Registration'),
+        '#url' => Url::fromRoute('hello_world.register_visitor'),
+        '#attributes' => ['class' => ['button', 'button--primary']],
+      ],
+      'spacer' => [
+        '#markup' => ' ',
+      ],
+      'company_link' => [
+        '#type' => 'link',
+        '#title' => $this->t('Company Application'),
+        '#url' => Url::fromRoute('hello_world.register_company'),
+        '#attributes' => ['class' => ['button', 'button--primary']],
+      ],
     ];
   }
 
