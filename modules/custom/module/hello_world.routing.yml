@@ -6,11 +6,27 @@ hello_world.hello:
   requirements:
     _permission: 'access content'
 
-registration_visitor.register:
-  path: '/register_visitor'
+hello_world.registration_choice:
+  path: '/registration-choice'
   defaults:
-    _controller: '\Drupal\hello_world\Controller\RegisterVisitorController::registerVisitor'
-    _title: 'Registration visitor'
+    _controller: '\Drupal\hello_world\Controller\RegisterPageController::registrationChoice'
+    _title: 'Registration Choice'
+  requirements:
+    _access: 'TRUE'
+
+hello_world.register_visitor:
+  path: '/register-visitor'
+  defaults:
+    _form: '\Drupal\hello_world\Form\RegisterVisitorForm'
+    _title: 'Visitor Registration'
+  requirements:
+    _permission: 'access content'
+
+hello_world.register_company:
+  path: '/register-company'
+  defaults:
+    _form: '\Drupal\hello_world\Form\RegisterCompanyForm'
+    _title: 'Company Application'
   requirements:
     _permission: 'access content'
 

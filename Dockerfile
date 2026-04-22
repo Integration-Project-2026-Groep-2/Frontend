@@ -9,7 +9,10 @@ RUN apt-get update && apt-get install -y libgmp-dev \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy composer files and install dependencies
-RUN composer require "php-amqplib/php-amqplib"
+RUN composer require \
+    "php-amqplib/php-amqplib" \
+    "drupal/group:^3.0" \
+    "drupal/ginvite"
 
 # Copy custom module(s) into the Drupal modules directory
 COPY ./modules/custom/module /opt/drupal/web/modules/custom/module
