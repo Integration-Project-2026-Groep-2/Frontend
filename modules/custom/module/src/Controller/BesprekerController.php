@@ -98,13 +98,7 @@ class BesprekerController extends ControllerBase {
    */
   public function qr(): array {
     return [
-      '#markup' => '
-        <div style="padding: 20px; text-align: center; font-family: sans-serif;">
-          <div style="width: 200px; height: 200px; background: #333; color: #fff; display: flex; align-items: center; justify-content: center; margin: auto;">
-            [QR CODE SCANNER]
-          </div>
-          <br><a href="/bespreker/account">« Terug</a>
-        </div>',
+      '#markup' => '<div class="info-card"><h2>QR Scanner</h2><p>Toon deze code bij de ingang.</p></div>'
     ];
   }
 
