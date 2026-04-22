@@ -8,7 +8,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 
 class RegisterPageController extends ControllerBase {
 
-  public function registerVisitor(): array|RedirectResponse {
+  public function registrationChoice(): array|RedirectResponse {
     $type = \Drupal::request()->query->get('type');
 
     if ($type === 'visitor' || $type === 'company') {
