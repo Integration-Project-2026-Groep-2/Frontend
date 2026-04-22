@@ -43,15 +43,24 @@ class BesprekerController extends ControllerBase {
    */
   public function account(): array {
     return [
-      '#markup' => '
-        <div style="padding: 20px; font-family: sans-serif;">
-          <p><strong>Naam:</strong> Bespreker Test</p>
-          <p><strong>Email:</strong> bespreker@example.com</p>
-          <hr>
-          <p><a href="/bespreker/account/edit">➡️ Bewerk Account</a></p>
-          <p><a href="/bespreker/account/qr">➡️ Mijn QR-code bekijken</a></p>
-          <br><a href="/bespreker">« Terug naar Home</a>
-        </div>',
+'#markup' => '
+        <div class="info-card">
+          <h2>Account gegevens</h2>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <p><strong>Naam:</strong> Bespreker Test</p>
+              <p><strong>Email:</strong> bespreker@example.com</p>
+              <p><a href="/bespreker/account/edit" class="btn-primary">Gegevens bewerken</a></p>
+            </div>
+            <div style="text-align: center; border: 1px solid #ddd; padding: 15px; border-radius: 8px;">
+              <p><strong>Jouw QR</strong></p>
+              <a href="/bespreker/account/qr" style="text-decoration: none;">
+                <div style="width: 100px; height: 100px; background: #333; color: white; display: flex; align-items: center; justify-content: center;">QR</div>
+              </a>
+            </div>
+          </div>
+        </div>
+        <p><a href="/bespreker" style="color: #6a0dad;">« Terug naar Dashboard</a></p>',
     ];
   }
 
