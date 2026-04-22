@@ -4,6 +4,7 @@ namespace Drupal\hello_world\Form;
 
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\Url;
 
 class RegisterChoiceForm extends FormBase {
 
@@ -36,12 +37,20 @@ class RegisterChoiceForm extends FormBase {
 
     if ($choice === 'visitor') {
       $form['dynamic']['content'] = [
-        '#markup' => '<p><a href="/visitor-registration">' . $this->t('Go to visitor registration') . '</a></p>',
+        '#type' => 'link',
+        '#title' => $this->t('Go to visitor registration'),
+        '#url' => Url::fromRoute('hello_world.register_visitor'),
+        '#prefix' => '<p>',
+        '#suffix' => '</p>',
       ];
     }
     elseif ($choice === 'company') {
       $form['dynamic']['content'] = [
-        '#markup' => '<p><a href="/registration-choice">' . $this->t('Go to company application') . '</a></p>',
+        '#type' => 'link',
+        '#title' => $this->t('Go to company application'),
+        '#url' => Url::fromRoute('hello_world.register_company'),
+        '#prefix' => '<p>',
+        '#suffix' => '</p>',
       ];
     }
 
