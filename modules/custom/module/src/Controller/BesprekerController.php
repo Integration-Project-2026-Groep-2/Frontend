@@ -14,13 +14,8 @@ class BesprekerController extends ControllerBase {
     return [
       '#markup' => '
         <div style="padding: 20px; font-family: sans-serif;">
-          <h1>Sprekers Dashboard</h1>
           <p>Welkom op je dashboard. Navigeer naar de verschillende onderdelen:</p>
-          <ul>
-            <li><a href="/bespreker/account">👤 Account gegevens</a></li>
-            <li><a href="/bespreker/betalingen">💰 Betalingsgeschiedenis</a></li>
-            <li><a href="/bespreker/sessies">📅 Sessies</a></li>
-          </ul>
+
         </div>',
     ];
   }
@@ -33,7 +28,6 @@ class BesprekerController extends ControllerBase {
     return [
       '#markup' => '
         <div style="padding: 20px; font-family: sans-serif;">
-          <h2>Account gegevens</h2>
           <p><strong>Naam:</strong> Bespreker Test</p>
           <p><strong>Email:</strong> bespreker@example.com</p>
           <hr>
@@ -51,7 +45,6 @@ class BesprekerController extends ControllerBase {
     return [
       '#markup' => '
         <div style="padding: 20px; font-family: sans-serif;">
-          <h2>Bewerk je gegevens</h2>
           <form>
             <label>Naam:</label><br><input type="text" value="Bespreker Test"><br><br>
             <button type="submit">Opslaan</button>
@@ -68,7 +61,6 @@ class BesprekerController extends ControllerBase {
     return [
       '#markup' => '
         <div style="padding: 20px; text-align: center; font-family: sans-serif;">
-          <h2>Jouw Persoonlijke QR-code</h2>
           <div style="width: 200px; height: 200px; background: #333; color: #fff; display: flex; align-items: center; justify-content: center; margin: auto;">
             [QR CODE SCANNER]
           </div>
@@ -84,7 +76,6 @@ class BesprekerController extends ControllerBase {
     return [
       '#markup' => '
         <div style="padding: 20px; font-family: sans-serif;">
-          <h2>Betalingsgeschiedenis</h2>
           <table border="1" style="width: 100%; border-collapse: collapse;">
             <tr style="background: #eee;"><th>Datum</th><th>Bedrag</th><th>Status</th></tr>
             <tr><td>15/04/2026</td><td>€ 150,00</td><td>Betaald</td></tr>
