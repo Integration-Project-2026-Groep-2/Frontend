@@ -6,13 +6,13 @@ hello_world.hello:
   requirements:
     _permission: 'access content'
 
-registration_choice.register:
+hello_world.registration_choice:
   path: '/registration-choice'
   defaults:
     _controller: '\Drupal\hello_world\Controller\RegisterPageController::registrationChoice'
     _title: 'Registration Choice'
   requirements:
-    _user_is_logged_in: 'FALSE'
+    _access: 'TRUE'
 
 hello_world.register_visitor:
   path: '/register-visitor'
