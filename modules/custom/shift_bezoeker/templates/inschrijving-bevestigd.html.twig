@@ -1,0 +1,33 @@
+
+<section class="hero-section dark-theme" style="
+    background: linear-gradient(rgba(49, 19, 57, 0.85), rgba(26, 31, 46, 0.95)),
+                url('/themes/custom/shift_theme/images/event-bg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: white;">
+
+    <div style="max-width: 650px; padding: 60px; background: rgba(255,255,255,0.05); backdrop-filter: blur(15px); border-radius: 30px; border: 1px solid rgba(255,255,255,0.1);">
+        <div style="font-size: 80px; color: #6333ea; margin-bottom: 20px;">✓</div>
+        <h1 style="font-size: 48px; font-weight: 900; text-transform: uppercase;">Je bent erbij!</h1>
+        <p style="font-size: 20px; color: #d1d5db; margin-bottom: 40px;">
+            We hebben sessie <strong>#{{ session_id }}</strong> succesvol gereserveerd.
+        </p>
+        <a href="/bezoeker/sessies" style="
+            display: inline-block;
+            background-color: #6333ea;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 18px 45px;
+            border-radius: 50px;
+            font-weight: 800;
+            text-transform: uppercase;">
+            Terug naar programma
+        </a>
+    </div>
+</section>

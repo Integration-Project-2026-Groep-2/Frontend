@@ -13,3 +13,19 @@ shift_bezoeker.account:
     _title: 'Mijn Account'
   requirements:
     _permission: 'access content'
+
+shift_bezoeker.inschrijven:
+  path: '/sessie/inschrijven/{session_id}'
+  defaults:
+    _controller: '\Drupal\shift_bezoeker\Controller\BezoekerController::inschrijven'
+    _title: 'Inschrijving Bevestigd'
+  requirements:
+    _user_is_logged_in: 'TRUE'
+
+shift_bezoeker.registratie_form:
+  path: '/registreer'
+  defaults:
+    _form: '\Drupal\shift_bezoeker\Form\RegistratieForm'
+    _title: 'Registreer voor Shift Festival 2026'
+  requirements:
+    _permission: 'access content'

@@ -7,26 +7,45 @@
       </a>
     </div>
 
-    <nav class="navbar-menu">
-      {# Hier komen je links, of je roept de Drupal menu-regio aan #}
-      {{ page.header }}
-    </nav>
+    <ul class="navbar-menu">
+      <li><a href="/">Home</a></li>
+      <li><a href="/bezoeker/sessies">Programma</a></li>
+
+      {% if logged_in %}
+        {# Dit zien gebruikers alleen als ze zijn INGELOGD #}
+        <li class="user-profile-item">
+          <a href="/bezoeker/account" class="profile-link">
+            <span class="profile-icon">👤</span>
+            <span class="profile-text">Mijn Account</span>
+          </a>
+        </li>
+        <li><a href="/user/logout" class="logout-link">Uitloggen</a></li>
+      {% else %}
+        {# Dit zien gebruikers alleen als ze zijn UITGELOGD #}
+        <li><a href="/registreer" class="registreer-button">Registreer Nu</a></li>
+        <li><a href="/user/login" class="login-button">Login</a></li>
+      {% endif %}
+    </ul>
   </div>
 </header>
 
+{# De Hero sectie met de paarse gloed komt ALLEEN op de homepagina #}
 {% if is_front %}
   <section class="hero-section hero-logo-only dark-theme">
-    <div class="hero-main-logo">
-      <div class="logo-wrapper">
-        <img src="{{ base_path ~ directory ~ '/images/logo1.png' }}" class="spiral-icon" alt="Shift Spiral">
-        <p class="hero-tagline">Talent is awarded here</p>
+    <div class="main-page-container" style="width: 100%; padding: 100px 0;">
+      <div class="logo-wrapper" style="text-align: center;">
+        <img src="{{ base_path ~ directory ~ '/images/logo1.png' }}" class="spiral-icon" style="width: 500px; margin: 0 auto; display: block;">
+        <p class="hero-tagline" style="color: white; text-align: center; margin-top: 25px; font-size: 22px; letter-spacing: 6px; text-transform: uppercase;">
+          Talent is awarded here
+        </p>
       </div>
     </div>
   </section>
 {% endif %}
 
-<main>
-  {{ page.content }} {# Hier verschijnt je registratieformulier! #}
+{# De Main zorgt ervoor dat op de programma-pagina de grid gewoon zijn eigen achtergrond pakt #}
+<main role="main">
+  {{ page.content }}
 </main>
 
 <footer style="background-color: #0d121f; color: #ffffff; padding: 50px 5%; font-family: 'Inter', sans-serif; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.05);">

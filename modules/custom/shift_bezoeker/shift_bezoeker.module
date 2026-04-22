@@ -7,14 +7,22 @@ function shift_bezoeker_theme($existing, $type, $theme, $path) {
   return [
     'sessie_overzicht_template' => [
       'variables' => [
-        'open_sessions' => NULL,
-        'my_sessions' => NULL,
+        'current_date' => NULL,
+        'day_number' => NULL,
+        'time_slots' => [],
+        'stages' => [],
+        'grid_data' => [],
       ],
     ],
     'account_gegevens_template' => [
-          'variables' => [
-            'user' => NULL
-          ],
-        ],
+      'variables' => [
+        'user' => NULL,
+      ],
+    ],
+    'inschrijving_bevestigd' => [
+      'variables' => [
+        'session_id' => NULL,
+      ],
+    ],
   ];
 }
