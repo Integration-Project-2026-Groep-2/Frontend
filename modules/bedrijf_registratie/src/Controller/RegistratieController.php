@@ -47,5 +47,38 @@ class RegistratieController extends ControllerBase {
       '#markup' => '<h2>' . $this->t('Accountinstellingen') . '</h2><p>' . $this->t('Beheer hier uw inloggegevens en voorkeuren.') . '</p>',
     ];
   }
+  /**
+   * Rendert de pagina met Algemene Voorwaarden.
+   */
+  public function termsPagina() {
+    return [
+      '#type' => 'container',
+      '#attributes' => ['class' => ['terms-content']],
+      '#markup' => '
+        <h1>' . $this->t('Algemene Voorwaarden') . '</h1>
+        <p><em>' . $this->t('Laatst bijgewerkt op: ') . date('d-m-Y') . '</em></p>
+
+        <h2>' . $this->t('1. Toepasselijkheid') . '</h2>
+        <p>' . $this->t('Deze algemene voorwaarden zijn van toepassing op elk gebruik van ons platform, zowel door incidentele bezoekers als door geregistreerde bedrijven en hun medewerkers.') . '</p>
+
+        <h2>' . $this->t('2. Registratie en Accounts') . '</h2>
+        <p>' . $this->t('Bedrijven dienen bij registratie correcte en volledige gegevens te verstrekken, zoals een geldig ondernemingsnummer en adresgegevens. Het account is strikt persoonlijk voor de organisatie.') . '</p>
+
+        <h2>' . $this->t('3. Gebruik van het Platform') . '</h2>
+        <p>' . $this->t('Het is niet toegestaan om het platform te gebruiken voor activiteiten die in strijd zijn met de Belgische wetgeving. Gebruikers zijn verantwoordelijk voor de vertrouwelijkheid van hun inloggegevens.') . '</p>
+
+        <h2>' . $this->t('4. Privacy en Gegevens') . '</h2>
+        <p>' . $this->t('Wij verwerken persoonsgegevens in overeenstemming met de GDPR (AVG). Door gebruik te maken van onze diensten, gaat u akkoord met de verwerking van deze gegevens zoals beschreven in onze privacyverklaring.') . '</p>
+
+        <h2>' . $this->t('5. Aansprakelijkheid') . '</h2>
+        <p>' . $this->t('Hoewel wij streven naar een foutloze werking van het systeem, kunnen wij niet aansprakelijk worden gesteld voor eventuele tijdelijke onbeschikbaarheid of verlies van gegevens door technische storingen.') . '</p>
+
+        <h2>' . $this->t('6. Wijzigingen') . '</h2>
+        <p>' . $this->t('Wij behouden ons het recht voor om deze voorwaarden op elk moment te wijzigen. Bij substantiële wijzigingen zullen geregistreerde gebruikers hiervan op de hoogte worden gesteld.') . '</p>
+
+        <p><br><em>' . $this->t('Bij vragen over deze voorwaarden kunt u contact opnemen met de systeembeheerder.') . '</em></p>
+      ',
+    ];
+  }
 
 }
