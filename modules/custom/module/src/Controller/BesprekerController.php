@@ -107,14 +107,7 @@ class BesprekerController extends ControllerBase {
    */
   public function betalingen(): array {
     return [
-      '#markup' => '
-        <div style="padding: 20px; font-family: sans-serif;">
-          <table border="1" style="width: 100%; border-collapse: collapse;">
-            <tr style="background: #eee;"><th>Datum</th><th>Bedrag</th><th>Status</th></tr>
-            <tr><td>15/04/2026</td><td>€ 150,00</td><td>Betaald</td></tr>
-          </table>
-          <br><a href="/bespreker">« Terug naar Home</a>
-        </div>',
+'#markup' => '<div class="info-card"><h2>Betalingen</h2><p>Geen openstaande facturen.</p></div>'
     ];
   }
 
@@ -124,16 +117,21 @@ class BesprekerController extends ControllerBase {
    */
   public function sessies(): array {
     return [
-      '#markup' => '
-        <div style="padding: 20px; font-family: sans-serif;">
-          <h2>Mijn Sessies</h2>
-          <div style="border: 1px solid #ccc; padding: 15px; margin-bottom: 15px;">
-            <h3>Sessie: Drupal & Docker</h3>
-            <p><strong>Status sessie:</strong> <span style="color: green;">On track</span> (Geen vertragingen)</p>
-            <p><strong>Aantal ingeschreven bezoekers:</strong> 42</p>
-          </div>
-          <br><a href="/bespreker">« Terug naar Home</a>
-        </div>',
+'#markup' => '
+        <h2>Jouw Festival Sessies</h2>
+        <div class="info-card" style="border-left: 5px solid #6a0dad;">
+          <h3>Introductie tot Drupal 10</h3>
+          <p><strong>Status:</strong> <span style="color: green;">On track</span></p>
+          <p><strong>Zaal:</strong> Main Stage</p>
+          <p><strong>Bezoekers:</strong> 124 ingeschreven</p>
+        </div>
+        <div class="info-card" style="border-left: 5px solid #ff4444; margin-top: 15px;">
+          <h3>Docker Workshop</h3>
+          <p><strong>Status:</strong> <span style="color: red;">⚠ 15 min vertraging</span></p>
+          <p><strong>Zaal:</strong> Room B</p>
+          <p><strong>Bezoekers:</strong> 45 ingeschreven</p>
+        </div>
+        <p><a href="/bespreker" style="color: #6a0dad; margin-top: 20px; display: block;">« Terug naar Dashboard</a></p>',
     ];
   }
 }
