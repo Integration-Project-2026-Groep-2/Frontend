@@ -40,6 +40,7 @@ class AdminController extends ControllerBase {
                 <div class="admin-home">
                     
                     <p>Dit is de admin pagina. Hier kan je zaken zoals sessies beheren, gebruikers bekijken en inschrijvingen opvolgen.</p>
+                    <a href="https://control-room.integration-project-2026-groep-2.my.be/" target="_blank">Control room</a>
 
                     <div class="admin-cards">
 
