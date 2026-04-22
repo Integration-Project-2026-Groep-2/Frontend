@@ -154,7 +154,7 @@ class RegisterCompanyForm extends FormBase {
       'City: ' . $form_state->getValue('city'),
       'Country: ' . $form_state->getValue('country'),
       '',
-      'GDPR consent: Yes',
+      'GDPR consent: ' . (!empty($form_state->getValue('gdpr_consent')) ? 'Yes' : 'No'),
     ];
 
     $params = [
