@@ -75,12 +75,12 @@ class RegisterVisitorForm extends FormBase {
       $_ENV['RABBITMQ_USER'], $_ENV['RABBITMQ_PASS']
     );
     $channel = $connection->channel();
-    $channel->exchange_declare('user.exchange', 'topic', false, true, false);
+    $channel->exchange_declare('user.topic', 'topic', false, true, false);
     $msg = new AMQPMessage(
       $xml->asXML(),
       ['content_type' => 'text/xml', 'delivery_mode' => 2]
     );
-    $channel->basic_publish($msg, 'user.exchange', 'user.topic');
+    $channel->basic_publish($msg, 'user.topic', 'frontend.registration.created');
     $channel->close();
     $connection->close();
 
