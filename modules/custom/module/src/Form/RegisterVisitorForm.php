@@ -36,26 +36,10 @@ class RegisterVisitorForm extends FormBase {
       '#title'    => $this->t('Phone'),
       '#required' => FALSE,
     ];
-    $form['company'] = [
-      '#type'     => 'textfield',
-      '#title'    => $this->t('Company'),
-      '#required' => FALSE,
-    ];
-    $form['role'] = [
-      '#type'          => 'select',
-      '#title'         => $this->t('Role'),
-      '#options'       => [
-        'VISITOR'         => $this->t('Visitor'),
-        'COMPANY_CONTACT' => $this->t('Company Contact'),
-      ],
-      '#default_value' => 'VISITOR',
-      '#required'      => TRUE,
-    ];
     $form['pass'] = [
-      '#type'             => 'password_confirm',
-      '#title'            => $this->t('Password'),
-      '#required'         => TRUE,
-      '#description'      => $this->t('Minimum 8 characters.'),
+      '#type'        => 'password_confirm',
+      '#required'    => TRUE,
+      '#description' => $this->t('Minimum 8 characters.'),
     ];
     $form['gdpr_consent'] = [
       '#type'     => 'checkbox',
@@ -72,8 +56,8 @@ class RegisterVisitorForm extends FormBase {
   public function validateForm(array &$form, FormStateInterface $form_state): void {
     $email = $form_state->getValue('email');
     $phone = $form_state->getValue('phone');
+    $pass  = $form_state->getValue('pass');
 
-    // Controleer of e-mail al in gebruik is.
     if ($email && user_load_by_mail($email)) {
       $form_state->setErrorByName('email', $this->t('This email address is already registered.'));
     }
@@ -82,13 +66,8 @@ class RegisterVisitorForm extends FormBase {
       $form_state->setErrorByName('phone', $this->t('Phone number must be at least 10 digits.'));
     }
 
-    if ($form_state->getValue('role') === 'COMPANY_CONTACT'
-        && empty($form_state->getValue('company'))) {
-      $form_state->setErrorByName('company', $this->t('Company is required for Company Contacts.'));
-    }
-
-    if (strlen($form_state->getValue('pass')) < 8) {
-      $form_state->setErrorByName('password', $this->t('Password must be at least 8 characters.'));
+    if (strlen($pass) < 8) {
+      $form_state->setErrorByName('pass', $this->t('Password must be at least 8 characters.'));
     }
   }
 
@@ -96,27 +75,27 @@ class RegisterVisitorForm extends FormBase {
     $email     = $form_state->getValue('email');
     $firstName = $form_state->getValue('first_name');
     $lastName  = $form_state->getValue('last_name');
-    $phone     = $form_state->getValue('phone')   ?: NULL;
-    $company   = $form_state->getValue('company') ?: NULL;
-    $role      = $form_state->getValue('role');
+    $phone     = $form_state->getValue('phone') ?: NULL;
     $gdpr      = (bool) $form_state->getValue('gdpr_consent');
     $password  = $form_state->getValue('pass');
 
     // ── 1. Drupal user aanmaken ───────────────────────────────────────────
     try {
       $account = User::create([
+        // name = email zodat Drupal intern uniek blijft maar de gebruiker
+        // via e-mail inlogt (zie hello_world_form_alter hieronder).
         'name'   => $email,
         'mail'   => $email,
         'pass'   => $password,
-        'status' => 1,  // meteen actief
+        'status' => 1,
       ]);
 
-      // Sla extra velden op als ze bestaan op de user entity.
-      $this->setField($account, 'field_first_name',  $firstName);
-      $this->setField($account, 'field_last_name',   $lastName);
-      $this->setField($account, 'field_phone',       $phone);
-      $this->setField($account, 'field_company',     $company);
-      $this->setField($account, 'field_role',        $role);
+      // Wijs de Drupal-rol 'visitor' toe (moet al aangemaakt zijn).
+      $account->addRole('visitor');
+
+      $this->setField($account, 'field_first_name',   $firstName);
+      $this->setField($account, 'field_last_name',    $lastName);
+      $this->setField($account, 'field_phone',        $phone);
       $this->setField($account, 'field_gdpr_consent', $gdpr);
 
       $account->save();
@@ -136,8 +115,7 @@ class RegisterVisitorForm extends FormBase {
       email:       $email,
       gdprConsent: $gdpr,
       phone:       $phone,
-      company:     $company,
-      role:        $role,
+      role:        'visitor',   // altijd visitor bij zelfregistratie
     );
 
     $client = RabbitMQClient::fromEnv();
@@ -145,8 +123,6 @@ class RegisterVisitorForm extends FormBase {
       $client->publish($message);
     }
     catch (\RuntimeException $e) {
-      // Gebruiker is al aangemaakt in Drupal — log de RabbitMQ-fout maar
-      // blokkeer de registratie niet.
       \Drupal::logger('hello_world')->error(
         'RabbitMQ publish mislukt: @err', ['@err' => $e->getMessage()]
       );
@@ -155,16 +131,13 @@ class RegisterVisitorForm extends FormBase {
       $client->disconnect();
     }
 
-    // ── 3. Succesbericht + redirect naar login ────────────────────────────
+    // ── 3. Redirect naar login ────────────────────────────────────────────
     $this->messenger()->addStatus(
-      $this->t('Registration successful! You can now log in.')
+      $this->t('Registration successful! You can now log in with your email address.')
     );
     $form_state->setRedirectUrl(Url::fromRoute('user.login'));
   }
 
-  /**
-   * Stelt een veldwaarde in als het veld bestaat op de entity.
-   */
   private function setField(object $entity, string $field, mixed $value): void {
     if ($value !== NULL && $entity->hasField($field)) {
       $entity->set($field, $value);
