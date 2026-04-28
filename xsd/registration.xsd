@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:element name="Registration">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="registrationId" type="xs:string"/>
+        <xs:element name="firstName"      type="xs:string"/>
+        <xs:element name="lastName"       type="xs:string"/>
+        <xs:element name="email"          type="xs:string"/>
+        <xs:element name="sessionId"      type="xs:string"/>
+        <xs:element name="role"           type="RoleType"/>
+        <xs:element name="gdprConsent"    type="BooleanString"/>
+        <!-- phone is optional -->
+        <xs:element name="phone"          type="xs:string" minOccurs="0"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:simpleType name="RoleType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="VISITOR"/>
+      <xs:enumeration value="SPEAKER"/>
+      <xs:enumeration value="ORGANIZER"/>
+      <xs:enumeration value="ADMIN"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="BooleanString">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="true"/>
+      <xs:enumeration value="false"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+</xs:schema>
