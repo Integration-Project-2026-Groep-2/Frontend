@@ -33,6 +33,8 @@ class BesprekerController extends ControllerBase {
             <p>Overzicht van je financiële administratie.</p>
             <a href="/bespreker/betalingen" class="btn-primary">Bekijk Facturen</a>
           </div>
+          <div class="info-card"><h3>📦 Materialen</h3><p>Huur en logistiek</p><a href="/bespreker/materialen" class="btn-primary">Bekijk</a></div>
+          <div class="info-card"><h3>💬 Feedback</h3><p>Wat vonden de bezoekers?</p><a href="/bespreker/feedback" class="btn-primary">Bekijk</a></div>
         </div>',
     ];
   }
@@ -115,23 +117,52 @@ class BesprekerController extends ControllerBase {
    * SESSIES
    * Inclusief "Status sessie" en "Aantal bezoekers" zoals in sitemap.
    */
-  public function sessies(): array {
+public function sessies(): array {
     return [
-'#markup' => '
+      '#markup' => '
         <h2>Jouw Festival Sessies</h2>
-        <div class="info-card" style="border-left: 5px solid #6a0dad;">
-          <h3>Introductie tot Drupal 10</h3>
-          <p><strong>Status:</strong> <span style="color: green;">On track</span></p>
-          <p><strong>Zaal:</strong> Main Stage</p>
-          <p><strong>Bezoekers:</strong> 124 ingeschreven</p>
+        <div class="info-card">
+          <h3>Drupal 10 Deep Dive</h3>
+          <p>Status: <strong>On track</strong></p>
+          <a href="/bespreker/sessies/details" class="btn-primary">Sessie details</a>
+          <a href="/bespreker/sessies/bezoekers" class="btn-primary" style="background:#444;">Bezoekers details</a>
         </div>
-        <div class="info-card" style="border-left: 5px solid #ff4444; margin-top: 15px;">
-          <h3>Docker Workshop</h3>
-          <p><strong>Status:</strong> <span style="color: red;">⚠ 15 min vertraging</span></p>
-          <p><strong>Zaal:</strong> Room B</p>
-          <p><strong>Bezoekers:</strong> 45 ingeschreven</p>
-        </div>
-        <p><a href="/bespreker" style="color: #6a0dad; margin-top: 20px; display: block;">« Terug naar Dashboard</a></p>',
+        <p><a href="/bespreker" style="color: #6a0dad;">« Terug</a></p>',
     ];
   }
+  public function feedback(): array {
+    return [
+      '#markup' => '
+        <div class="info-card">
+          <h2>Feedback Overzicht</h2>
+          <p>Gemiddelde score: ⭐ 4.8/5</p>
+          <a href="/bespreker/feedback/summary" class="btn-primary">Summary en Analyse</a>
+        </div>
+        <p><a href="/bespreker" style="color: #6a0dad;">« Terug</a></p>',
+    ];
+  }
+
+  public function feedbackSummary(): array {
+    return ['#markup' => '<div class="info-card"><h2>Analyse van Feedback</h2><p>Gedetailleerde grafieken en opmerkingen van bezoekers.</p></div>'];
+  }
+
+  public function materialen(): array {
+    return [
+      '#markup' => '
+        <div class="info-card">
+          <h2>Logistiek & Materialen</h2>
+          <p>Beheer de benodigdheden voor je sessie.</p>
+          <a href="/bespreker/materialen/gehuurd" class="btn-primary">Gehuurde materialen</a>
+        </div>
+        <p><a href="/bespreker" style="color: #6a0dad;">« Terug</a></p>',
+    ];
+  }
+
+  public function materialenGehuurd(): array {
+    return ['#markup' => '<div class="info-card"><h2>Mijn Gehuurde Materialen</h2><ul><li>Beamerset (Gereserveerd)</li><li>Draadloze microfoon (Gereserveerd)</li></ul></div>'];
+  }
+
+  public function sessieDetails(): array { return ['#markup' => '<div class="info-card"><h2>Sessie Details</h2><p>Informatie over vertragingen, zaalwijzigingen en annulaties.</p></div>']; }
+  public function bezoekersDetails(): array { return ['#markup' => '<div class="info-card"><h2>Bezoekers Details</h2><p>Lijst met ingeschreven deelnemers en hun profielen.</p></div>']; }
+  
 }

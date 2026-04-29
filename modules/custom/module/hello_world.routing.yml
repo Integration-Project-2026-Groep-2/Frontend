@@ -71,3 +71,51 @@ hello_world.admin_page:
     _permission: 'administer users'
   options:
     _admin_route: TRUE
+
+hello_world.bespreker_feedback:
+  path: '/bespreker/feedback'
+  defaults:
+    _controller: '\Drupal\hello_world\Controller\BesprekerController::feedback'
+    _title: 'Feedback Overzicht'
+  requirements:
+    _permission: 'access content'
+
+hello_world.bespreker_feedback_summary:
+  path: '/bespreker/feedback/summary'
+  defaults:
+    _controller: '\Drupal\hello_world\Controller\BesprekerController::feedbackSummary'
+    _title: 'Feedback Analyse'
+  requirements:
+    _permission: 'access content'
+
+hello_world.bespreker_materialen:
+  path: '/bespreker/materialen'
+  defaults:
+    _controller: '\Drupal\hello_world\Controller\BesprekerController::materialen'
+    _title: 'Materialen & Logistiek'
+  requirements:
+    _permission: 'access content'
+
+hello_world.bespreker_materialen_gehuurd:
+  path: '/bespreker/materialen/gehuurd'
+  defaults:
+    _controller: '\Drupal\hello_world\Controller\BesprekerController::materialenGehuurd'
+    _title: 'Gehuurde Materialen'
+  requirements:
+    _permission: 'access content'
+
+hello_world.bespreker_sessies_details:
+  path: '/bespreker/sessies/details'
+  defaults:
+    _controller: '\Drupal\hello_world\Controller\BesprekerController::sessieDetails'
+    _title: 'Sessie Details'
+  requirements:
+    _permission: 'access content'
+
+hello_world.bespreker_sessies_bezoekers:
+  path: '/bespreker/sessies/bezoekers'
+  defaults:
+    _controller: '\Drupal\hello_world\Controller\BesprekerController::bezoekersDetails'
+    _title: 'Bezoekers Lijst'
+  requirements:
+    _permission: 'access content'
