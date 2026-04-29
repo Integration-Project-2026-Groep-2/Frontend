@@ -87,7 +87,7 @@ class BezoekerController extends ControllerBase {
   }
 
   public function bedrijvenPage() {
-    
+
     $query = \Drupal::entityQuery('user')
       ->accessCheck(FALSE)
       ->condition('status', 1)
