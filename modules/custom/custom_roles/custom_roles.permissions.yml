@@ -9,3 +9,7 @@ access company area:
 access speaker area:
   title: 'Access speaker area'
   description: 'Allows access to speaker-specific pages.'
+
+access kassa area:
+  title: 'Access kassa area'
+  description: 'Allows users to access kassa-specific pages.'
