@@ -1,5 +1,4 @@
 <?php
-<?php
 
 namespace Drupal\Session_Management\Controller;
 
