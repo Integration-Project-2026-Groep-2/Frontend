@@ -19,7 +19,7 @@ class SessionEdit extends ControllerBase {
         '#markup' => '<p>Edit page for session ID: ' . $id . '</p>',
       ],
     
-      'form' => \Drupal::formBuilder()->getForm(SessionEditForm::class, $id);
+      'form' => \Drupal::formBuilder()->getForm(SessionEditForm::class, $id),
 
       'back_link' => [
         '#type' => 'link',
