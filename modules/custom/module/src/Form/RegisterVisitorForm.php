@@ -94,7 +94,7 @@ class RegisterVisitorForm extends FormBase {
       $account->addRole('visitor');
 
       $this->setField($account, 'field_first_name',   $firstName);
-      $this->setField($account, 'field_last_name',    $lastName);
+      $this->setField($account, 'field_surname',    $lastName);
       $this->setField($account, 'field_phone',        $phone);
       $this->setField($account, 'field_gdpr_consent', $gdpr);
 
