@@ -65,7 +65,7 @@ class SessionManagement extends ControllerBase {
       ],
       'table' => [
         '#type' => 'table',
-        '#header' => ['Title', 'Start', 'End', 'Location', 'Speaker', 'Capacity''Actions',],
+        '#header' => ['Title', 'Start', 'End', 'Location', 'Speaker', 'Capacity''Actions'],
         '#rows' => $rows,
         '#empty' => $this->t('No sessions found.'),
       ],
