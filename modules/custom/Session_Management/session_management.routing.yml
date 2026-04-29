@@ -16,3 +16,11 @@ session_management.create:
     _permission: 'access content'
     _role: 'administrator'
 
+session_management.edit:
+  path: '/session/{id}/edit'
+  defaults:
+    _controller: '\Drupal\Session_Management\Controller\SessionEdit::editPage'
+    _title: 'Edit session'
+  requirements:
+    _permission: 'access content'
+    _role: 'administrator'  
