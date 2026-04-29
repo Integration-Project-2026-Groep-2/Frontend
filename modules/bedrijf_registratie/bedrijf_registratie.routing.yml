@@ -45,12 +45,27 @@ bedrijf_registratie.account:
     _title: 'Accountgegevens'
   requirements:
     _permission: 'access content'
-  # ... je vorige routes ...
 
 bedrijf_registratie.terms:
   path: '/algemene-voorwaarden'
   defaults:
     _controller: '\Drupal\bedrijf_registratie\Controller\RegistratieController::termsPagina'
     _title: 'Algemene Voorwaarden'
+  requirements:
+    _permission: 'access content'
+
+bedrijf_registratie.home:
+  path: '/'
+  defaults:
+    _controller: '\Drupal\bedrijf_registratie\Controller\PublicController::homePagina'
+    _title: 'Welkom bij Shift Festival'
+  requirements:
+    _permission: 'access content'
+
+bedrijf_registratie.programma:
+  path: '/programma'
+  defaults:
+    _controller: '\Drupal\bedrijf_registratie\Controller\PublicController::programmaPagina'
+    _title: 'Programma & Sprekers'
   requirements:
     _permission: 'access content'
