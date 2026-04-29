@@ -1,8 +1,10 @@
+
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@600;700;800&display=swap" rel="stylesheet">
+
 <header class="custom-navbar-wrapper">
   <div class="navbar-container">
     <div class="navbar-logo">
       <a href="{{ front_page }}">
-        {# Hier roepen we het logo aan uit jouw images map #}
         <img src="{{ base_path ~ directory ~ '/images/logonav2.png' }}" class="nav-logo-img" alt="Shift Logo">
       </a>
     </div>
@@ -11,37 +13,85 @@
       <li><a href="/">Home</a></li>
       <li><a href="/bezoeker/sessies">Programma</a></li>
       <li><a href="/bedrijven" class="nav-link">Partners</a></li>
-
-      {% if logged_in %}
-        {# Dit zien gebruikers alleen als ze zijn INGELOGD #}
-        <li class="user-profile-item">
-          <a href="/bezoeker/account" class="profile-link">
-            <span class="profile-icon">👤</span>
-            <span class="profile-text">Mijn Account</span>
-          </a>
-        </li>
-        <li><a href="/user/logout" class="logout-link">Uitloggen</a></li>
-      {% else %}
-        {# Dit zien gebruikers alleen als ze zijn UITGELOGD #}
-        <li><a href="/registreer" class="registreer-button">Registreer Nu</a></li>
-        <li><a href="/user/login" class="login-button">Login</a></li>
-      {% endif %}
     </ul>
+
+    <div class="navbar-actions">
+      {% if logged_in %}
+        <a href="/bezoeker/account" class="profile-link">
+          <span class="profile-icon">👤</span>
+          <span class="profile-text">Mijn Account</span>
+        </a>
+        <a href="/user/logout" class="logout-link">Uitloggen</a>
+      {% else %}
+        <a href="/registreer" class="registreer-button">Registreer Nu</a>
+        <a href="/user/login" class="login-button">Login</a>
+      {% endif %}
+    </div>
+
   </div>
 </header>
 
-{# De Hero sectie met de paarse gloed komt ALLEEN op de homepagina #}
+{# De Hero sectie compacter gemaakt voor direct overzicht #}
 {% if is_front %}
-  <section class="hero-section hero-logo-only dark-theme">
-    <div class="main-page-container" style="width: 100%; padding: 100px 0;">
+  <section class="hero-section hero-logo-only dark-theme" style="min-height: 80vh; display: flex; align-items: center;">
+    <div class="main-page-container" style="width: 100%; padding: 20px 0; margin-top: -50px;">
       <div class="logo-wrapper" style="text-align: center;">
-        <img src="{{ base_path ~ directory ~ '/images/logo1.png' }}" class="spiral-icon" style="width: 500px; margin: 0 auto; display: block;">
-        <p class="hero-tagline" style="color: white; text-align: center; margin-top: 25px; font-size: 22px; letter-spacing: 6px; text-transform: uppercase;">
+
+        {# Logo kleiner gemaakt (300px ipv 500px) zodat er ruimte overblijft #}
+        <img src="{{ base_path ~ directory ~ '/images/logo1.png' }}" class="spiral-icon" style="width: 320px; margin: 0 auto; display: block;">
+
+        <p class="hero-tagline" style="color: white; text-align: center; margin-top: 15px; font-size: 18px; letter-spacing: 4px; text-transform: uppercase; opacity: 0.9; margin-left: 4px; display: block;">
           Talent is awarded here
         </p>
+
+        {# COUNTDOWN: Iets kleiner gemaakt zodat het niet de hele pagina vult #}
+        <div style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap; margin-top: 30px; margin-bottom: 30px;">
+          <div style="background: rgba(26,31,46,0.5); border: 1px solid rgba(99,51,234,0.3); border-radius: 10px; padding: 15px; min-width: 90px; backdrop-filter: blur(5px);">
+            <span id="countdown-dagen" style="font-size: 36px; font-weight: 900; color: #6333ea; display: block;">00</span>
+            <span style="font-size: 9px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: #a0a5b1;">Dagen</span>
+          </div>
+          <div style="background: rgba(26,31,46,0.5); border: 1px solid rgba(99,51,234,0.3); border-radius: 10px; padding: 15px; min-width: 90px; backdrop-filter: blur(5px);">
+            <span id="countdown-uren" style="font-size: 36px; font-weight: 900; color: #6333ea; display: block;">00</span>
+            <span style="font-size: 9px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: #a0a5b1;">Uren</span>
+          </div>
+          <div style="background: rgba(26,31,46,0.5); border: 1px solid rgba(99,51,234,0.3); border-radius: 10px; padding: 15px; min-width: 90px; backdrop-filter: blur(5px);">
+            <span id="countdown-minuten" style="font-size: 36px; font-weight: 900; color: #6333ea; display: block;">00</span>
+            <span style="font-size: 9px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: #a0a5b1;">Minuten</span>
+          </div>
+          <div style="background: rgba(26,31,46,0.5); border: 1px solid rgba(99,51,234,0.3); border-radius: 10px; padding: 15px; min-width: 90px; backdrop-filter: blur(5px);">
+            <span id="countdown-seconden" style="font-size: 36px; font-weight: 900; color: #6333ea; display: block;">00</span>
+            <span style="font-size: 9px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: #a0a5b1;">Seconden</span>
+          </div>
+        </div>
+
+        <a href="{% if logged_in %}/bezoeker/sessies{% else %}/registreer{% endif %}"
+           style="display: inline-block; background: #6333ea; color: white; padding: 14px 35px; border-radius: 8px; font-size: 14px; font-weight: 800; text-decoration: none; letter-spacing: 2px; text-transform: uppercase;">
+          {% if logged_in %}
+            Bekijk Programma →
+          {% else %}
+            Claim Je Plek →
+          {% endif %}
+        </a>
+
       </div>
     </div>
   </section>
+
+  <script>
+    (function() {
+      const eventDatum = new Date('2026-06-22T10:00:00');
+      function update() {
+        const nu = new Date();
+        const verschil = eventDatum - nu;
+        if (verschil <= 0) return;
+        document.getElementById('countdown-dagen').innerText = String(Math.floor(verschil / 864e5)).padStart(2, '0');
+        document.getElementById('countdown-uren').innerText = String(Math.floor((verschil % 864e5) / 36e5)).padStart(2, '0');
+        document.getElementById('countdown-minuten').innerText = String(Math.floor((verschil % 36e5) / 6e4)).padStart(2, '0');
+        document.getElementById('countdown-seconden').innerText = String(Math.floor((verschil % 6e4) / 1000)).padStart(2, '0');
+      }
+      setInterval(update, 1000); update();
+    })();
+  </script>
 {% endif %}
 
 {# De Main zorgt ervoor dat op de programma-pagina de grid gewoon zijn eigen achtergrond pakt #}
