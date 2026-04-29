@@ -1,8 +1,17 @@
+session_management.list:
+  path: '/sessions'
+  defaults:
+    _controller: '\Drupal\Session_Management\Controller\SessionManagement::listPages'
+    _title: 'Sessions'
+  requirements:
+    _permission: 'access content'
+    _role: 'administrator'
+
 session_management.create:
   path: '/session/create'
   defaults:
-    _controller: '\Drupal\Session_Management\Controller\SessionManagement::createPage'
-    _title: 'Create Session'
+    _controller: '\Drupal\Session_Management\Controller\SessionCreate::createPage'
+    _title: 'Create new session'
   requirements:
     _permission: 'access content'
     _role: 'administrator'
