@@ -1,0 +1,12 @@
+name: Session Management
+description: Simple session creation for Shift Festival
+type: module
+Package: Custom
+core_version_requirement: ^10 || ^11
+dependencies:
+  - drupal:node
+
+themes:
+  session_management:
+    title: 'Session Management'
+    base theme: shift_festival_theme
