@@ -24,5 +24,12 @@ function shift_bezoeker_theme($existing, $type, $theme, $path) {
         'session_id' => NULL,
       ],
     ],
+    'home_template' => [
+      'variables' => [],
+    ],
+
+    'bezoeker_bedrijven' => [
+          'variables' => ['bedrijven' => NULL],
+        ],
   ];
 }

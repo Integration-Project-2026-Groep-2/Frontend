@@ -1,0 +1,66 @@
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+
+<div style="background: #0d121f; min-height: 100vh; font-family: 'Inter', sans-serif; color: white; display: flex; align-items: center; justify-content: center; text-align: center;">
+
+  <div>
+    <h2 style="font-size: 42px; font-weight: 900; margin: 0 0 10px 0; font-family: 'Playfair Display', serif;">De countdown is begonnen</h2>
+    <p style="color: #6333ea; font-size: 18px; font-weight: 600; margin: 0 0 50px 0;">
+      22 Juni 2026 — Campus Desideriushogeschool
+    </p>
+
+    <div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-bottom: 50px;">
+      <div style="background: rgba(26,31,46,0.9); border: 1px solid rgba(99,51,234,0.3); border-radius: 16px; padding: 30px 35px; min-width: 120px;">
+        <span id="countdown-dagen" style="font-size: 52px; font-weight: 900; color: #6333ea; display: block; font-family: 'Playfair Display', serif;">00</span>
+        <span style="font-size: 11px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; color: #a0a5b1;">Dagen</span>
+      </div>
+      <div style="background: rgba(26,31,46,0.9); border: 1px solid rgba(99,51,234,0.3); border-radius: 16px; padding: 30px 35px; min-width: 120px;">
+        <span id="countdown-uren" style="font-size: 52px; font-weight: 900; color: #6333ea; display: block; font-family: 'Playfair Display', serif;">00</span>
+        <span style="font-size: 11px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; color: #a0a5b1;">Uren</span>
+      </div>
+      <div style="background: rgba(26,31,46,0.9); border: 1px solid rgba(99,51,234,0.3); border-radius: 16px; padding: 30px 35px; min-width: 120px;">
+        <span id="countdown-minuten" style="font-size: 52px; font-weight: 900; color: #6333ea; display: block; font-family: 'Playfair Display', serif;">00</span>
+
+        <span style="font-size: 11px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; color: #a0a5b1;">Minuten</span>
+      </div>
+      <div style="background: rgba(26,31,46,0.9); border: 1px solid rgba(99,51,234,0.3); border-radius: 16px; padding: 30px 35px; min-width: 120px;">
+        <span id="countdown-seconden" style="font-size: 52px; font-weight: 900; color: #6333ea; display: block; font-family: 'Playfair Display', serif;">00</span>
+        <span style="font-size: 11px; font-weight: 800; letter-spacing: 3px; text-transform: uppercase; color: #a0a5b1;">Seconden</span>
+      </div>
+    </div>
+
+    <a href="/registreer" style="background: #6333ea; color: white; padding: 18px 45px; border-radius: 10px; font-size: 15px; font-weight: 800; text-decoration: none; letter-spacing: 2px; text-transform: uppercase;">
+      Claim Je Plek →
+    </a>
+  </div>
+
+</div>
+
+<script>
+  const eventDatum = new Date('2026-06-22T10:00:00');
+
+  function updateCountdown() {
+    const nu = new Date();
+    const verschil = eventDatum - nu;
+
+    if (verschil <= 0) {
+      document.getElementById('countdown-dagen').textContent = '00';
+      document.getElementById('countdown-uren').textContent = '00';
+      document.getElementById('countdown-minuten').textContent = '00';
+      document.getElementById('countdown-seconden').textContent = '00';
+      return;
+    }
+
+    const dagen = Math.floor(verschil / (1000 * 60 * 60 * 24));
+    const uren = Math.floor((verschil % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minuten = Math.floor((verschil % (1000 * 60 * 60)) / (1000 * 60));
+    const seconden = Math.floor((verschil % (1000 * 60)) / 1000);
+
+    document.getElementById('countdown-dagen').textContent = String(dagen).padStart(2, '0');
+    document.getElementById('countdown-uren').textContent = String(uren).padStart(2, '0');
+    document.getElementById('countdown-minuten').textContent = String(minuten).padStart(2, '0');
+    document.getElementById('countdown-seconden').textContent = String(seconden).padStart(2, '0');
+  }
+
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+</script>

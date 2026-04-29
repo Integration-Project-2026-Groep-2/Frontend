@@ -59,35 +59,41 @@
         <div style="padding: 15px; position: relative; z-index: 2;">
           {% if session and session.title is defined %}
             <div style="background: {{ (logged_in and session.type == 'registered') ? 'rgba(99, 51, 234, 0.85)' : 'rgba(26, 31, 46, 0.6)' }};
-                        padding: 22px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column; justify-content: space-between; min-height: 140px;">
+                        padding: 22px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.1);
+                        display: flex; flex-direction: column; justify-content: space-between;
+                        min-height: 140px; position: relative;">
+
               <div>
                 <h3 style="margin: 0 0 8px 0; font-size: 18px; font-weight: 800;">{{ session.title }}</h3>
                 <span style="font-size: 13px; color: rgba(255,255,255,0.7);">{{ session.time }}</span>
               </div>
+
               <div style="margin-top: 15px;">
                 {% if logged_in %}
                   {% if session.type == 'registered' %}
-                    {# Al ingeschreven: Toon badge #}
-                    <span style="font-size: 10px; font-weight: 900; color: #fff; background: rgba(0,0,0,0.3); padding: 5px 10px; border-radius: 5px; text-transform: uppercase;">
+                    <span style="position: absolute; top: 12px; right: 12px; font-size: 10px; font-weight: 900; color: #fff; background: rgba(0,0,0,0.3); padding: 4px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 1px;">
                       ✓ Present
                     </span>
+                    <a href="/sessie/uitschrijven/{{ session.id }}" style="display: block; border: 1px solid rgba(255,255,255,0.4); background: transparent; color: white; padding: 8px; border-radius: 8px; font-size: 11px; text-align: center; font-weight: 700; text-decoration: none; letter-spacing: 1px;">
+                      UITSCHRIJVEN
+                    </a>
                   {% else %}
-                    {# Ingelogd maar nog niet ingeschreven: Actieknop #}
                     <a href="/sessie/inschrijven/{{ session.id }}" style="display: block; border: 1px solid #6333ea; background: rgba(99, 51, 234, 0.2); color: white; padding: 8px; border-radius: 8px; font-size: 11px; text-align: center; font-weight: 700; text-decoration: none;">
                       INSCHRIJVEN
                     </a>
                   {% endif %}
                 {% else %}
-                  {# NIET ingelogd: Verwijs naar registratie #}
                   <a href="/bezoeker/account" style="display: block; border: 1px solid #6333ea; background: rgba(99, 51, 234, 0.2); color: white; padding: 8px; border-radius: 8px; font-size: 11px; text-align: center; font-weight: 700; text-decoration: none;">
                     INSCHRIJVEN
                   </a>
                 {% endif %}
               </div>
+
             </div>
           {% endif %}
         </div>
       {% endfor %}
     {% endfor %}
+
   </div>
 </div>

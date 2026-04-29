@@ -22,10 +22,34 @@ shift_bezoeker.inschrijven:
   requirements:
     _user_is_logged_in: 'TRUE'
 
+shift_bezoeker.uitschrijven:
+  path: '/sessie/uitschrijven/{session_id}'
+  defaults:
+    _controller: '\Drupal\shift_bezoeker\Controller\BezoekerController::uitschrijven'
+    _title: 'Uitschrijving Bevestigd'
+  requirements:
+    _user_is_logged_in: 'TRUE'
+
 shift_bezoeker.registratie_form:
   path: '/registreer'
   defaults:
     _form: '\Drupal\shift_bezoeker\Form\RegistratieForm'
     _title: 'Registreer voor Shift Festival 2026'
+  requirements:
+    _permission: 'access content'
+
+shift_bezoeker.home:
+  path: '/home'
+  defaults:
+    _controller: '\Drupal\shift_bezoeker\Controller\BezoekerController::homePage'
+    _title: 'Shift Festival 2026'
+  requirements:
+    _permission: 'access content'
+
+shift_bezoeker.bedrijven_overzicht:
+  path: '/bedrijven'
+  defaults:
+    _controller: '\Drupal\shift_bezoeker\Controller\BezoekerController::bedrijvenPage'
+    _title: 'Onze Partners & Exposanten'
   requirements:
     _permission: 'access content'
