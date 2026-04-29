@@ -3,49 +3,44 @@
 namespace Drupal\Session_Management\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
-use Drupal\Core\Link;
 use Drupal\Core\Url;
+use Drupal\Session_Management\RabbitMQ\Message\SessionListRequest;
+use PhpAmqpLib\Connection\AMQPStreamConnection;
+use PhpAmqpLib\Message\AMQPMessage;
 
 class SessionManagement extends ControllerBase {
 
   public function createPage() {
-    #mock data
-    $sessions = [
-      [
-        'id' => '1',
-        'title' => 'PHP Security Basics',
-        'start_time' => '2026-05-10 14:00',
-        'end_time' => '2026-05-10 14:45',
-        'location' => 'Room A',
-        'speaker' => 'Acme Corp',
-        'capacity' => 50,
-      ],
-      [
-        'id' => '2',
-        'title' => 'Web Performance Tips',
-        'start_time' => '2026-05-10 15:00',
-        'end_time' => '2026-05-10 15:45',
-        'location' => 'Room B',
-        'speaker' => 'Tech Solutions',
-        'capacity' => 30,
-      ],
-    ];
+    try {
+      $request = new SessionListRequest();
+      $xml = $request->toXml();
 
-    $rows = [];
-    foreach ($sessions as $session) {
-      $edit_url = Url::fromRoute('session_management.edit', [
-        'id' => $session['id'],
+      $host = getenv('RABBITMQ_HOST') ?: 'localhost';
+      $port = (int) (getenv('RABBITMQ_PORT') ?: 5672);
+      $user = getenv('RABBITMQ_USER') ?: 'guest';
+      $pass = getenv('RABBITMQ_PASS') ?: 'guest';
+      $exchange = getenv('RABBITMQ_EXCHANGE') ?: 'session.direct';
+      $routingKey = getenv('RABBITMQ_ROUTING_KEY') ?: 'session.list.request';
+
+      $connection = new AMQPStreamConnection($host, $port, $user, $pass);
+      $channel = $connection->channel();
+
+      $channel->exchange_declare($exchange, 'direct', false, true, false, false);
+
+      $msg = new AMQPMessage($xml, [
+        'content_type' => 'text/xml',
+        'delivery_mode' => 2,
       ]);
 
-      $rows[] = [
-        $session['title'],
-        $session['start_time'],
-        $session['end_time'],
-        $session['location'],
-        $session['speaker'],
-        $session['capacity'],
-        Link::fromTextAndUrl($this->t('Edit session'), $edit_url)->toString(),
-      ];
+      $channel->basic_publish($msg, $exchange, $routingKey);
+
+      $channel->close();
+      $connection->close();
+
+      $this->messenger()->addStatus($this->t('Session list request sent.'));
+    }
+    catch (\Throwable $e) {
+      $this->messenger()->addError($this->t('Could not send session list request.'));
     }
 
     $create_url = Url::fromRoute('session_management.create');
@@ -65,9 +60,9 @@ class SessionManagement extends ControllerBase {
       ],
       'table' => [
         '#type' => 'table',
-        '#header' => ['Title', 'Start', 'End', 'Location', 'Speaker', 'Capacity''Actions'],
-        '#rows' => $rows,
-        '#empty' => $this->t('No sessions found.'),
+        '#header' => ['Title', 'Start', 'End', 'Location', 'Speaker', 'Capacity', 'Actions'],
+        '#rows' => [],
+        '#empty' => $this->t('No sessions loaded yet.'),
       ],
     ];
   }
