@@ -11,14 +11,16 @@ RUN apt-get update && apt-get install -y libgmp-dev \
 # Copy composer files and install dependencies
 RUN composer require "php-amqplib/php-amqplib"
 
-# Copy custom module(s) into the Drupal modules directory
+# Copy the custom module and custom theme into the Drupal modules directory
 COPY ./modules/custom/module /opt/drupal/web/modules/custom/module
+COPY ./themes /opt/drupal/web/themes/custom
 
 # Copy the heartbeat script
 COPY ./rabbitMQ/heartbeat.php /opt/drupal/heartbeat.php
 
 # Set correct ownership and permissions
 RUN chown -R www-data:www-data /opt/drupal/web/modules/custom/module \
+    && chown -R www-data:www-data /opt/drupal/web/themes/custom \
     && chown www-data:www-data /opt/drupal/heartbeat.php \
     && chmod 750 /opt/drupal/heartbeat.php
 
