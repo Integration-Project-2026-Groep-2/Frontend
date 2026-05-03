@@ -1,0 +1,104 @@
+<?php
+
+/**
+ * @file
+ * Hook implementations for the hello_world module.
+ */
+
+use Drupal\hello_world\RabbitMQ\Message\RegistrationChangeMessage;
+use Drupal\hello_world\RabbitMQ\RabbitMQClient;
+use Drupal\user\UserInterface;
+
+/**
+ * Implements hook_user_update().
+ *
+ * Stuurt een <RegistrationChange> bericht naar RabbitMQ wanneer een
+ * Drupal user wordt bijgewerkt, met routing key frontend.user.updated.
+ */
+function hello_world_user_update(UserInterface $account) {
+  // Sla systeemaccounts over (uid 0 en 1).
+  if ($account->id() <= 1) {
+    return;
+  }
+
+  $original = $account->original ?? NULL;
+
+  // Gewijzigde velden bepalen door te vergelijken met de originele waarden.
+  $firstName = NULL;
+  $lastName  = NULL;
+  $phone     = NULL;
+
+  if ($original) {
+    $newFirst = $account->hasField('field_first_name') ? $account->get('field_first_name')->value : NULL;
+    $oldFirst = $original->hasField('field_first_name') ? $original->get('field_first_name')->value : NULL;
+    if ($newFirst !== $oldFirst) {
+      $firstName = $newFirst;
+    }
+
+    $newLast = $account->hasField('field_surname') ? $account->get('field_surname')->value : NULL;
+    $oldLast = $original->hasField('field_surname') ? $original->get('field_surname')->value : NULL;
+    if ($newLast !== $oldLast) {
+      $lastName = $newLast;
+    }
+
+    $newPhone = $account->hasField('field_phone') ? $account->get('field_phone')->value : NULL;
+    $oldPhone = $original->hasField('field_phone') ? $original->get('field_phone')->value : NULL;
+    if ($newPhone !== $oldPhone) {
+      $phone = $newPhone;
+    }
+  }
+
+  $message = new RegistrationChangeMessage(
+    email:      $account->getEmail(),
+    sessionId:  uniqid('ses_', TRUE),
+    changeType: 'updated',
+    firstName:  $firstName,
+    lastName:   $lastName,
+    phone:      $phone,
+  );
+
+  $client = RabbitMQClient::fromEnv();
+  try {
+    $client->publish($message);
+    \Drupal::logger('hello_world')->info(
+      'RabbitMQ user update verstuurd voor @email', ['@email' => $account->getEmail()]
+    );
+  }
+  catch (\RuntimeException $e) {
+    \Drupal::logger('hello_world')->error(
+      'RabbitMQ user update mislukt: @err', ['@err' => $e->getMessage()]
+    );
+  }
+  finally {
+    $client->disconnect();
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for user_login_form.
+ *
+ * Laat gebruikers inloggen met hun e-mailadres.
+ */
+function hello_world_form_user_login_form_alter(&$form, &$form_state, $form_id) {
+  $form['name']['#title']       = t('Email address');
+  $form['name']['#description'] = t('Enter your email address.');
+  $form['name']['#type']        = 'email';
+
+  array_unshift($form['#validate'], '_hello_world_login_email_validator');
+}
+
+/**
+ * Validator: vertaalt e-mailadres naar Drupal gebruikersnaam.
+ */
+function _hello_world_login_email_validator($form, &$form_state) {
+  $name = $form_state->getValue('name');
+
+  if (empty($name) || strpos($name, '@') === FALSE) {
+    return;
+  }
+
+  $account = user_load_by_mail($name);
+  if ($account) {
+    $form_state->setValue('name', $account->getAccountName());
+  }
+}
