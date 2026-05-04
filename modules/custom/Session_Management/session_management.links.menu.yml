@@ -2,5 +2,6 @@ session_management.admin:
   title: 'Sessions'
   description: 'Manage sessions'
   route_name: session_management.list
-  parent: system.admin_content
-  weight: 10
+  menu_name: admin            # Places the link in the admin menu
+  parent: system.admin        # Places the link next to Content, Structure, Appearance...
+  weight: 10  
