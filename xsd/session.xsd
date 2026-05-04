@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- filepath: c:\Users\Jelle\Documents\Intergration-Poject\Frontend\xsd\Session.xsd -->
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <!-- Gedeelde types -->
+  <xs:simpleType name="ISO8601DateTimeType">
+    <xs:restriction base="xs:dateTime"/>
+  </xs:simpleType>
+
+  <xs:simpleType name="ChangeTypeType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="updated"/>
+      <xs:enumeration value="rescheduled"/>
+      <xs:enumeration value="cancelled"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="ParticipantIdsType">
+    <xs:sequence>
+      <xs:element name="participantId" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- CONTRACT 12a — Frontend → Planning: sessielijst aanvragen -->
+  <xs:element name="SessionListRequest">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="requestId" type="xs:string"/>
+        <xs:element name="timestamp" type="ISO8601DateTimeType"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- CONTRACT 12b — Planning → Frontend: sessielijst response -->
+  <xs:element name="SessionListResponse">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="sessions">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="session" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="id" type="xs:string"/>
+                    <xs:element name="title" type="xs:string"/>
+                    <xs:element name="startTime" type="ISO8601DateTimeType"/>
+                    <xs:element name="endTime" type="ISO8601DateTimeType"/>
+                    <xs:element name="location" type="xs:string"/>
+                    <xs:element name="speaker" type="xs:string" minOccurs="0"/>
+                    <xs:element name="capacity" type="xs:nonNegativeInteger" minOccurs="0"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- Session update event -->
+  <xs:element name="SessionUpdated">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="sessionId" type="xs:string"/>
+        <xs:element name="sessionName" type="xs:string"/>
+        <xs:element name="changeType" type="ChangeTypeType"/>
+        <xs:element name="newTime" type="ISO8601DateTimeType" minOccurs="0"/>
+        <xs:element name="newLocation" type="xs:string" minOccurs="0"/>
+        <xs:element name="participantIds" type="ParticipantIdsType" minOccurs="0"/>
+        <xs:element name="timestamp" type="ISO8601DateTimeType"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>
