@@ -1,5 +1,5 @@
 session_management.list:
-  path: '/sessions'
+  path: '/session'
   defaults:
     _controller: '\Drupal\session_management\Controller\SessionManagement::listPages'
     _title: 'Sessions'
