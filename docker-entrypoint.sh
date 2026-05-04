@@ -13,6 +13,7 @@ if [ -x "$DRUSH" ]; then
   done
 
   "$DRUSH" en group ginvite -y || true
+  "$DRUSH" en session_management -y || true
 else
   echo "Drush not found, skipping Drupal init."
 fi

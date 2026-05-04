@@ -1,0 +1,6 @@
+session_management.admin:
+  title: 'Sessions'
+  description: 'Manage sessions'
+  route_name: session_management.list
+  parent: system.admin_content
+  weight: 10

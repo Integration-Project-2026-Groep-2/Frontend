@@ -4,8 +4,9 @@ session_management.list:
     _controller: '\Drupal\Session_Management\Controller\SessionManagement::listPages'
     _title: 'Sessions'
   requirements:
-    _permission: 'access content'
-    _role: 'administrator'
+    _permission: 'administer users'
+  options:
+    _admin_route: TRUE
 
 session_management.create:
   path: '/session/create'
@@ -13,8 +14,9 @@ session_management.create:
     _controller: '\Drupal\Session_Management\Controller\SessionCreate::createPage'
     _title: 'Create new session'
   requirements:
-    _permission: 'access content'
-    _role: 'administrator'
+    _permission: 'administer users'
+  options:
+    _admin_route: TRUE
 
 session_management.edit:
   path: '/session/{id}/edit'
@@ -22,5 +24,6 @@ session_management.edit:
     _controller: '\Drupal\Session_Management\Controller\SessionEdit::editPage'
     _title: 'Edit session'
   requirements:
-    _permission: 'access content'
-    _role: 'administrator'  
+    _permission: 'administer users'
+  options:
+    _admin_route: TRUE
