@@ -1,29 +1,16 @@
 <?php
 
-namespace Drupal\Session_Management\Form;
+namespace Drupal\Session_Management\Controller;
 
-use Drupal\Core\Form\FormBase;
-use Drupal\Core\Form\FormStateInterface;
-use Drupal\Session_Management\RabbitMQ\Message\SessionListRequest;
-use PhpAmqpLib\Connection\AMQPStreamConnection;
-use PhpAmqpLib\Message\AMQPMessage;
+use Drupal\Core\Controller\ControllerBase;
+use Drupal\Session_Management\Form\SessionEditForm;
 
-class SessionEditForm extends FormBase {
+class SessionEdit extends ControllerBase {
 
-  public function __construct() {
-    $this->setFormId('session_edit_form');
-  }
-
-  public function buildForm(array $form, FormStateInterface $form_state, $id = null) {
-    $form['session_id'] = [
-      '#type' => 'hidden',
-      '#value' => $id,
+  public function editPage(string $id): array {
+    return [
+      'form' => \Drupal::formBuilder()->getForm(SessionEditForm::class, $id),
     ];
-    $form['session_data'] = [
-      '#type' => 'textarea',
-      '#default_value' => '',
-    ];
-    return $form;
   }
 
 }
