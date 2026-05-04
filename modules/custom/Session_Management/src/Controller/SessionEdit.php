@@ -1,35 +1,29 @@
 <?php
 
-namespace Drupal\Session_Management\Controller;
+namespace Drupal\Session_Management\Form;
 
-use Drupal\Core\Controller\ControllerBase;
-use Drupal\Core\Url;
+use Drupal\Core\Form\FormBase;
+use Drupal\Core\Form\FormStateInterface;
+use Drupal\Session_Management\RabbitMQ\Message\SessionListRequest;
+use PhpAmqpLib\Connection\AMQPStreamConnection;
+use PhpAmqpLib\Message\AMQPMessage;
 
-class SessionEdit extends ControllerBase {
+class SessionEditForm extends FormBase {
 
-  public function editPage(string $id): array {
-    $back_url = Url::fromRoute('session_management.list');
+  public function __construct() {
+    $this->setFormId('session_edit_form');
+  }
 
-    return [
-      '#type' => 'container',
-      'title' => [
-        '#markup' => '<h1>Edit session</h1>',
-      ],
-      'description' => [
-        '#markup' => '<p>Edit page for session ID: ' . $id . '</p>',
-      ],
-    
-      'form' => \Drupal::formBuilder()->getForm(SessionEditForm::class, $id),
-
-      'back_link' => [
-        '#type' => 'link',
-        '#title' => $this->t('Back to sessions'),
-        '#url' => $back_url,
-        '#attributes' => [
-          'class' => ['button'],
-        ],
-      ],
+  public function buildForm(array $form, FormStateInterface $form_state, $id = null) {
+    $form['session_id'] = [
+      '#type' => 'hidden',
+      '#value' => $id,
     ];
+    $form['session_data'] = [
+      '#type' => 'textarea',
+      '#default_value' => '',
+    ];
+    return $form;
   }
 
 }
