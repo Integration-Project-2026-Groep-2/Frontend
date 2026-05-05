@@ -1,115 +1,155 @@
 <?php
+<?php
 
-namespace Drupal\Session_Management\Form;
+namespace Drupal\session_management\Form;
 
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Session_Management\RabbitMQ\Message\SessionListRequest;
-use PhpAmqpLib\Connection\AMQPStreamConnection;
-use PhpAmqpLib\Message\AMQPMessage;
+use Drupal\Core\Messenger\MessengerInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
+/**
+ * Form for editing an existing session.
+ */
 class SessionEditForm extends FormBase {
 
-  public function getFormId() {
+  /**
+   * The messenger service.
+   *
+   * @var \Drupal\Core\Messenger\MessengerInterface
+   */
+  protected MessengerInterface $messenger;
+
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container): static {
+    $instance = parent::create($container);
+    $instance->messenger = $container->get('messenger');
+    return $instance;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getFormId(): string {
     return 'session_edit_form';
   }
 
-  public function buildForm(array $form, FormStateInterface $form_state, ?string $id = NULL) {
-    #mock data
-    $sessions = [
-      '1' => [
-        'title' => 'PHP Security Basics',
-        'location' => 'Room A',
-        'speaker' => 'Acme Corp',
-        'capacity' => 50,
-      ],
-      '2' => [
-        'title' => 'Web Performance Tips',
-        'location' => 'Room B',
-        'speaker' => 'Tech Solutions',
-        'capacity' => 30,
-      ],
-    ];
+  /**
+   * {@inheritdoc}
+   */
+  public function buildForm(array $form, FormStateInterface $form_state, $sessionId = NULL): array {
+    // TODO: Load session data from database/RabbitMQ based on $sessionId.
+    $sessionData = [];
 
-    $current = $sessions[$id] ?? [
-      'title' => '',
-      'location' => '',
-      'speaker' => '',
-      'capacity' => '',
-    ];
-
-    $form['id'] = [
-      '#type' => 'hidden',
-      '#value' => $id,
+    $form['sessionId'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Session ID'),
+      '#default_value' => $sessionData['sessionId'] ?? $sessionId,
+      '#disabled' => TRUE,
     ];
 
     $form['title'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Title'),
-      '#default_value' => $current['title'],
       '#required' => TRUE,
+      '#maxlength' => 255,
+      '#default_value' => $sessionData['title'] ?? '',
+    ];
+
+    $form['date'] = [
+      '#type' => 'date',
+      '#title' => $this->t('Date'),
+      '#required' => TRUE,
+      '#default_value' => $sessionData['date'] ?? '',
+    ];
+
+    $form['startTime'] = [
+      '#type' => 'time',
+      '#title' => $this->t('Start Time'),
+      '#required' => TRUE,
+      '#default_value' => $sessionData['startTime'] ?? '',
+    ];
+
+    $form['endTime'] = [
+      '#type' => 'time',
+      '#title' => $this->t('End Time'),
+      '#required' => TRUE,
+      '#default_value' => $sessionData['endTime'] ?? '',
     ];
 
     $form['location'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Location'),
-      '#default_value' => $current['location'],
       '#required' => TRUE,
+      '#maxlength' => 255,
+      '#default_value' => $sessionData['location'] ?? '',
     ];
 
-    $form['speaker'] = [
-      '#type' => 'textfield',
-      '#title' => $this->t('Speaker'),
-      '#default_value' => $current['speaker'],
+    $form['status'] = [
+      '#type' => 'select',
+      '#title' => $this->t('Status'),
+      '#options' => [
+        'draft' => $this->t('Draft'),
+        'scheduled' => $this->t('Scheduled'),
+        'active' => $this->t('Active'),
+        'cancelled' => $this->t('Cancelled'),
+      ],
+      '#required' => TRUE,
+      '#default_value' => $sessionData['status'] ?? 'draft',
     ];
 
     $form['capacity'] = [
       '#type' => 'number',
       '#title' => $this->t('Capacity'),
-      '#default_value' => $current['capacity'],
+      '#required' => TRUE,
       '#min' => 1,
+      '#default_value' => $sessionData['capacity'] ?? '',
+      '#description' => $this->t('Maximum number of participants.'),
     ];
 
-    $form['submit'] = [
+    $form['actions'] = [
+      '#type' => 'actions',
+    ];
+
+    $form['actions']['submit'] = [
       '#type' => 'submit',
-      '#value' => $this->t('Save changes'),
+      '#value' => $this->t('Update Session'),
+      '#button_type' => 'primary',
+    ];
+
+    $form['actions']['cancel'] = [
+      '#type' => 'link',
+      '#title' => $this->t('Cancel'),
+      '#url' => \Drupal\Core\Url::fromRoute('session_management.list'),
     ];
 
     return $form;
   }
 
-  public function submitForm(array &$form, FormStateInterface $form_state) {
-    try {
-      $request = new SessionListRequest();
-      $xml = $request->toXml();
+  /**
+   * {@inheritdoc}
+   */
+  public function validateForm(array &$form, FormStateInterface $form_state): void {
+    $startTime = $form_state->getValue('startTime');
+    $endTime = $form_state->getValue('endTime');
 
-      $host = getenv('RABBITMQ_HOST') ?: 'localhost';
-      $port = (int) (getenv('RABBITMQ_PORT') ?: 5672);
-      $user = getenv('RABBITMQ_USER') ?: 'guest';
-      $pass = getenv('RABBITMQ_PASS') ?: 'guest';
-      $exchange = getenv('RABBITMQ_EXCHANGE') ?: 'planning.topic';
-      $routingKey = getenv('RABBITMQ_ROUTING_KEY') ?: 'planning.session.list.request';
-
-      $connection = new AMQPStreamConnection($host, $port, $user, $pass);
-      $channel = $connection->channel();
-
-      $channel->exchange_declare($exchange, 'topic', false, true, false, false);
-
-      $msg = new AMQPMessage($xml, [
-        'content_type' => 'text/xml',
-        'delivery_mode' => 2,
-      ]);
-
-      $channel->basic_publish($msg, $exchange, $routingKey);
-
-      $channel->close();
-      $connection->close();
-
-      $this->messenger()->addStatus($this->t('Session saved.'));
+    if ($startTime && $endTime && $startTime >= $endTime) {
+      $form_state->setErrorByName('endTime', $this->t('End time must be after start time.'));
     }
-    catch (\Throwable $e) {
-      $this->messenger()->addError($this->t('Could not send session to Planning.'));
-    }
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function submitForm(array &$form, FormStateInterface $form_state): void {
+    $this->messenger->addMessage($this->t('Session "@title" updated successfully.', [
+      '@title' => $form_state->getValue('title'),
+    ]));
+
+    // TODO: Update session data via RabbitMQ or database.
+    $form_state->setRedirect('session_management.list');
   }
 
 }
