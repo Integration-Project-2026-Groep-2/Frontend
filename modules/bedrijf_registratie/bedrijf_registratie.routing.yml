@@ -1,0 +1,71 @@
+bedrijf_registratie.form:
+  path: '/bedrijf/registreren'
+  defaults:
+    _form: '\Drupal\bedrijf_registratie\Form\BedrijfRegistratieForm'
+    _title: 'Registreer uw bedrijf'
+  requirements:
+    _permission: 'access content'
+
+bedrijf_registratie.gegevens:
+  path: '/bedrijf/gegevens'
+  defaults:
+    _controller: '\Drupal\bedrijf_registratie\Controller\RegistratieController::gegevensPagina'
+    _title: 'Bedrijfsgegevens'
+  requirements:
+    _permission: 'access content'
+
+bedrijf_registratie.medewerker_toevoegen:
+  path: '/bedrijf/medewerker/toevoegen'
+  defaults:
+    _form: '\Drupal\bedrijf_registratie\Form\MedewerkerToevoegenForm'
+    _title: 'Nieuwe Medewerker'
+  requirements:
+    _permission: 'access content'
+
+bedrijf_registratie.sessies:
+  path: '/bedrijf/sessies'
+  defaults:
+    _controller: '\Drupal\bedrijf_registratie\Controller\RegistratieController::sessiePagina'
+    _title: 'Sessies'
+  requirements:
+    _permission: 'access content'
+
+bedrijf_registratie.betalingen:
+  path: '/bedrijf/betalingen'
+  defaults:
+    _controller: '\Drupal\bedrijf_registratie\Controller\RegistratieController::betalingPagina'
+    _title: 'Betalingsgeschiedenis'
+  requirements:
+    _permission: 'access content'
+
+bedrijf_registratie.account:
+  path: '/bedrijf/account'
+  defaults:
+    _controller: '\Drupal\bedrijf_registratie\Controller\RegistratieController::accountPagina'
+    _title: 'Accountgegevens'
+  requirements:
+    _permission: 'access content'
+
+bedrijf_registratie.terms:
+  path: '/algemene-voorwaarden'
+  defaults:
+    _controller: '\Drupal\bedrijf_registratie\Controller\RegistratieController::termsPagina'
+    _title: 'Algemene Voorwaarden'
+  requirements:
+    _permission: 'access content'
+
+bedrijf_registratie.home:
+  path: '/'
+  defaults:
+    _controller: '\Drupal\bedrijf_registratie\Controller\PublicController::homePagina'
+    _title: 'Welkom bij Shift Festival'
+  requirements:
+    _permission: 'access content'
+
+bedrijf_registratie.programma:
+  path: '/programma'
+  defaults:
+    _controller: '\Drupal\bedrijf_registratie\Controller\PublicController::programmaPagina'
+    _title: 'Programma & Sprekers'
+  requirements:
+    _permission: 'access content'

@@ -1,0 +1,5 @@
+name: 'Bedrijf Registratie'
+type: module
+description: 'Beheer van bedrijfsgegevens op basis van Figma.'
+package: Custom
+core_version_requirement: ^10 || ^11

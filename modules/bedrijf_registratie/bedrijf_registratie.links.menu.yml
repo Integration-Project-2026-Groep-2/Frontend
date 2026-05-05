@@ -1,0 +1,37 @@
+# Publieke Links (staan los in het hoofdmenu)
+bedrijf_registratie.home_link:
+  title: 'Home'
+  route_name: bedrijf_registratie.home
+  menu_name: main
+  weight: -50
+
+bedrijf_registratie.programma_link:
+  title: 'Programma'
+  route_name: bedrijf_registratie.programma
+  menu_name: main
+  weight: -45
+
+bedrijf_registratie.admin_link:
+  title: 'Bedrijfsdashboard'
+  description: 'Beheer uw bedrijfsgegevens'
+  route_name: bedrijf_registratie.gegevens
+  weight: 0
+  menu_name: main
+
+bedrijf_registratie.sessies_link:
+  title: 'Sessies'
+  route_name: bedrijf_registratie.sessies
+  parent: bedrijf_registratie.admin_link
+  weight: 10
+
+bedrijf_registratie.betalingen_link:
+  title: 'Betalingen'
+  route_name: bedrijf_registratie.betalingen
+  parent: bedrijf_registratie.admin_link
+  weight: 20
+
+bedrijf_registratie.account_link:
+  title: 'Account'
+  route_name: bedrijf_registratie.account
+  parent: bedrijf_registratie.admin_link
+  weight: 30
