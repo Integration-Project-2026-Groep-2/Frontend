@@ -44,14 +44,14 @@ class UserUpdateConsumer {
     $this->channel = $this->connection->channel();
 
     // Exchange declareren
-    $this->channel->exchange_declare('user.topic', 'topic', false, true, false);
+    $this->channel->exchange_declare('contact.topic', 'topic', false, true, false);
 
     // Queue declareren
     $this->channel->queue_declare($queueName, false, true, false, false);
 
     // Queue binden aan exchange met de juiste routing keys
-    $this->channel->queue_bind($queueName, 'user.topic', 'facturatie.user.updated');
-    $this->channel->queue_bind($queueName, 'user.topic', 'crm.user.updated');
+    $this->channel->queue_bind($queueName, 'contact.topic', 'facturatie.user.updated');
+    $this->channel->queue_bind($queueName, 'contact.topic', 'crm.user.updated');
 
     $this->channel->basic_qos(null, 1, null);
     $this->channel->basic_consume(
