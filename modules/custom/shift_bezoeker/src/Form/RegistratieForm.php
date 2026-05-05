@@ -160,16 +160,39 @@ class RegistratieForm extends FormBase {
   }
 
   /**
-   * {@inheritdoc}
-   */
-  public function validateForm(array &$form, FormStateInterface $form_state) {
-    $values = $form_state->getValues();
-    if ($values['registratie_type'] == 'bedrijf') {
-      if (!empty($values['vatNumber']) && !str_starts_with(strtoupper($values['vatNumber']), 'BE')) {
-        $form_state->setErrorByName('vatNumber', 'Een Belgisch BTW-nummer moet beginnen met BE.');
+     * {@inheritdoc}
+     */
+    public function validateForm(array &$form, FormStateInterface $form_state) {
+      $values = $form_state->getValues();
+      $type = $values['registratie_type'];
+
+      // 1. Validatie voor Bezoekers
+      if ($type === 'bezoeker') {
+        if (empty($values['firstName'])) {
+          $form_state->setErrorByName('firstName', 'Voornaam is verplicht.');
+        }
+        if (empty($values['lastName'])) {
+          $form_state->setErrorByName('lastName', 'Achternaam is verplicht.');
+        }
+        if (empty($values['email'])) {
+          $form_state->setErrorByName('email', 'E-mailadres is verplicht.');
+        }
+      }
+
+      // 2. Validatie voor Bedrijven
+      if ($type === 'bedrijf') {
+        if (empty($values['companyName'])) {
+          $form_state->setErrorByName('companyName', 'Bedrijfsnaam is verplicht.');
+        }
+        if (empty($values['vatNumber'])) {
+          $form_state->setErrorByName('vatNumber', 'BTW-nummer is verplicht.');
+        }
+        // Jouw bestaande BTW-check
+        elseif (!str_starts_with(strtoupper($values['vatNumber']), 'BE')) {
+          $form_state->setErrorByName('vatNumber', 'Een Belgisch BTW-nummer moet beginnen met BE.');
+        }
       }
     }
-  }
 
   /**
    * {@inheritdoc}
