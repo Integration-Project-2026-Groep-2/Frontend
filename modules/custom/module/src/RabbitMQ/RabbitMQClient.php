@@ -176,16 +176,17 @@ class RabbitMQClient {
   // ---------------------------------------------------------------------------
 
   private function declareExchanges(): void {
-    // topic exchange for registration & user events
     $this->channel->exchange_declare(
       self::EXCHANGE_TOPIC, 'topic', FALSE, TRUE, FALSE
     );
-    // direct exchange for heartbeat
+    $this->channel->exchange_declare(
+      'frontend.topic', 'topic', FALSE, TRUE, FALSE
+    );
     $this->channel->exchange_declare(
       self::EXCHANGE_HEARTBEAT, 'direct', FALSE, TRUE, FALSE
     );
   }
-
+  
   /**
    * Determines which exchange to use from the routing key prefix.
    */
@@ -193,7 +194,10 @@ class RabbitMQClient {
     if (str_starts_with($routingKey, 'routing.heartbeat')) {
       return self::EXCHANGE_HEARTBEAT;
     }
-    return self::EXCHANGE_TOPIC;
+    if (str_starts_with($routingKey, 'frontend.')) {
+      return 'frontend.topic';
+    }
+    return self::EXCHANGE_TOPIC; // user.topic
   }
 
 }

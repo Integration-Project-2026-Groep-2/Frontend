@@ -1,80 +1,39 @@
 <?php
 
-namespace Drupal\hello_world\RabbitMQ\Message;
+namespace Drupal\hello_world\RabbitMQ\Message\Planning;
 
 use DateTimeImmutable;
-use Planning;
 use SimpleXMLElement;
 
-final class PlanningCancelledMessage extends Planning implements
-    MessageInterface
-{
-    private string $sessionName;
-    private string $status;
+final class PlanningSessionCancelledMessage extends Planning {
 
-    private ?string $reason;
+  public function __construct(
+    string $sessionId,
+    private readonly ?string $reason,
+    DateTimeImmutable $timestamp,
+  ) {
+    parent::__construct($sessionId, $timestamp);
+  }
 
-    /** @var string[]|null */
-    private ?array $participantIds;
+  public function toXml(): string {
+    $xml = new SimpleXMLElement('<SessionCancelled/>');
+    $xml->addChild('sessionId', $this->sessionId);
 
-    private ?string $icsData;
-
-    public function __construct(
-        string $sessionId,
-        string $sessionName,
-        PlanningSessionStatusType $status,
-        ?string $reason,
-        ?array $participantIds,
-        ?string $icsData,
-        \DateTimeImmutable $timestamp,
-    ) {
-        parent::_construct($sessionId, $timestamp);
-        $this->sessionName = $sessionName;
-        $this->status = $status;
-
-        $this->reason = $reason;
-        $this->participantIds = $participantIds;
-        $this->icsData = $icsData;
+    if ($this->reason !== NULL) {
+      $xml->addChild('reason', htmlspecialchars($this->reason));
     }
 
-    public function toXml(): string
-    {
-        $xml = new SimpleXMLElement("<SessionCancelled/>");
+    $xml->addChild('timestamp', $this->timestamp->format(DateTimeImmutable::ATOM));
 
-        $xml->addChild("sessionId", $this->sessionId);
-        $xml->addChild("sessionName", $this->sessionName);
-        $xml->addChild("status", $this->status);
+    return $xml->asXML();
+  }
 
-        if ($this->reason !== null) {
-            $xml->addChild("reason", $this->reason);
-        }
+  public function getRoutingKey(): string {
+    return 'frontend.session.cancelled';
+  }
 
-        if ($this->participantIds !== null) {
-            $participantsNode = $xml->addChild("participantIds");
-            foreach ($this->participantIds as $id) {
-                $participantsNode->addChild("participantId", $id);
-            }
-        }
+  public function getType(): string {
+    return 'planning.session.cancelled';
+  }
 
-        if ($this->icsData !== null) {
-            $xml->addChild("icsData", $this->icsData);
-        }
-
-        $xml->addChild(
-            "timestamp",
-            $this->timestamp->format(DateTimeImmutable::ATOM),
-        );
-
-        return $xml->asXML();
-    }
-
-    public function getRoutingKey(): string
-    {
-        return "planning.session.cancelled";
-    }
-
-    public function getType(): string
-    {
-        return "planning.session.cancelled";
-    }
 }

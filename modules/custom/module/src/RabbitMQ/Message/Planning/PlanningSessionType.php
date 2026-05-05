@@ -1,11 +1,10 @@
 <?php
 
-namespace Drupal\hello_world\RabbitMQ\Message;
+namespace Drupal\hello_world\RabbitMQ\Message\Planning;
 
-enum PlanningSessionStatusType
-{
-    case ACTIVE;
-    case CANCELLED;
-    case FULL;
-    case CONCEPT;
+enum PlanningSessionStatusType: string {
+  case ACTIVE    = 'ACTIVE';
+  case CANCELLED = 'CANCELLED';
+  case FULL      = 'FULL';
+  case CONCEPT   = 'CONCEPT';
 }
