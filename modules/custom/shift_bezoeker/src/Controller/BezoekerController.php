@@ -10,7 +10,7 @@ class BezoekerController extends ControllerBase {
   public function sessionsPage() {
     // 1. Haal alle sessies op die Team Planning heeft aangemaakt
     $query = \Drupal::entityQuery('node')
-      ->accessCheck(FALSE)
+      ->accessCheck(TRUE)
       ->condition('status', 1)
       ->condition('type', 'session'); // Check of ze het 'session' of 'sessie' hebben genoemd!
 
