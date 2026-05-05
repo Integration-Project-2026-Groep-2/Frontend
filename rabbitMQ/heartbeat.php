@@ -27,6 +27,7 @@ $channel = $connection->channel();
 $channel->exchange_declare(
     'heartbeat.direct',
     'direct',
+    // nasr: why passive false? we arent the owners of the exchange 
     false,  // passive
     true,   // durable
     false,  // auto-delete

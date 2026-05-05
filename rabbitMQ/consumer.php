@@ -8,6 +8,7 @@
  *   php consumer.php updated     → start UserUpdateConsumer
  */
 
+// nasr: reflection?
 $type = $argv[1] ?? null;
 
 if (!in_array($type, ['confirmed', 'updated'])) {

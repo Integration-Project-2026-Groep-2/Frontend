@@ -9,6 +9,30 @@ use Drupal\hello_world\RabbitMQ\Message\RegistrationChangeMessage;
 use Drupal\hello_world\RabbitMQ\RabbitMQClient;
 use Drupal\user\UserInterface;
 
+
+function hello_world_user_node_insert(\Drupal\node\NodeInterface $node) {
+
+  if ($node->bundle() !== 'planning_session') {
+    return;
+  }
+
+
+try {
+
+
+$message  = new Planning
+
+
+}
+
+
+
+
+
+
+
+}
+
 /**
  * Implements hook_user_update().
  *
