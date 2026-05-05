@@ -3,3 +3,5 @@ type: module
 description: A module for Drupal.
 package: Custom
 core_version_requirement: ^9 || ^10 || ^11
+dependencies:
+  - group:group
