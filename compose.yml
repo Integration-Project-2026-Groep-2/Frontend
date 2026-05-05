@@ -24,7 +24,6 @@ services:
     container_name: frontend_drupal
     volumes:
       - drupal_sites:/opt/drupal/web/sites
-      - ./modules/custom/module:/opt/drupal/web/modules/custom/module
       - ./modules:/opt/drupal/web/modules/custom
       - ./themes:/opt/drupal/web/themes/custom
     restart: unless-stopped
