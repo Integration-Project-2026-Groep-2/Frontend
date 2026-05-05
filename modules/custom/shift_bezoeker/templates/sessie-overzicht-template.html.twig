@@ -1,45 +1,99 @@
-<div class="sessions-wrapper" style="background-color: #f0eeff; min-height: 100vh; padding: 60px 10%;">
 
-  {# SECTIE 1: MIJN PROGRAMMA #}
-  <div style="margin-bottom: 40px;">
-    <h1 style="font-weight: 850; font-size: 32px; color: #1a1a1a;">Mijn Ingeschreven Sessies</h1>
-    <p style="color: #6333ea; font-weight: 600;">Jouw schema voor het Shift Festival.</p>
+<div class="session-grid-wrapper" style="
+    background: linear-gradient(rgba(13, 18, 31, 0.9), rgba(13, 18, 31, 0.9)),
+                url('/modules/custom/shift_bezoeker/images/event-bg2.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    min-height: 100vh;
+    padding: 60px 5%;
+    font-family: 'Inter', sans-serif;
+    color: white;
+    overflow-x: hidden;">
+
+  {# 1. Dag Navigator #}
+  <div class="day-navigation-wrapper" style="display: flex; flex-direction: column; align-items: flex-start; margin-bottom: 25px;">
+    <div style="display: flex; align-items: center; gap: 15px;">
+      <a href="#" style="text-decoration: none; color: #6333ea; font-size: 24px; font-weight: bold;">&#10094;</a>
+      <div style="text-align: left;">
+        <span style="display: block; text-transform: uppercase; letter-spacing: 2px; font-size: 10px; color: #6333ea; font-weight: 800;">
+          Dag {{ day_number|default('NVT') }}
+        </span>
+        <span style="font-size: 15px; color: #ffffff; font-weight: 600; opacity: 0.9;">
+          {{ current_date|default('Onbekend') }}
+        </span>
+      </div>
+      <a href="#" style="text-decoration: none; color: #6333ea; font-size: 24px; font-weight: bold;">&#10095;</a>
+    </div>
+    <div style="width: 130px; height: 2px; background: #6333ea; margin-top: 10px; border-radius: 2px;"></div>
   </div>
 
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px; margin-bottom: 60px;">
-    {% for session in my_sessions %}
-      <div style="background: white; border-radius: 16px; border: 2px solid #6333ea; display: flex; flex-direction: column; position: relative;">
-        <span style="position: absolute; top: -12px; right: 20px; background: #6333ea; color: white; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 800;">INGESCHREVEN</span>
-        <div style="padding: 14px 20px; flex: 1;">
-          <h2 style="font-size: 18px; font-weight: 800; color: #0f0f1a; margin: 0 0 18px;">{{ session.sessionName }}</h2>
-          <div style="font-size: 13px; color: #5a5a7a;">📅 {{ session.startTime }} | 📍 {{ session.location }}</div>
-        </div>
-        <div style="margin: 18px 20px 20px; color: #6333ea; text-align: center; font-weight: 700;">Je bent aanwezig!</div>
+  {# 2. Titels #}
+  <div style="margin-bottom: 50px;">
+    <h1 style="font-size: 56px; font-weight: 900; margin: 0; line-height: 1.1;">
+      {% if logged_in %} Mijn Programma {% else %} Programma Overzicht {% endif %}
+    </h1>
+    <p style="color: #a0a5b1; font-size: 19px; margin-top: 12px;">Beleef het Shift Festival 2026.</p>
+  </div>
+
+  {# 3. De Grid #}
+  <div style="display: grid; grid-template-columns: 120px repeat(3, 1fr); gap: 20px; width: 100%; position: relative; z-index: 2;">
+
+    {# Headers #}
+    <div style="grid-column: 1;"></div>
+    {% for id, name in stages|default([]) %}
+      <div style="background: rgba(99, 51, 234, 0.15); backdrop-filter: blur(10px); border: 1px solid rgba(99, 51, 234, 0.4); padding: 18px; text-align: center; border-radius: 10px; font-weight: 700; text-transform: uppercase; font-size: 12px; letter-spacing: 1.5px;">
+        {{ name }}
       </div>
     {% endfor %}
-  </div>
 
-  <div style="display: flex; align-items: center; margin: 80px 0; gap: 20px;">
-    <div style="flex: 1; height: 3px; background: linear-gradient(to right, transparent, #6333ea);"></div>
-    <span style="color: #6333ea; font-weight: 800; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Einde van jouw programma</span>
-    <div style="flex: 1; height: 3px; background: linear-gradient(to left, transparent, #6333ea);"></div>
-  </div>
-
-  {# SECTIE 2: OPEN SESSIES #}
-  <div style="margin-bottom: 40px;">
-    <h1 style="font-weight: 850; font-size: 32px; color: #1a1a1a;">Beschikbare Sessies</h1>
-  </div>
-
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 24px;">
-    {% for session in open_sessions %}
-      <div style="background: white; border-radius: 16px; border: 1px solid #e8e4f8; display: flex; flex-direction: column;">
-        <div style="padding: 14px 20px; flex: 1;">
-          <h2 style="font-size: 18px; font-weight: 800; color: #0f0f1a; margin: 0 0 18px;">{{ session.sessionName }}</h2>
-          <div style="font-size: 13px; color: #5a5a7a;">📅 {{ session.startTime }} | 📍 {{ session.location }}</div>
-        </div>
-        <a href="#" style="margin: 18px 20px 20px; background: #6333ea; color: white; text-align: center; padding: 14px; border-radius: 12px; font-weight: 700; text-decoration: none;">Registreer voor Sessie</a>
+    {# Tijdslots #}
+    {% for time_id, time_display in time_slots|default([]) %}
+      <div style="padding: 0; color: #8a8f9d; font-weight: 700; font-size: 13px; display: flex; align-items: flex-start; position: relative; height: 180px;">
+        <span style="position: absolute; top: -10px; z-index: 3;">{{ time_display }}</span>
+        <div style="position: absolute; top: 0; left: 0; width: 2000px; height: 1px; background: rgba(255,255,255,0.1); z-index: 1;"></div>
       </div>
-    {% endfor %}
-  </div>
 
+      {% for stage_id, stage_name in stages|default([]) %}
+        {% set session = grid_data[stage_id][time_id]|default(null) %}
+        <div style="padding: 15px; position: relative; z-index: 2;">
+          {% if session and session.title is defined %}
+            <div style="background: {{ (logged_in and session.type == 'registered') ? 'rgba(99, 51, 234, 0.85)' : 'rgba(26, 31, 46, 0.6)' }};
+                        padding: 22px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.1);
+                        display: flex; flex-direction: column; justify-content: space-between;
+                        min-height: 140px; position: relative;">
+
+              <div>
+                <h3 style="margin: 0 0 8px 0; font-size: 18px; font-weight: 800;">{{ session.title }}</h3>
+                <span style="font-size: 13px; color: rgba(255,255,255,0.7);">{{ session.time }}</span>
+              </div>
+
+              <div style="margin-top: 15px;">
+                {% if logged_in %}
+                  {% if session.type == 'registered' %}
+                    <span style="position: absolute; top: 12px; right: 12px; font-size: 10px; font-weight: 900; color: #fff; background: rgba(0,0,0,0.3); padding: 4px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 1px;">
+                      ✓ Present
+                    </span>
+                    <a href="/sessie/uitschrijven/{{ session.id }}" style="display: block; border: 1px solid rgba(255,255,255,0.4); background: transparent; color: white; padding: 8px; border-radius: 8px; font-size: 11px; text-align: center; font-weight: 700; text-decoration: none; letter-spacing: 1px;">
+                      UITSCHRIJVEN
+                    </a>
+                  {% else %}
+                    <a href="/sessie/inschrijven/{{ session.id }}" style="display: block; border: 1px solid #6333ea; background: rgba(99, 51, 234, 0.2); color: white; padding: 8px; border-radius: 8px; font-size: 11px; text-align: center; font-weight: 700; text-decoration: none;">
+                      INSCHRIJVEN
+                    </a>
+                  {% endif %}
+                {% else %}
+                  <a href="/bezoeker/account" style="display: block; border: 1px solid #6333ea; background: rgba(99, 51, 234, 0.2); color: white; padding: 8px; border-radius: 8px; font-size: 11px; text-align: center; font-weight: 700; text-decoration: none;">
+                    INSCHRIJVEN
+                  </a>
+                {% endif %}
+              </div>
+
+            </div>
+          {% endif %}
+        </div>
+      {% endfor %}
+    {% endfor %}
+
+  </div>
 </div>

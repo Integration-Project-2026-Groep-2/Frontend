@@ -11,3 +11,13 @@
 .session-card-simple:hover {
   transform: translateY(-5px);
 }
+
+.day-navigator h2 {
+    border-bottom: 2px solid #6333ea;
+    padding-bottom: 5px;
+}
+
+.day-navigator a:hover {
+    color: #a07dff;
+    text-shadow: 0 0 10px rgba(99, 51, 234, 0.5);
+}
