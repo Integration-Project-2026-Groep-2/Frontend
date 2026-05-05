@@ -8,6 +8,8 @@
 use Drupal\hello_world\RabbitMQ\Message\RegistrationChangeMessage;
 use Drupal\hello_world\RabbitMQ\RabbitMQClient;
 use Drupal\user\UserInterface;
+use Drupal\group\Entity\Group;
+use Drupal\hello_world\RabbitMQ\Publisher\CompanyPublisher;
 
 /**
  * Implements hook_user_update().
@@ -101,4 +103,90 @@ function _hello_world_login_email_validator($form, &$form_state) {
   if ($account) {
     $form_state->setValue('name', $account->getAccountName());
   }
+}
+
+/**
+ * Implements hook_group_insert().
+ */
+function hello_world_group_insert(Group $group) {
+  if ($group->bundle() !== 'company') {
+    return;
+  }
+
+  $payload = [];
+
+  // name
+  $payload['name'] = $group->hasField('field_company_name') && !$group->get('field_company_name')->isEmpty()
+    ? trim($group->get('field_company_name')->value)
+    : $group->label();
+
+  // VAT (required)
+  if ($group->hasField('field_vat_number') && !$group->get('field_vat_number')->isEmpty()) {
+    $payload['vatNumber'] = trim($group->get('field_vat_number')->value);
+  } else {
+    return;
+  }
+
+  // address fields
+  foreach (['field_street', 'field_house_number', 'field_postal_code', 'field_city', 'field_country'] as $field) {
+    if ($group->hasField($field) && !$group->get($field)->isEmpty()) {
+      $payload[$field] = trim($group->get($field)->value);
+    }
+  }
+
+  // contact person
+  $contact = _hello_world_get_contact_person($group);
+  if ($contact) {
+    $payload['email'] = $contact->getEmail();
+
+    foreach (['field_phone_number', 'field_phone', 'phone_number'] as $phone_field) {
+      if ($contact->hasField($phone_field) && !$contact->get($phone_field)->isEmpty()) {
+        $payload['phone'] = trim($contact->get($phone_field)->value);
+        break;
+      }
+    }
+  }
+
+  try {
+    /** @var \Drupal\hello_world\RabbitMQ\Publisher\CompanyPublisher $publisher */
+    $publisher = \Drupal::service('hello_world.company_publisher');
+    $publisher->publishCompanyCreated($payload);
+  }
+  catch (\Exception $e) {
+    \Drupal::logger('hello_world')->error('Company publish failed: @msg', ['@msg' => $e->getMessage()]);
+  }
+}
+
+/**
+ * Finds the first user with group role company-contact_person.
+ */
+function _hello_world_get_contact_person(Group $group) {
+  foreach ($group->getMembers() as $membership) {
+    foreach ($membership->getRoles() as $role) {
+      if ($role->id() === 'company-contact_person') {
+        return $membership->getUser();
+      }
+    }
+  }
+  return NULL;
+}
+
+/**
+ * Normalise Belgian VAT.
+ */
+function _hello_world_normalize_belgian_vat(string $vat): string {
+  $v = strtoupper(trim($vat));
+  $v = preg_replace('/[^A-Z0-9]/', '', $v);
+  if (strpos($v, 'BE') === 0) { $v = substr($v, 2); }
+  $v = preg_replace('/\D/', '', $v);
+  if (strlen($v) === 9) { $v = '0' . $v; }
+  if (strlen($v) === 10 && $v[0] === '0') { return 'BE' . $v; }
+  return '';
+}
+
+/**
+ * Validate Belgian VAT structure.
+ */
+function _hello_world_is_valid_belgian_vat(string $normalized): bool {
+  return (bool) preg_match('/^BE0[0-9]{9}$/', $normalized);
 }
