@@ -1,29 +1,23 @@
-session_management.list:
-  path: '/session'
-  defaults:
-    _controller: '\Drupal\session_management\Controller\SessionManagement::listPages'
-    _title: 'Sessions'
-  requirements:
-    _permission: 'administer users'
-  options:
-    _admin_route: TRUE
-
 session_management.create:
   path: '/session/create'
   defaults:
-    _controller: '\Drupal\session_management\Controller\SessionCreate::createPage'
-    _title: 'Create new session'
+    _controller: '\Drupal\session_management\Controller\SessionCreate::content'
+    _title: 'Create Session'
   requirements:
-    _permission: 'administer users'
-  options:
-    _admin_route: TRUE
+    _role: 'administrator'
 
 session_management.edit:
-  path: '/session/edit/{session_id}'
+  path: '/session/{sessionId}/edit'
   defaults:
-    _controller: '\Drupal\session_management\Controller\SessionEdit::editPage'
-    _title: 'Edit session'
+    _controller: '\Drupal\session_management\Controller\SessionEdit::content'
+    _title: 'Edit Session'
   requirements:
-    _permission: 'administer users'
-  options:
-    _admin_route: TRUE
+    _role: 'administrator'
+
+session_management.list:
+  path: '/sessions'
+  defaults:
+    _controller: '\Drupal\session_management\Controller\SessionManagement::content'
+    _title: 'Sessions'
+  requirements:
+    _role: 'administrator'
