@@ -1,0 +1,72 @@
+<?php
+
+declare(strict_types=1);
+
+use Drupal\user\Entity\Role;
+
+/**
+ * Implements hook_install().
+ */
+function custom_roles_install(): void {
+  _custom_roles_ensure_roles_and_permissions();
+}
+
+/**
+ * Add missing roles/permissions on existing installs.
+ */
+function custom_roles_update_9001(): void {
+  _custom_roles_ensure_roles_and_permissions();
+}
+
+/**
+ * Create/update project roles and permissions (idempotent).
+ */
+function _custom_roles_ensure_roles_and_permissions(): void {
+  $role_map = [
+    'visitor' => [
+      'label' => 'Visitor',
+      'permissions' => [
+        'access content',
+        'access visitor area',
+      ],
+    ],
+    'company' => [
+      'label' => 'Company',
+      'permissions' => [
+        'access content',
+        'access company area',
+      ],
+    ],
+    'speaker' => [
+      'label' => 'Speaker',
+      'permissions' => [
+        'access content',
+        'access speaker area',
+      ],
+    ],
+    'kassa' => [
+      'label' => 'Kassa',
+      'permissions' => [
+        'access content',
+        'access kassa area',
+      ],
+    ],
+  ];
+
+  foreach ($role_map as $machine_name => $config) {
+    $role = Role::load($machine_name);
+
+    if (!$role) {
+      $role = Role::create([
+        'id' => $machine_name,
+        'label' => $config['label'],
+      ]);
+    }
+
+    foreach ($config['permissions'] as $permission) {
+      $role->grantPermission($permission);
+    }
+
+    $role->save();
+  }
+}
