@@ -55,7 +55,8 @@
       </div>
 
       {% for stage_id, stage_name in stages|default([]) %}
-        {% set session = grid_data[stage_id][time_id]|default(null) %}
+        {% set stage_sessions = grid_data[stage_id]|default([]) %}
+        {% set session = stage_sessions[time_id]|default(null) %}
         <div style="padding: 15px; position: relative; z-index: 2;">
           {% if session and session.title is defined %}
             <div style="background: {{ (logged_in and session.type == 'registered') ? 'rgba(99, 51, 234, 0.85)' : 'rgba(26, 31, 46, 0.6)' }};
