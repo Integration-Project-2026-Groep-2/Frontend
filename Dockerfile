@@ -14,7 +14,7 @@ RUN composer require \
 
 # Copy the custom module and custom theme into the Drupal modules directory
 COPY ./modules/custom/module /opt/drupal/web/modules/custom/module
-COPY ./themes/custom /opt/drupal/web/themes
+COPY ./themes/custom /opt/drupal/web/themes/custom
 
 COPY ./modules/custom/custom_roles /opt/drupal/web/modules/custom/custom_roles
 
