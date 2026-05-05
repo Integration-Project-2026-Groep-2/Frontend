@@ -22,7 +22,7 @@ COPY ./modules/custom/custom_roles /opt/drupal/web/modules/custom/custom_roles
 COPY ./rabbitMQ/heartbeat.php /opt/drupal/heartbeat.php
 COPY ./rabbitMQ/consumer.php  /opt/drupal/consumer.php
 
-RUN chown -R www-data:www-data /opt/drupal/web/modules/custom/module \
+RUN chown -R www-data:www-data /opt/drupal/web/modules/custom \
     && chown -R www-data:www-data /opt/drupal/web/themes/custom \
     && chown www-data:www-data /opt/drupal/heartbeat.php \
     && chown www-data:www-data /opt/drupal/consumer.php \
