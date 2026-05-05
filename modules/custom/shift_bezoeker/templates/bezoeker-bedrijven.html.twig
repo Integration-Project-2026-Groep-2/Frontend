@@ -1,0 +1,18 @@
+<section class="bedrijven-wrapper" style="background: #0d121f; padding: 100px 0;">
+  <div class="container">
+    <h1 class="section-title" style="color: white; text-align: center; margin-bottom: 50px;">
+      Onze <span style="color: #6333ea;">Partners</span>
+    </h1>
+
+    <div class="bedrijven-grid">
+      {% for bedrijf in bedrijven %}
+        <div class="bedrijf-card">
+          <div class="bedrijf-logo-placeholder">
+            {{ bedrijf.naam|first }}
+          </div>
+          <h3 style="color: white; margin: 0;">{{ bedrijf.naam }}</h3>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
