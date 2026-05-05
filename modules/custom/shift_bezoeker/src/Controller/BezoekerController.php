@@ -3,7 +3,7 @@
 namespace Drupal\shift_bezoeker\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
-use Drupal\user\Entity\User;
+
 
 class BezoekerController extends ControllerBase {
 
