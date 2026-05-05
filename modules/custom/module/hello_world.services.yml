@@ -1,0 +1,8 @@
+services:
+  hello_world.rabbitmq_client:
+    class: Drupal\hello_world\RabbitMQ\RabbitMQClient
+    factory: ['Drupal\hello_world\RabbitMQ\RabbitMQClient', 'fromEnv']
+
+  hello_world.company_publisher:
+    class: Drupal\hello_world\RabbitMQ\Publisher\CompanyPublisher
+    arguments: ['@hello_world.rabbitmq_client']
