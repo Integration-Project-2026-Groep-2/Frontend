@@ -1,32 +1,37 @@
 <?php
 
-namespace Drupal\Session_Management\Controller;
+namespace Drupal\session_management\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
-use Drupal\Core\Url;
+use Drupal\Core\Form\FormBuilderInterface;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 
+/**
+ * Controller for session creation page.
+ */
 class SessionCreate extends ControllerBase {
 
-  public function createPage(): array {
-    $back_url = Url::fromRoute('session_management.list');
+  /**
+   * The form builder service.
+   *
+   * @var \Drupal\Core\Form\FormBuilderInterface
+   */
+  protected $formBuilder;
 
-    return [
-      '#type' => 'container',
-      'title' => [
-        '#markup' => '<h1>Create new session</h1>',
-      ],
-      'description' => [
-        '#markup' => '<p>Session form will be added here later.</p>',
-      ],
-      'back_link' => [
-        '#type' => 'link',
-        '#title' => $this->t('Back to sessions'),
-        '#url' => $back_url,
-        '#attributes' => [
-          'class' => ['button'],
-        ],
-      ],
-    ];
+  /**
+   * {@inheritdoc}
+   */
+  public static function create(ContainerInterface $container) {
+    $instance = parent::create($container);
+    $instance->formBuilder = $container->get('form_builder');
+    return $instance;
+  }
+
+  /**
+   * Renders the session create page.
+   */
+  public function content() {
+    return $this->formBuilder->getForm('Drupal\session_management\Form\SessionCreateForm');
   }
 
 }
