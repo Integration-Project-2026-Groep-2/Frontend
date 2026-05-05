@@ -43,13 +43,13 @@ class UserConfirmedConsumer {
     $this->channel = $this->connection->channel();
 
     // Exchange declareren
-    $this->channel->exchange_declare('user.topic', 'topic', false, true, false);
+    $this->channel->exchange_declare('contact.topic', 'topic', false, true, false);
 
     // Queue declareren
     $this->channel->queue_declare($queueName, false, true, false, false);
 
     // Queue binden aan exchange
-    $this->channel->queue_bind($queueName, 'user.topic', 'crm.user.confirmed');
+    $this->channel->queue_bind($queueName, 'contact.topic', 'crm.user.confirmed');
 
     $this->channel->basic_qos(null, 1, null);
     $this->channel->basic_consume(
