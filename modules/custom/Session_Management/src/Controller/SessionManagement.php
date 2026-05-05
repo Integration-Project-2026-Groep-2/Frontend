@@ -7,7 +7,7 @@ use Drupal\Core\Url;
 
 class SessionManagement extends ControllerBase {
 
-  public function listPages() {
+  public function content() {
     // TODO: In the future, fetch all sessions from Planning via RabbitMQ
     // For now, show placeholder message
     $this->messenger()->addStatus($this->t('Session list will be loaded from Planning.'));
