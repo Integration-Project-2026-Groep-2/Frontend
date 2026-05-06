@@ -147,7 +147,7 @@ class UserUpdateConsumer {
     $this->setField($account, 'field_city',         $data['city']);
     $this->setField($account, 'field_country',      $data['country']);
     $this->setField($account, 'field_role',         $data['role']);
-    $this->setField($account, 'field_crm_id',        $data['crmId']);
+    $this->setField($account, 'field_crm_id',        $data['id']);
     $this->setField($account, 'field_company_id',   $data['companyId']);
     $this->setField($account, 'field_badge_code',   $data['badgeCode']);
     $this->setField($account, 'field_is_active',    $data['isActive']);
