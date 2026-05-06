@@ -102,7 +102,7 @@ class BezoekerController extends ControllerBase {
   }
 
   /**
-   * Helper to load groups of type 'company'.
+   * Helper to load groups of type 'company_name'.
    */
   private function getBedrijven() {
     $query = \Drupal::entityQuery('group')
