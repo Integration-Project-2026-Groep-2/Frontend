@@ -3,6 +3,8 @@
 namespace Drupal\bedrijf_registratie\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
+use Drupal\Core\Link;
+use Drupal\Core\Url;
 
 class RegistratieController extends ControllerBase {
 
@@ -14,21 +16,30 @@ class RegistratieController extends ControllerBase {
     $telefoon = "+32 470 00 00 00";
     $zetel = "straat 1, 1000 Brussel";
 
-    $output = [
-      '#type' => 'markup',
-      '#markup' => '<h2>' . $this->t('Uw Bedrijfsgegevens') . '</h2>' .
-                   '<ul>' .
-                   '<li><strong>' . $this->t('Bedrijfsnaam') . ':</strong> ' . $bedrijfsnaam . '</li>' .
-                   '<li><strong>' . $this->t('Ondernemingsnummer') . ':</strong> ' . $ondernemingsnummer . '</li>' .
-                   '<li><strong>' . $this->t('E-mailadres') . ':</strong> ' . $email . '</li>' .
-                   '<li><strong>' . $this->t('Telefoonnummer') . ':</strong> ' . $telefoon . '</li>' .
-                   '<li><strong>' . $this->t('Maatschappelijke zetel') . ':</strong> ' . $zetel . '</li>' .
-                   '</ul>' . 
-                   '<p><a href="/bedrijf/medewerker/toevoegen" class="button">' . $this->t('+ Medewerker toevoegen') . '</a></p>' ,
-                   
+    $medewerker_link = Link::fromTextAndUrl(
+      $this->t('+ Medewerker toevoegen'),
+      Url::fromRoute('bedrijf_registratie.medewerker_toevoegen')
+    )->toRenderable();
+    $medewerker_link['#attributes']['class'] = ['button'];
 
+    return [
+      'title' => [
+        '#type' => 'html_tag',
+        '#tag' => 'h2',
+        '#value' => $this->t('Uw Bedrijfsgegevens'),
+      ],
+      'gegevens' => [
+        '#theme' => 'item_list',
+        '#items' => [
+          $this->t('Bedrijfsnaam: @value', ['@value' => $bedrijfsnaam]),
+          $this->t('Ondernemingsnummer: @value', ['@value' => $ondernemingsnummer]),
+          $this->t('E-mailadres: @value', ['@value' => $email]),
+          $this->t('Telefoonnummer: @value', ['@value' => $telefoon]),
+          $this->t('Maatschappelijke zetel: @value', ['@value' => $zetel]),
+        ],
+      ],
+      'medewerker_link' => $medewerker_link,
     ];
-    return $output;
   }
   public function sessiePagina() {
     return [
@@ -51,12 +62,14 @@ class RegistratieController extends ControllerBase {
    * Rendert de pagina met Algemene Voorwaarden.
    */
   public function termsPagina() {
+    $last_updated = '2026-05-06';
+
     return [
-      '#type' => 'container',
-      '#attributes' => ['class' => ['terms-content']],
+      '#type' => 'markup',
       '#markup' => '
+        <div class="terms-content">
         <h1>' . $this->t('Algemene Voorwaarden') . '</h1>
-        <p><em>' . $this->t('Laatst bijgewerkt op: ') . date('d-m-Y') . '</em></p>
+        <p><em>' . $this->t('Laatst bijgewerkt op: @date', ['@date' => $last_updated]) . '</em></p>
 
         <h2>' . $this->t('1. Toepasselijkheid') . '</h2>
         <p>' . $this->t('Deze algemene voorwaarden zijn van toepassing op elk gebruik van ons platform, zowel door incidentele bezoekers als door geregistreerde bedrijven en hun medewerkers.') . '</p>
@@ -77,6 +90,7 @@ class RegistratieController extends ControllerBase {
         <p>' . $this->t('Wij behouden ons het recht voor om deze voorwaarden op elk moment te wijzigen. Bij substantiële wijzigingen zullen geregistreerde gebruikers hiervan op de hoogte worden gesteld.') . '</p>
 
         <p><br><em>' . $this->t('Bij vragen over deze voorwaarden kunt u contact opnemen met de systeembeheerder.') . '</em></p>
+        </div>
       ',
     ];
   }

@@ -59,7 +59,7 @@ class MedewerkerToevoegenForm extends FormBase {
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $voornaam = $form_state->getValue('voornaam');
-    \Drupal::messenger()->addStatus($this->t('Medewerker @naam is succesvol toegevoegd.', [
+    $this->messenger()->addStatus($this->t('Medewerker @naam is succesvol toegevoegd.', [
       '@naam' => $voornaam,
     ]));
     

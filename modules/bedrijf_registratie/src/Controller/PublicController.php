@@ -7,8 +7,12 @@ use Drupal\Core\Controller\ControllerBase;
 class PublicController extends ControllerBase {
   public function homePagina() {
     return [
-      '#theme' => 'home_page', 
-      '#markup' => '<div class="hero-section"><h1>Shift Festival <span class="highlight">2026</span></h1><p>Hét event voor Multimedia & MCT.</p></div>',
+      '#type' => 'inline_template',
+      '#template' => '<div class="hero-section"><h1>{{ title }}</h1><p>{{ subtitle }}</p></div>',
+      '#context' => [
+        'title' => $this->t('Shift Festival 2026'),
+        'subtitle' => $this->t('Het event voor Multimedia & MCT.'),
+      ],
     ];
   }
 

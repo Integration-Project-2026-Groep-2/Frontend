@@ -68,7 +68,7 @@ class BedrijfRegistratieForm extends FormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $naam = $form_state->getValue('bedrijfsnaam');
     
-    \Drupal::messenger()->addStatus($this->t('Bedrijf "@naam" is succesvol aangemeld voor de Belgische markt.', [
+    $this->messenger()->addStatus($this->t('Bedrijf "@naam" is succesvol aangemeld voor de Belgische markt.', [
       '@naam' => $naam,
     ]));
   }
