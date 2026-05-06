@@ -24,7 +24,9 @@
           <h3 style="color: white; margin: 16px 0 8px;">{{ bedrijf.naam }}</h3>
 
           {% if bedrijf.beschrijving %}
-            <p style="color: #ccc;">{{ bedrijf.beschrijving }}</p>
+            {# truncate description to max 100 characters #}
+            {% set desc = bedrijf.beschrijving|striptags %}
+            <p style="color: #ccc;">{{ desc|length > 100 ? desc|slice(0, 100) ~ '…' : desc }}</p>
           {% endif %}
         </div>
       {% endfor %}
