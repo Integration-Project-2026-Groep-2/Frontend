@@ -5,7 +5,7 @@
  * Hook implementations for the hello_world module.
  */
 
-use Drupal\hello_world\RabbitMQ\Message\RegistrationChangeMessage;
+use Drupal\hello_world\RabbitMQ\Message\Registration\RegistrationChangeMessage;
 use Drupal\hello_world\RabbitMQ\RabbitMQClient;
 use Drupal\user\UserInterface;
 
