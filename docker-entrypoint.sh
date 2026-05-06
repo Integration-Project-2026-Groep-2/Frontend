@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-cp /tmp/themes/custom /opt/drupal/web/themes/custom
+cp -r /tmp/themes/custom /opt/drupal/web/themes/custom
 
 chown -R www-data:www-data /opt/drupal/web/themes/custom
 
