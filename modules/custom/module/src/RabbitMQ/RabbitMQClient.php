@@ -194,8 +194,8 @@ class RabbitMQClient {
     if (str_starts_with($routingKey, 'routing.heartbeat')) {
       return self::EXCHANGE_HEARTBEAT;
     }
-    if (str_starts_with($routingKey, 'frontend.')) {
-      return 'frontend.topic';
+    if (str_starts_with($routingKey, 'frontend.session.')) {
+      return 'session.topic';
     }
     return self::EXCHANGE_TOPIC; // user.topic
   }
