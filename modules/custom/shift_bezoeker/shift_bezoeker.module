@@ -1,5 +1,7 @@
 <?php
 
+use Drupal\Core\Form\FormStateInterface;
+
 /**
  * Implements hook_theme().
  */
@@ -27,9 +29,15 @@ function shift_bezoeker_theme($existing, $type, $theme, $path) {
     'home_template' => [
       'variables' => [],
     ],
-
     'bezoeker_bedrijven' => [
-          'variables' => ['bedrijven' => NULL],
-        ],
+      'variables' => ['bedrijven' => NULL],
+    ],
   ];
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function shift_bezoeker_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  $form['#attributes']['class'][] = 'shift-styled-form';
 }
