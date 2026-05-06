@@ -118,7 +118,7 @@ class UserUpdateConsumer {
   private function upsertDrupalUser(array $data): void {
     /** @var \Drupal\user\UserStorageInterface $storage */
     $storage  = \Drupal::entityTypeManager()->getStorage('user');
-    $accounts = $storage->loadByProperties(['mail' => $data['email']]);
+    $accounts = $storage->loadByProperties(['field_crm_id' => $data['id']]);
     $account  = $accounts ? reset($accounts) : null;
 
     if ($account === null) {
@@ -131,6 +131,11 @@ class UserUpdateConsumer {
     }
     else {
       $account->set('status', $data['isActive'] ? 1 : 0);
+      // E-mail bijwerken als die gewijzigd is.
+      if ($account->getEmail() !== $data['email']) {
+        $account->set('mail', $data['email']);
+        $account->set('name', $data['email']);
+      }
     }
 
     $this->setField($account, 'field_first_name',   $data['firstName']);
