@@ -23,7 +23,6 @@ COPY ./rabbitMQ/heartbeat.php /opt/drupal/heartbeat.php
 COPY ./rabbitMQ/consumer.php  /opt/drupal/consumer.php
 
 RUN chown -R www-data:www-data /opt/drupal/web/modules/custom \
-    && chown -R www-data:www-data /opt/drupal/web/themes/custom \
     && chown www-data:www-data /opt/drupal/heartbeat.php \
     && chown www-data:www-data /opt/drupal/consumer.php \
     && chmod 750 /opt/drupal/heartbeat.php \
