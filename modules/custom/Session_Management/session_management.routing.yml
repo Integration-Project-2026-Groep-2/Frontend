@@ -1,0 +1,23 @@
+session_management.create:
+  path: '/session/create'
+  defaults:
+    _controller: '\Drupal\session_management\Controller\SessionCreate::content'
+    _title: 'Create Session'
+  requirements:
+    _role: 'administrator'
+
+session_management.edit:
+  path: '/session/{sessionId}/edit'
+  defaults:
+    _controller: '\Drupal\session_management\Controller\SessionEdit::content'
+    _title: 'Edit Session'
+  requirements:
+    _role: 'administrator'
+
+session_management.list:
+  path: '/sessions'
+  defaults:
+    _controller: '\Drupal\session_management\Controller\SessionManagement::content'
+    _title: 'Sessions'
+  requirements:
+    _role: 'administrator'
