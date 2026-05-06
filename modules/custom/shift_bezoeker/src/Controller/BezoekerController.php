@@ -102,7 +102,7 @@ class BezoekerController extends ControllerBase {
   }
 
   /**
-   * Helper to load groups of type 'company_name'.
+   * Helper to load groups of type 'company_name' (optimized: load files in bulk).
    */
   private function getBedrijven() {
     $query = \Drupal::entityQuery('group')
@@ -112,7 +112,28 @@ class BezoekerController extends ControllerBase {
     $gids = $query->execute();
     $groepen = \Drupal::entityTypeManager()->getStorage('group')->loadMultiple($gids);
 
+    // Verzamel alle fids eerst.
+    $fids = [];
+    foreach ($groepen as $groep) {
+      if ($groep->hasField('field_logo')) {
+        $field = $groep->get('field_logo');
+        if (!$field->isEmpty()) {
+          $fid = $field->target_id ?? NULL;
+          if ($fid) {
+            $fids[$fid] = $fid;
+          }
+        }
+      }
+    }
+
+    // Laad bestanden in één keer.
+    $files = [];
+    if (!empty($fids)) {
+      $files = File::loadMultiple($fids);
+    }
+
     $result = [];
+    $url_generator = \Drupal::service('file_url_generator');
 
     foreach ($groepen as $groep) {
       $naam = $groep->label();
@@ -130,11 +151,9 @@ class BezoekerController extends ControllerBase {
         $logo_field = $groep->get('field_logo');
         if (!$logo_field->isEmpty()) {
           $fid = $logo_field->target_id ?? NULL;
-          if ($fid) {
-            $file = File::load($fid);
-            if ($file) {
-              $logo_url = \Drupal::service('file_url_generator')->generateAbsoluteString($file->getFileUri());
-            }
+          if ($fid && isset($files[$fid])) {
+            $file = $files[$fid];
+            $logo_url = $url_generator->generateAbsoluteString($file->getFileUri());
           }
         }
       }
