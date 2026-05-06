@@ -105,73 +105,38 @@ class BezoekerController extends ControllerBase {
    * Helper to load groups of type 'company'.
    */
   private function getBedrijven() {
-    $groepen = \Drupal::entityTypeManager()->getStorage('group')->loadByProperties(['type' => 'company_name']);
-    $result = [];
+    $query = \Drupal::entityQuery('group')
+      ->accessCheck(TRUE)
+      ->condition('type', 'company_name');
 
-    \Drupal::logger('shift_bezoeker')->notice('Found @count groups for type company_name', [
-      '@count' => count($groepen),
-    ]);
+    $gids = $query->execute();
+    $groepen = \Drupal::entityTypeManager()->getStorage('group')->loadMultiple($gids);
+
+    $result = [];
 
     foreach ($groepen as $groep) {
       $naam = $groep->label();
-      \Drupal::logger('shift_bezoeker')->notice('Processing group: @naam (ID: @id)', [
-        '@naam' => $naam,
-        '@id' => $groep->id(),
-      ]);
 
       $beschrijving = '';
       if ($groep->hasField('field_description')) {
         $desc_field = $groep->get('field_description');
-        \Drupal::logger('shift_bezoeker')->notice('field_description exists. empty=@empty', [
-          '@empty' => $desc_field->isEmpty() ? 'yes' : 'no',
-        ]);
-
         if (!$desc_field->isEmpty()) {
           $beschrijving = $desc_field->value ?? '';
-          \Drupal::logger('shift_bezoeker')->notice('Description value: @desc', [
-            '@desc' => $beschrijving,
-          ]);
         }
-      }
-      else {
-        \Drupal::logger('shift_bezoeker')->error('field_description missing on group @id', [
-          '@id' => $groep->id(),
-        ]);
       }
 
       $logo_url = NULL;
       if ($groep->hasField('field_logo')) {
         $logo_field = $groep->get('field_logo');
-        \Drupal::logger('shift_bezoeker')->notice('field_logo exists. empty=@empty', [
-          '@empty' => $logo_field->isEmpty() ? 'yes' : 'no',
-        ]);
-
         if (!$logo_field->isEmpty()) {
           $fid = $logo_field->target_id ?? NULL;
-          \Drupal::logger('shift_bezoeker')->notice('Logo fid: @fid', [
-            '@fid' => $fid ?: 'none',
-          ]);
-
           if ($fid) {
             $file = File::load($fid);
             if ($file) {
               $logo_url = \Drupal::service('file_url_generator')->generateAbsoluteString($file->getFileUri());
-              \Drupal::logger('shift_bezoeker')->notice('Logo URL built: @url', [
-                '@url' => $logo_url,
-              ]);
-            }
-            else {
-              \Drupal::logger('shift_bezoeker')->error('File load failed for fid @fid', [
-                '@fid' => $fid,
-              ]);
             }
           }
         }
-      }
-      else {
-        \Drupal::logger('shift_bezoeker')->error('field_logo missing on group @id', [
-          '@id' => $groep->id(),
-        ]);
       }
 
       $result[] = [
