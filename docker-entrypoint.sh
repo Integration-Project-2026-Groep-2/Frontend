@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
+cp /tmp/themes/custom /opt/drupal/web/themes/custom
+
 DRUSH="/opt/drupal/vendor/bin/drush"
 
 docker-php-entrypoint apache2-foreground &
