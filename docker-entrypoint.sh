@@ -3,6 +3,8 @@ set -e
 
 cp /tmp/themes/custom /opt/drupal/web/themes/custom
 
+chown -R www-data:www-data /opt/drupal/web/themes/custom
+
 DRUSH="/opt/drupal/vendor/bin/drush"
 
 docker-php-entrypoint apache2-foreground &
