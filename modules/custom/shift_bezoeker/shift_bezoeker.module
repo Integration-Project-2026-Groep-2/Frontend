@@ -5,6 +5,11 @@
  */
 function shift_bezoeker_theme($existing, $type, $theme, $path) {
   return [
+    'bezoeker_bedrijven' => [
+      'variables' => ['bedrijven' => NULL],
+      'template' => 'bezoeker-bedrijven',
+      'path' => $path . '/templates',
+    ],
     'sessie_overzicht_template' => [
       'variables' => [
         'current_date' => NULL,
@@ -27,9 +32,5 @@ function shift_bezoeker_theme($existing, $type, $theme, $path) {
     'home_template' => [
       'variables' => [],
     ],
-
-    'bezoeker_bedrijven' => [
-          'variables' => ['bedrijven' => NULL],
-        ],
   ];
 }
