@@ -17,7 +17,7 @@ class JarvisController extends ControllerBase {
 
   public function __construct(
     protected ClientInterface $httpClient,
-    protected LoggerChannelFactoryInterface $loggerFactory,
+    protected LoggerChannelFactoryInterface $logChannelFactory,
   ) {}
 
   public static function create(ContainerInterface $container): self {
@@ -54,7 +54,7 @@ class JarvisController extends ControllerBase {
       return new JsonResponse(['answer' => $data['answer'] ?? '']);
     }
     catch (GuzzleException $e) {
-      $this->loggerFactory->get('jarvis_chat')
+      $this->logChannelFactory->get('jarvis_chat')
         ->error('mcp-master proxy failed: @msg', ['@msg' => $e->getMessage()]);
       return new JsonResponse(['error' => 'upstream error'], 502);
     }
