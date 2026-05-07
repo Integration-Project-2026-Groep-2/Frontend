@@ -169,25 +169,35 @@ body:has(#jarvis-chat) {
   max-width: 100%;
 }
 
-/* Form: standalone floating card pinned at bottom. Sticky so it stays
-   visible while the conversation scrolls behind it. */
+/* Form: standalone floating card pinned to the viewport. `position:
+   fixed` keeps it visible regardless of scroll position — same UX as
+   Claude.ai / ChatGPT. Centered horizontally via left:50% + translateX. */
 .jarvis-form {
   flex-shrink: 0;
   display: flex;
   gap: 0.75rem;
   padding: 0.85rem 1rem;
-  background: rgba(26, 31, 46, 0.7);
+  background: rgba(26, 31, 46, 0.85);
   border: 1px solid rgba(99, 51, 234, 0.3);
   border-radius: 16px;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
   align-items: stretch;
   max-width: 760px;
   width: calc(100% - 40px);
-  margin: 0 auto 1.5rem;
-  position: sticky;
-  bottom: 1rem;
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+}
+
+/* Active-state conversation needs bottom padding equal to the fixed
+   form's height + clearance, so the last message isn't hidden behind
+   the input when scrolled to the end. */
+.jarvis-chat:not(.is-empty) .jarvis-conversation {
+  padding-bottom: 140px;
 }
 
 .jarvis-form textarea {
@@ -299,9 +309,13 @@ body:has(#jarvis-chat) {
 }
 
 .jarvis-chat.is-empty .jarvis-form {
-  /* In empty-state the form is centered under the greeting (no sticky,
-     no margin-bottom — it sits in document flow). */
+  /* In empty-state the form is centered under the greeting (no fixed-
+     pinning, no transform — it sits in document flow under the
+     subtitle). */
   position: static;
+  transform: none;
+  left: auto;
+  bottom: auto;
   margin: 0 auto;
   width: 100%;
   max-width: 760px;
