@@ -1,8 +1,6 @@
-/* SHIFT FESTIVAL theme integration. We reuse shift_theme's hero recipe
+/* SHIFT FESTIVAL theme integration. Reuses shift_theme's hero recipe
    (`hero-section.hero-logo-only.dark-theme` from layout.css/navbar.css)
-   for visual consistency with the homepage. The chat-section sits below
-   the hero in the same dark-purple color (#311339, rgb(49,19,57) at 1.0
-   alpha — matching the hero overlay). */
+   for visual consistency with the homepage. */
 
 /* Hide Drupal's default page-title block on this route — the hero
    provides the visual intro instead of a black "Jarvis" headline. */
@@ -10,57 +8,78 @@ body:has(#jarvis-chat) .block-page-title-block {
   display: none;
 }
 
-/* Compact hero — the chat is the page's main content, so we shrink the
-   homepage's 70vh hero to ~28vh and the 500px logo to 160px. The dark
-   bg + venue-image come from shift_theme/css/navbar.css:174 unchanged. */
+/* Make `<main>` a flex column so the chat-section can grow to fill the
+   viewport. Subtracts the shift_theme navbar (~80px) — admin toolbar
+   adds another ~40px on logged-in admin sessions, that minor diff is
+   acceptable for an admin-only chatbot. */
+body:has(#jarvis-chat) main[role="main"] {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 80px);
+}
+
+/* Compact hero — the chat is the page's main content. Shrinks
+   homepage's 70vh hero and 500px logo so the chat fits above the fold. */
 .jarvis-hero {
-  min-height: 28vh !important;
-  padding: 50px 20px !important;
+  min-height: 22vh !important;
+  padding: 30px 20px !important;
+  flex-shrink: 0;
 }
 
 .jarvis-hero .jarvis-logo {
-  width: 160px !important;
+  width: 110px !important;
   height: auto !important;
   margin: 0 auto;
   display: block;
 }
 
 .jarvis-hero .hero-tagline {
-  margin-top: 16px;
-  font-size: 18px;
-  letter-spacing: 4px;
+  margin-top: 14px;
+  font-size: 16px;
+  letter-spacing: 3px;
   color: rgba(255, 255, 255, 0.85);
 }
 
-/* Section that wraps the chat. Same color as the hero overlay so the
-   transition hero → chat is seamless; tall enough to fill the rest of
-   the viewport on shorter chats. */
+/* Chat section grows to fill remaining viewport. Same color as the hero
+   overlay so the transition hero → chat is seamless. */
 .jarvis-chat-section {
   background: #311339;
-  padding: 3rem 0 5rem 0;
-  min-height: 60vh;
+  padding: 1.5rem 20px 2rem 20px;
+  flex: 1 1 auto;
+  display: flex;
+  align-items: stretch;
 }
 
+/* Unified chat card: conversation grows, input pinned at bottom. Single
+   border/shadow wrapping both — no double-card look. */
 .jarvis-chat {
-  max-width: 760px;
+  max-width: 1100px;
   margin: 0 auto;
-  padding: 0 20px;
+  width: 100%;
   font-family: 'Poppins', sans-serif;
-}
-
-/* Frosted-glass conversation card — same recipe as the homepage countdown
-   blocks (page.html.twig:49-64): dark navy 50% + purple border + blur. */
-.jarvis-conversation {
-  height: 520px;
-  overflow-y: auto;
-  padding: 1.5rem;
-  border: 1px solid rgba(99, 51, 234, 0.3);
-  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
   background: rgba(26, 31, 46, 0.5);
+  border: 1px solid rgba(99, 51, 234, 0.3);
+  border-radius: 15px;
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
-  margin-bottom: 1.5rem;
+  overflow: hidden; /* clip rounded corners on children */
+}
+
+/* Conversation area — fills available card space, scrolls internally
+   only when chat-history exceeds available room. `min-height: 0` is the
+   classic flex-shrink-allow trick so the scroll actually works. */
+.jarvis-conversation {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1.5rem;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .jarvis-bubble {
@@ -87,25 +106,32 @@ body:has(#jarvis-chat) .block-page-title-block {
   border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
+/* Input form — pinned at bottom of card, separated by purple-tinted
+   divider (matches conversation border-bottom). flex-shrink: 0 stops it
+   from squashing when conversation has lots of content. */
 .jarvis-form {
+  flex-shrink: 0;
   display: flex;
   gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  background: rgba(0, 0, 0, 0.25);
+  border-top: 1px solid rgba(99, 51, 234, 0.25);
   align-items: stretch;
 }
 
 .jarvis-form textarea {
   flex: 1;
-  padding: 14px 20px;
+  padding: 12px 16px;
   border: 1px solid rgba(99, 51, 234, 0.3);
   border-radius: 10px;
   font-size: 15px;
   font-family: 'Poppins', sans-serif;
-  resize: vertical;
+  resize: none;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
   background: rgba(26, 31, 46, 0.6);
   color: #ffffff;
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  min-height: 48px;
+  max-height: 120px;
 }
 
 .jarvis-form textarea::placeholder {
@@ -123,8 +149,8 @@ body:has(#jarvis-chat) .block-page-title-block {
   background: #6333ea;
   color: #ffffff;
   border: none;
-  padding: 14px 32px;
-  border-radius: 12px;
+  padding: 12px 28px;
+  border-radius: 10px;
   font-weight: 700;
   font-size: 14px;
   font-family: 'Barlow', 'Poppins', sans-serif;
