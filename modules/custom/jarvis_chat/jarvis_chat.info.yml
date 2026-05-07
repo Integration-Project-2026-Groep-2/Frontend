@@ -1,0 +1,8 @@
+name: 'Jarvis Chat'
+type: module
+description: 'Admin-facing chatbot UI proxying to mcp-master AI agent.'
+package: 'Custom'
+core_version_requirement: ^11
+dependencies:
+  - drupal:user
+  - drupal:system
