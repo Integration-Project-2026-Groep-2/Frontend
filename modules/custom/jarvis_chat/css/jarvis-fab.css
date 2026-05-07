@@ -1,0 +1,98 @@
+/* Floating Action Button — fixed bottom-right "Open Jarvis chat".
+   Loaded site-wide via `hook_page_bottom()` for users with the
+   `use jarvis chat` permission. Skipped on /jarvis itself and on
+   Drupal admin routes. */
+
+.jarvis-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #6333ea 0%, #8b5cff 100%);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  box-shadow:
+    0 8px 24px rgba(99, 51, 234, 0.45),
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+.jarvis-fab:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow:
+    0 14px 36px rgba(99, 51, 234, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.12) inset;
+  color: #ffffff;
+  text-decoration: none;
+}
+
+.jarvis-fab:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.jarvis-fab:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 3px;
+}
+
+.jarvis-fab svg {
+  width: 26px;
+  height: 26px;
+  stroke: currentColor;
+}
+
+/* Subtle pulse halo to draw attention without being noisy. Pure CSS
+   pseudo-element, GPU-friendly transform animation. */
+.jarvis-fab::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(99, 51, 234, 0.35) 0%, transparent 70%);
+  z-index: -1;
+  animation: jarvis-fab-pulse 2.8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes jarvis-fab-pulse {
+  0%, 100% {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0.6;
+  }
+}
+
+/* Respect reduced-motion preference. */
+@media (prefers-reduced-motion: reduce) {
+  .jarvis-fab {
+    transition: none;
+  }
+  .jarvis-fab::before {
+    animation: none;
+    opacity: 0.4;
+  }
+}
+
+/* Mobile tweak — slightly smaller, hugs the corner closer. */
+@media (max-width: 640px) {
+  .jarvis-fab {
+    bottom: 16px;
+    right: 16px;
+    width: 50px;
+    height: 50px;
+  }
+  .jarvis-fab svg {
+    width: 22px;
+    height: 22px;
+  }
+}

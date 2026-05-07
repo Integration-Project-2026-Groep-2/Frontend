@@ -5,6 +5,9 @@
  * Hook implementations for the jarvis_chat module.
  */
 
+use Drupal\Core\Render\Markup;
+use Drupal\Core\Url;
+
 /**
  * Implements hook_theme().
  */
@@ -13,6 +16,51 @@ function jarvis_chat_theme($existing, $type, $theme, $path): array {
     'jarvis_chat' => [
       'template' => 'jarvis-chat',
       'variables' => [],
+    ],
+  ];
+}
+
+/**
+ * Implements hook_page_bottom().
+ *
+ * Injects a floating "Open Jarvis" action button on every page for users
+ * with the `use jarvis chat` permission. Hidden on the /jarvis route
+ * itself (redundant when you're already there) and on Drupal's admin
+ * pages (avoid covering the toolbar / form-buttons).
+ */
+function jarvis_chat_page_bottom(array &$page_bottom): void {
+  $current_user = \Drupal::currentUser();
+  if (!$current_user->hasPermission('use jarvis chat')) {
+    return;
+  }
+  $route_match = \Drupal::routeMatch();
+  $route_name = $route_match->getRouteName();
+  if ($route_name === 'jarvis_chat.page' || $route_name === 'jarvis_chat.api_chat') {
+    return;
+  }
+  // Skip Drupal admin routes — admin_route is set on system routes and
+  // most contrib admin UIs. Keeps the FAB to public-facing pages where
+  // the chatbot is genuinely useful.
+  if (\Drupal::service('router.admin_context')->isAdminRoute($route_match->getRouteObject())) {
+    return;
+  }
+
+  // Sparkle SVG — matches the AI/Claude visual vocabulary. Static markup,
+  // no user input interpolated; Markup::create is safe here.
+  $icon = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/></svg>';
+  $url = Url::fromRoute('jarvis_chat.page')->toString();
+
+  $page_bottom['jarvis_fab'] = [
+    '#markup' => Markup::create(
+      '<a href="' . $url . '" class="jarvis-fab" aria-label="Open Jarvis chat">' . $icon . '</a>'
+    ),
+    '#attached' => [
+      'library' => ['jarvis_chat/fab'],
+    ],
+    '#cache' => [
+      // Vary by user permissions so an anon user gets no FAB even if a
+      // logged-in admin's render-cached page slipped through.
+      'contexts' => ['user.permissions', 'route.name'],
     ],
   ];
 }

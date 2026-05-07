@@ -9,3 +9,9 @@ widget:
     - core/drupal
     - core/drupalSettings
     - core/once
+
+fab:
+  version: 1.x
+  css:
+    component:
+      css/jarvis-fab.css: {}
