@@ -9,6 +9,13 @@ body:has(#jarvis-chat) .block-page-title-block {
   display: none;
 }
 
+/* Hide the shift_theme footer on /jarvis. Claude.ai has a full-app
+   layout (no site footer below chat) so the input box can stay pinned
+   to viewport-bottom forever without overlapping anything. */
+body:has(#jarvis-chat) footer {
+  display: none !important;
+}
+
 /* Body bg matches the hero overlay color so the chat-section blends
    seamlessly into the page; also covers any unstretched gap. */
 body:has(#jarvis-chat) {
@@ -169,10 +176,10 @@ body:has(#jarvis-chat) {
   max-width: 100%;
 }
 
-/* Form: floating card stuck to viewport-bottom WHILE inside chat-section.
-   Once scrolled past the chat-section (footer comes into view), sticky
-   releases and the form rests at chat-section's bottom edge. This is
-   the canonical chat-app pattern (Claude.ai, ChatGPT, Slack). */
+/* Form: floating card pinned to the viewport. Claude.ai-style — always
+   visible at the bottom regardless of scroll. With the SHIFT footer
+   hidden on /jarvis, there's nothing below the chat for the input to
+   awkwardly overlap, so plain `position: fixed` is the right tool. */
 .jarvis-form {
   flex-shrink: 0;
   display: flex;
@@ -187,10 +194,11 @@ body:has(#jarvis-chat) {
   align-items: stretch;
   max-width: 760px;
   width: calc(100% - 40px);
-  margin: 0 auto;
-  position: sticky;
+  position: fixed;
   bottom: 1.5rem;
-  z-index: 10;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
 }
 
 /* Active-state conversation needs bottom padding equal to the sticky
