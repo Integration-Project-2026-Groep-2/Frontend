@@ -39,15 +39,26 @@ class JarvisController extends ControllerBase {
 
   public function chat(Request $request): JsonResponse {
     $body = json_decode($request->getContent(), TRUE);
-    $prompt = trim($body['prompt'] ?? '');
-    if ($prompt === '') {
-      return new JsonResponse(['error' => 'prompt is empty'], 400);
+    if (!is_array($body)) {
+      return new JsonResponse(['error' => 'invalid JSON body'], 400);
+    }
+
+    // Accept both legacy {prompt: string} and multi-turn
+    // {messages: [{role, content}, ...]} shapes — mcp-master does the
+    // strict per-shape validation. We forward as-is to avoid duplicating
+    // contracts on two sides; this proxy stays a thin pass-through.
+    $hasPrompt = isset($body['prompt']) && trim((string) $body['prompt']) !== '';
+    $hasMessages = isset($body['messages'])
+      && is_array($body['messages'])
+      && !empty($body['messages']);
+    if (!$hasPrompt && !$hasMessages) {
+      return new JsonResponse(['error' => 'prompt or messages required'], 400);
     }
 
     $url = getenv('MCP_MASTER_URL') ?: self::DEFAULT_BACKEND_URL;
     try {
       $response = $this->httpClient->request('POST', $url . '/chat', [
-        'json'    => ['prompt' => $prompt],
+        'json'    => $body,
         'timeout' => self::REQUEST_TIMEOUT_SECONDS,
       ]);
       $data = json_decode((string) $response->getBody(), TRUE);

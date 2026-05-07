@@ -29,11 +29,33 @@ class JarvisControllerTest extends UnitTestCase {
     return Request::create('/api/jarvis/chat', 'POST', [], [], [], [], json_encode($body));
   }
 
-  public function testEmptyPromptReturns400(): void {
+  public function testRejectsMissingPromptAndMessages(): void {
     $controller = $this->makeController($this->createMock(ClientInterface::class));
     $response = $controller->chat($this->postRequest(['prompt' => '   ']));
     $this->assertSame(400, $response->getStatusCode());
-    $this->assertStringContainsString('empty', $response->getContent());
+    $this->assertStringContainsString('required', $response->getContent());
+  }
+
+  public function testForwardsMultiTurnMessagesToBackend(): void {
+    $http = $this->createMock(ClientInterface::class);
+    // Capture the body sent to mcp-master so we can assert it was
+    // forwarded as-is (not stripped down to {prompt: ...}).
+    $captured = null;
+    $http->method('request')->willReturnCallback(
+      function ($method, $url, $options) use (&$captured) {
+        $captured = $options['json'] ?? null;
+        return new Response(200, [], json_encode(['answer' => 'multi-turn ok']));
+      }
+    );
+    $controller = $this->makeController($http);
+    $messages = [
+      ['role' => 'user', 'content' => 'q1'],
+      ['role' => 'assistant', 'content' => 'a1'],
+      ['role' => 'user', 'content' => 'q2'],
+    ];
+    $response = $controller->chat($this->postRequest(['messages' => $messages]));
+    $this->assertSame(200, $response->getStatusCode());
+    $this->assertSame(['messages' => $messages], $captured);
   }
 
   public function testUpstreamFailureReturns502(): void {
