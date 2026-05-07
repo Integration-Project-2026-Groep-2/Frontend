@@ -1,10 +1,21 @@
-<div id="jarvis-chat" class="jarvis-chat">
-  <div id="jarvis-conversation" class="jarvis-conversation" aria-live="polite"></div>
-  <form id="jarvis-form" class="jarvis-form">
-    <textarea id="jarvis-input" name="prompt" rows="3"
-              placeholder="Vraag iets aan Jarvis..." required></textarea>
-    <button type="submit" id="jarvis-send">Versturen</button>
-  </form>
-</div>
+<section class="hero-section hero-logo-only dark-theme jarvis-hero">
+  <div class="logo-wrapper" style="text-align: center;">
+    <img src="{{ base_path }}themes/custom/shift_theme/images/logo1.png"
+         class="spiral-icon jarvis-logo" alt="Shift">
+    <p class="hero-tagline">Vraag het aan Jarvis</p>
+  </div>
+</section>
+
+<section class="jarvis-chat-section">
+  <div id="jarvis-chat" class="jarvis-chat">
+    <div id="jarvis-conversation" class="jarvis-conversation" aria-live="polite"></div>
+    <form id="jarvis-form" class="jarvis-form">
+      <textarea id="jarvis-input" name="prompt" rows="3"
+                placeholder="Vraag iets aan Jarvis..." required></textarea>
+      <button type="submit" id="jarvis-send">Versturen</button>
+    </form>
+  </div>
+</section>
+
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js" defer></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js" defer></script>

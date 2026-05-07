@@ -1,53 +1,61 @@
-/* SHIFT FESTIVAL theme integration. Tokens taken from
-   `themes/custom/shift_theme/css/{global,forms,navbar,layout}.css`:
-     #6333ea  primary purple (buttons, accents)
-     #5128c7  primary purple darker (hover)
-     #0d121f  dark navy (navbar / footer / page-bg)
-     #311339  hero overlay (rgb 49,19,57 @ 0.9)
-     #1a1f2e  card background base (rgb 26,31,46)
-   The chat page mimics the homepage hero: dark venue image overlaid with
-   purple haze, frosted-glass conversation card, white text on dark. */
+/* SHIFT FESTIVAL theme integration. We reuse shift_theme's hero recipe
+   (`hero-section.hero-logo-only.dark-theme` from layout.css/navbar.css)
+   for visual consistency with the homepage. The chat-section sits below
+   the hero in the same dark-purple color (#311339, rgb(49,19,57) at 1.0
+   alpha — matching the hero overlay). */
 
-/* Match the homepage hero on /jarvis (and any future page hosting the
-   widget). `:has(#jarvis-chat)` scopes this without needing a body-class
-   toggle from JS. */
-body:has(#jarvis-chat) {
-  background:
-    linear-gradient(rgba(49, 19, 57, 0.9), rgba(49, 19, 57, 0.9)),
-    url('/themes/custom/shift_theme/images/event-bg.jpg') !important;
-  background-size: cover !important;
-  background-position: center !important;
-  background-attachment: fixed !important;
+/* Hide Drupal's default page-title block on this route — the hero
+   provides the visual intro instead of a black "Jarvis" headline. */
+body:has(#jarvis-chat) .block-page-title-block {
+  display: none;
 }
 
-/* Drupal's default page-title block renders dark on dark — make it white
-   so the "Jarvis" headline reads on the new dark background. */
-body:has(#jarvis-chat) .block-page-title-block,
-body:has(#jarvis-chat) .page-title,
-body:has(#jarvis-chat) h1.page-title {
-  color: #ffffff;
+/* Compact hero — the chat is the page's main content, so we shrink the
+   homepage's 70vh hero to ~28vh and the 500px logo to 160px. The dark
+   bg + venue-image come from shift_theme/css/navbar.css:174 unchanged. */
+.jarvis-hero {
+  min-height: 28vh !important;
+  padding: 50px 20px !important;
 }
 
-body:has(#jarvis-chat) .breadcrumb a,
-body:has(#jarvis-chat) .breadcrumb {
-  color: rgba(255, 255, 255, 0.7);
+.jarvis-hero .jarvis-logo {
+  width: 160px !important;
+  height: auto !important;
+  margin: 0 auto;
+  display: block;
+}
+
+.jarvis-hero .hero-tagline {
+  margin-top: 16px;
+  font-size: 18px;
+  letter-spacing: 4px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* Section that wraps the chat. Same color as the hero overlay so the
+   transition hero → chat is seamless; tall enough to fill the rest of
+   the viewport on shorter chats. */
+.jarvis-chat-section {
+  background: #311339;
+  padding: 3rem 0 5rem 0;
+  min-height: 60vh;
 }
 
 .jarvis-chat {
   max-width: 760px;
-  margin: 2.5rem auto;
+  margin: 0 auto;
   padding: 0 20px;
   font-family: 'Poppins', sans-serif;
 }
 
 /* Frosted-glass conversation card — same recipe as the homepage countdown
-   blocks (dark navy @ 50% + purple border + backdrop blur). */
+   blocks (page.html.twig:49-64): dark navy 50% + purple border + blur. */
 .jarvis-conversation {
   height: 520px;
   overflow-y: auto;
   padding: 1.5rem;
   border: 1px solid rgba(99, 51, 234, 0.3);
-  border-radius: 15px;
+  border-radius: 10px;
   background: rgba(26, 31, 46, 0.5);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
