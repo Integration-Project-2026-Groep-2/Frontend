@@ -5,3 +5,14 @@ jarvis_chat.page:
     _title: 'Jarvis'
   requirements:
     _permission: 'use jarvis chat'
+
+jarvis_chat.api_chat:
+  path: '/api/jarvis/chat'
+  defaults:
+    _controller: '\Drupal\jarvis_chat\Controller\JarvisController::chat'
+  methods: [POST]
+  requirements:
+    _permission: 'use jarvis chat'
+    _csrf_token: 'TRUE'
+  options:
+    no_cache: 'TRUE'
