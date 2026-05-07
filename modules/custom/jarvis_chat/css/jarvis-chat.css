@@ -24,23 +24,18 @@ body:has(#jarvis-chat) {
   justify-content: center;
 }
 
-/* === ACTIVE STATE — default unified card. Conversation grows, input
-       pinned at bottom inside the same card. === */
+/* === ACTIVE STATE — Claude.ai-style. No unified card around the whole
+       chat. Assistant messages render as plain text on the page bg.
+       User messages get a subtle pill. The form is a standalone
+       floating card pinned at the bottom. === */
 .jarvis-chat {
-  max-width: 1100px;
-  margin: 0 auto;
+  max-width: 100%;
   width: 100%;
+  margin: 0 auto;
   min-height: 75vh;
   font-family: 'Poppins', sans-serif;
   display: flex;
   flex-direction: column;
-  background: rgba(26, 31, 46, 0.5);
-  border: 1px solid rgba(99, 51, 234, 0.3);
-  border-radius: 15px;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
-  overflow: hidden;
 }
 
 /* Greeting hidden once a chat starts. */
@@ -48,49 +43,67 @@ body:has(#jarvis-chat) {
   display: none;
 }
 
+/* Conversation column — narrow for readability, plain bg (no card). */
 .jarvis-conversation {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  padding: 1.5rem;
+  padding: 2rem 20px;
+  max-width: 760px;
+  width: 100%;
+  margin: 0 auto;
   background: transparent;
   border: none;
-  border-radius: 0;
-  box-shadow: none;
 }
 
 .jarvis-bubble {
-  padding: 0.85rem 1.1rem;
-  margin: 0.5rem 0;
-  border-radius: 12px;
-  max-width: 85%;
+  padding: 0.5rem 0;
+  margin: 1rem 0;
   word-wrap: break-word;
-  font-size: 15px;
-  line-height: 1.55;
+  font-size: 16px;
+  line-height: 1.65;
 }
 
+/* User: subtle right-aligned pill — light purple wash, not bold solid. */
 .jarvis-user {
-  background: #6333ea;
+  background: rgba(99, 51, 234, 0.18);
   color: #ffffff;
   margin-left: auto;
-  font-weight: 500;
-  box-shadow: 0 2px 12px rgba(99, 51, 234, 0.4);
+  padding: 0.7rem 1rem;
+  border-radius: 14px;
+  max-width: 75%;
+  font-weight: 400;
+  border: 1px solid rgba(99, 51, 234, 0.25);
 }
 
+/* Assistant: plain text, no card, full available width. */
 .jarvis-assistant {
-  background: rgba(255, 255, 255, 0.08);
+  background: transparent;
   color: #f4f0ff;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: none;
+  padding: 0.25rem 0;
+  max-width: 100%;
 }
 
+/* Form: standalone floating card pinned at bottom. Sticky so it stays
+   visible while the conversation scrolls behind it. */
 .jarvis-form {
   flex-shrink: 0;
   display: flex;
   gap: 0.75rem;
-  padding: 1rem 1.25rem;
-  background: rgba(0, 0, 0, 0.25);
-  border-top: 1px solid rgba(99, 51, 234, 0.25);
+  padding: 0.85rem 1rem;
+  background: rgba(26, 31, 46, 0.7);
+  border: 1px solid rgba(99, 51, 234, 0.3);
+  border-radius: 16px;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
   align-items: stretch;
+  max-width: 760px;
+  width: calc(100% - 40px);
+  margin: 0 auto 1.5rem;
+  position: sticky;
+  bottom: 1rem;
 }
 
 .jarvis-form textarea {
@@ -180,15 +193,13 @@ body:has(#jarvis-chat) {
 }
 
 .jarvis-chat.is-empty .jarvis-form {
-  background: rgba(26, 31, 46, 0.5);
-  border: 1px solid rgba(99, 51, 234, 0.3);
-  border-radius: 16px;
+  /* In empty-state the form is centered under the greeting (no sticky,
+     no margin-bottom — it sits in document flow). */
+  position: static;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 760px;
   padding: 1rem;
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
-  border-top: 1px solid rgba(99, 51, 234, 0.3); /* override the
-    active-state border-top — full border on the floating box */
 }
 
 /* Markdown rendering inside assistant bubbles — light-on-dark variant. */
