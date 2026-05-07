@@ -11,6 +11,25 @@ Admin-facing chatbot UI. Renders `/jarvis` as a chat page that proxies
 - `POST /api/jarvis/chat` — Drupal-side proxy to `http://mcp-master:8080/chat`
   with CSRF + permission gating
 - Markdown rendering of LLM answers via `marked` + `DOMPurify` (XSS-safe)
+- Multi-turn conversation: previous user/assistant turns are included with
+  every request so follow-up questions ("geef me daar het volledige object
+  van") keep their context
+
+## Multi-turn behavior
+
+History lives in **JS module-scope memory**, lost on page refresh. mcp-master
+itself stays stateless on `/chat` (per `HTTP_API.md` decision-log) — the
+client carries the conversation context via the `messages` array in each POST.
+
+Implications:
+
+- **Refresh = new conversation**. Acceptable for v1 demo. Server-side
+  persistence (Postgres + `session_id`) is on the v2 roadmap.
+- **History caps at 40 turns** (FIFO trim). Anthropic enforces a hard token
+  limit; the soft cap trims well before that.
+- **Failed POST does not pollute history**. A 5xx upstream error leaves the
+  history unchanged so the user can retry the same question without a
+  corrupted turn-pair.
 
 ## Install
 
