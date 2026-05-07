@@ -1,4 +1,13 @@
 (function (Drupal, drupalSettings, once) {
+  // Per-page conversation history. mcp-master is intentionally stateless on
+  // /chat (see HTTP_API.md decision-log) — the client carries context. Lives
+  // for the page session; lost on refresh by design (server-side persistence
+  // is v2 work).
+  const history = [];
+  // Soft cap on turns to prevent unbounded request bodies in long sessions.
+  // Anthropic enforces a hard token limit; this trims well before that.
+  const MAX_HISTORY_TURNS = 40;
+
   Drupal.behaviors.jarvisChat = {
     attach(context) {
       once('jarvis-chat', '#jarvis-form', context).forEach((form) => {
@@ -11,6 +20,7 @@
           const prompt = input.value.trim();
           if (!prompt) return;
 
+          const userTurn = { role: 'user', content: prompt };
           appendBubble(convo, 'user', prompt);
           input.value = '';
           button.disabled = true;
@@ -24,10 +34,17 @@
                 'Content-Type': 'application/json',
                 'X-CSRF-Token': csrf,
               },
-              body: JSON.stringify({ prompt }),
+              body: JSON.stringify({ messages: [...history, userTurn] }),
             });
             const data = await res.json();
             if (res.ok) {
+              // Mutate history only on success — a failed turn must not
+              // pollute the conversation context for the retry.
+              history.push(userTurn);
+              history.push({ role: 'assistant', content: data.answer || '' });
+              if (history.length > MAX_HISTORY_TURNS) {
+                history.splice(0, history.length - MAX_HISTORY_TURNS);
+              }
               renderMarkdown(loading, data.answer || '');
             } else {
               loading.textContent = `Fout: ${data.error || res.statusText}`;
