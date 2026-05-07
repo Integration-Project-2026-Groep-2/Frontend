@@ -1,0 +1,7 @@
+jarvis_chat.page:
+  path: '/jarvis'
+  defaults:
+    _controller: '\Drupal\jarvis_chat\Controller\JarvisController::page'
+    _title: 'Jarvis'
+  requirements:
+    _permission: 'use jarvis chat'
