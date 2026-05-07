@@ -169,9 +169,10 @@ body:has(#jarvis-chat) {
   max-width: 100%;
 }
 
-/* Form: standalone floating card pinned to the viewport. `position:
-   fixed` keeps it visible regardless of scroll position — same UX as
-   Claude.ai / ChatGPT. Centered horizontally via left:50% + translateX. */
+/* Form: floating card stuck to viewport-bottom WHILE inside chat-section.
+   Once scrolled past the chat-section (footer comes into view), sticky
+   releases and the form rests at chat-section's bottom edge. This is
+   the canonical chat-app pattern (Claude.ai, ChatGPT, Slack). */
 .jarvis-form {
   flex-shrink: 0;
   display: flex;
@@ -186,16 +187,15 @@ body:has(#jarvis-chat) {
   align-items: stretch;
   max-width: 760px;
   width: calc(100% - 40px);
-  position: fixed;
+  margin: 0 auto;
+  position: sticky;
   bottom: 1.5rem;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 100;
+  z-index: 10;
 }
 
-/* Active-state conversation needs bottom padding equal to the fixed
-   form's height + clearance, so the last message isn't hidden behind
-   the input when scrolled to the end. */
+/* Active-state conversation needs bottom padding equal to the sticky
+   form's height + clearance, so the last message isn't hidden under
+   the form when scrolled to the chat-section's bottom. */
 .jarvis-chat:not(.is-empty) .jarvis-conversation {
   padding-bottom: 140px;
 }
