@@ -38,7 +38,7 @@ class JarvisControllerTest extends UnitTestCase {
 
   public function testUpstreamFailureReturns502(): void {
     $http = $this->createMock(ClientInterface::class);
-    $http->method('post')->willThrowException(
+    $http->method('request')->willThrowException(
       new ConnectException('refused', new GuzzleRequest('POST', '/chat'))
     );
     $controller = $this->makeController($http);
@@ -48,7 +48,7 @@ class JarvisControllerTest extends UnitTestCase {
 
   public function testSuccessfulProxyReturnsAnswer(): void {
     $http = $this->createMock(ClientInterface::class);
-    $http->method('post')->willReturn(
+    $http->method('request')->willReturn(
       new Response(200, [], json_encode(['answer' => 'hello world']))
     );
     $controller = $this->makeController($http);

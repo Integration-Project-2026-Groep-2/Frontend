@@ -46,7 +46,7 @@ class JarvisController extends ControllerBase {
 
     $url = getenv('MCP_MASTER_URL') ?: self::DEFAULT_BACKEND_URL;
     try {
-      $response = $this->httpClient->post($url . '/chat', [
+      $response = $this->httpClient->request('POST', $url . '/chat', [
         'json'    => ['prompt' => $prompt],
         'timeout' => self::REQUEST_TIMEOUT_SECONDS,
       ]);
