@@ -1,64 +1,36 @@
-/* SHIFT FESTIVAL theme integration. Reuses shift_theme's hero recipe
-   (`hero-section.hero-logo-only.dark-theme` from layout.css/navbar.css)
-   for visual consistency with the homepage. */
+/* SHIFT FESTIVAL theme integration. Two layouts on /jarvis:
+   1. Empty state (.jarvis-chat.is-empty): centered greeting + floating
+      input box, Claude.ai-style. No conversation visible yet.
+   2. Active state: unified chat card filling viewport, conversation +
+      pinned input. JS removes `.is-empty` on first submit. */
 
-/* Hide Drupal's default page-title block on this route — the hero
-   provides the visual intro instead of a black "Jarvis" headline. */
+/* Hide Drupal's default page-title block on this route. */
 body:has(#jarvis-chat) .block-page-title-block {
   display: none;
 }
 
-/* Override the lavender body background on /jarvis. Drupal wraps page
-   content in extra region-divs that break a flex-cascade through
-   `<main>`, so we can't reliably stretch the chat-section to the full
-   viewport via flex. Instead: paint the body the same dark purple as
-   the hero overlay so any unstretched gap is visually invisible, then
-   give the chat-section a generous viewport-relative min-height. */
+/* Body bg matches the hero overlay color so the chat-section blends
+   seamlessly into the page; also covers any unstretched gap. */
 body:has(#jarvis-chat) {
   background: #311339 !important;
 }
 
-/* Compact hero — the chat is the page's main content. Shrinks
-   homepage's 70vh hero and 500px logo so the chat fits above the fold. */
-.jarvis-hero {
-  min-height: 22vh !important;
-  padding: 30px 20px !important;
-  flex-shrink: 0;
-}
-
-.jarvis-hero .jarvis-logo {
-  width: 110px !important;
-  height: auto !important;
-  margin: 0 auto;
-  display: block;
-}
-
-.jarvis-hero .hero-tagline {
-  margin-top: 14px;
-  font-size: 16px;
-  letter-spacing: 3px;
-  color: rgba(255, 255, 255, 0.85);
-}
-
-/* Chat section. Same color as the hero overlay so the transition
-   hero → chat is seamless. Direct vh-sizing instead of flex-cascade —
-   Drupal's region-wrappers break flex-grow through `<main>`. */
 .jarvis-chat-section {
   background: #311339;
-  padding: 1.5rem 20px 2rem 20px;
-  min-height: 65vh;
+  padding: 2rem 20px 2rem 20px;
+  min-height: calc(100vh - 80px); /* fill below shift_theme navbar */
   display: flex;
   align-items: stretch;
+  justify-content: center;
 }
 
-/* Unified chat card: conversation grows, input pinned at bottom. Single
-   border/shadow wrapping both — no double-card look. Fixed-vh height
-   guarantees the conversation flex:1 has bounded space to grow into. */
+/* === ACTIVE STATE — default unified card. Conversation grows, input
+       pinned at bottom inside the same card. === */
 .jarvis-chat {
   max-width: 1100px;
   margin: 0 auto;
   width: 100%;
-  min-height: 60vh;
+  min-height: 75vh;
   font-family: 'Poppins', sans-serif;
   display: flex;
   flex-direction: column;
@@ -68,12 +40,14 @@ body:has(#jarvis-chat) {
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
-  overflow: hidden; /* clip rounded corners on children */
+  overflow: hidden;
 }
 
-/* Conversation area — fills available card space, scrolls internally
-   only when chat-history exceeds available room. `min-height: 0` is the
-   classic flex-shrink-allow trick so the scroll actually works. */
+/* Greeting hidden once a chat starts. */
+.jarvis-greeting {
+  display: none;
+}
+
 .jarvis-conversation {
   flex: 1 1 auto;
   min-height: 0;
@@ -109,9 +83,6 @@ body:has(#jarvis-chat) {
   border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
-/* Input form — pinned at bottom of card, separated by purple-tinted
-   divider (matches conversation border-bottom). flex-shrink: 0 stops it
-   from squashing when conversation has lots of content. */
 .jarvis-form {
   flex-shrink: 0;
   display: flex;
@@ -174,6 +145,50 @@ body:has(#jarvis-chat) {
   cursor: wait;
   background: #6333ea;
   box-shadow: none;
+}
+
+/* === EMPTY STATE — overrides: centered greeting + floating input box.
+       Drops the unified card chrome (border/shadow/blur) so only the
+       form has its own card styling. === */
+.jarvis-chat.is-empty {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  display: block;
+  min-height: auto;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 12vh 0 0 0;
+  text-align: center;
+  overflow: visible;
+}
+
+.jarvis-chat.is-empty .jarvis-greeting {
+  display: block;
+  font-size: 42px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.95);
+  font-family: 'Poppins', sans-serif;
+  margin: 0 0 2rem 0;
+  letter-spacing: -0.5px;
+}
+
+.jarvis-chat.is-empty .jarvis-conversation {
+  display: none;
+}
+
+.jarvis-chat.is-empty .jarvis-form {
+  background: rgba(26, 31, 46, 0.5);
+  border: 1px solid rgba(99, 51, 234, 0.3);
+  border-radius: 16px;
+  padding: 1rem;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
+  border-top: 1px solid rgba(99, 51, 234, 0.3); /* override the
+    active-state border-top — full border on the floating box */
 }
 
 /* Markdown rendering inside assistant bubbles — light-on-dark variant. */

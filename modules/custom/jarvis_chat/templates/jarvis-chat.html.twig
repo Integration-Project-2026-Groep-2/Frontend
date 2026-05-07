@@ -1,13 +1,6 @@
-<section class="hero-section hero-logo-only dark-theme jarvis-hero">
-  <div class="logo-wrapper" style="text-align: center;">
-    <img src="{{ base_path ~ active_theme_path() ~ '/images/logo1.png' }}"
-         class="spiral-icon jarvis-logo" alt="Shift">
-    <p class="hero-tagline">Vraag het aan Jarvis</p>
-  </div>
-</section>
-
 <section class="jarvis-chat-section">
-  <div id="jarvis-chat" class="jarvis-chat">
+  <div id="jarvis-chat" class="jarvis-chat is-empty">
+    <h1 class="jarvis-greeting">Hoe kan ik je helpen?</h1>
     <div id="jarvis-conversation" class="jarvis-conversation" aria-live="polite"></div>
     <form id="jarvis-form" class="jarvis-form">
       <textarea id="jarvis-input" name="prompt" rows="3"

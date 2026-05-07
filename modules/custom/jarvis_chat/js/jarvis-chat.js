@@ -15,10 +15,21 @@
         const button = form.querySelector('#jarvis-send');
         const convo = document.getElementById('jarvis-conversation');
 
+        const chat = document.getElementById('jarvis-chat');
+
         form.addEventListener('submit', async (e) => {
           e.preventDefault();
           const prompt = input.value.trim();
           if (!prompt) return;
+
+          // First submit transitions the layout from empty-state
+          // (centered greeting + floating input) to active-state
+          // (unified chat card with conversation + pinned input).
+          // We flip BEFORE adding the user bubble so the DOM-mutation
+          // doesn't briefly render in empty-state coords.
+          if (chat) {
+            chat.classList.remove('is-empty');
+          }
 
           const userTurn = { role: 'user', content: prompt };
           appendBubble(convo, 'user', prompt);
