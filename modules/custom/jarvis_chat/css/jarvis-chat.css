@@ -38,8 +38,9 @@ body:has(#jarvis-chat) {
   flex-direction: column;
 }
 
-/* Greeting hidden once a chat starts. */
-.jarvis-greeting {
+/* Greeting + subtitle hidden once a chat starts. */
+.jarvis-greeting,
+.jarvis-subtitle {
   display: none;
 }
 
@@ -184,10 +185,21 @@ body:has(#jarvis-chat) {
   font-weight: 500;
   color: rgba(255, 255, 255, 0.95);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  margin: 0 0 2rem 0;
+  margin: 0 0 0.75rem 0;
   letter-spacing: -1.2px;
   /* Inter looks tighter at large sizes — negative tracking for a more
      premium feel, like Stripe/Linear/Vercel display copy. */
+}
+
+.jarvis-chat.is-empty .jarvis-subtitle {
+  display: block;
+  font-size: 16px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.6);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  margin: 0 auto 2.5rem auto;
+  max-width: 540px;
+  line-height: 1.5;
 }
 
 .jarvis-chat.is-empty .jarvis-conversation {
