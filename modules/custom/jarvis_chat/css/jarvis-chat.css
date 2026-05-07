@@ -33,7 +33,7 @@ body:has(#jarvis-chat) {
   width: 100%;
   margin: 0 auto;
   min-height: 75vh;
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   display: flex;
   flex-direction: column;
 }
@@ -112,7 +112,7 @@ body:has(#jarvis-chat) {
   border: 1px solid rgba(99, 51, 234, 0.3);
   border-radius: 10px;
   font-size: 15px;
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   resize: none;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
   background: rgba(26, 31, 46, 0.6);
@@ -140,7 +140,7 @@ body:has(#jarvis-chat) {
   border-radius: 10px;
   font-weight: 700;
   font-size: 14px;
-  font-family: 'Barlow', 'Poppins', sans-serif;
+  font-family: 'Barlow', 'Inter', system-ui, -apple-system, sans-serif;
   cursor: pointer;
   transition: background 0.2s ease, box-shadow 0.2s ease;
   text-transform: uppercase;
@@ -180,12 +180,14 @@ body:has(#jarvis-chat) {
 
 .jarvis-chat.is-empty .jarvis-greeting {
   display: block;
-  font-size: 42px;
-  font-weight: 400;
+  font-size: 44px;
+  font-weight: 500;
   color: rgba(255, 255, 255, 0.95);
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   margin: 0 0 2rem 0;
-  letter-spacing: -0.5px;
+  letter-spacing: -1.2px;
+  /* Inter looks tighter at large sizes — negative tracking for a more
+     premium feel, like Stripe/Linear/Vercel display copy. */
 }
 
 .jarvis-chat.is-empty .jarvis-conversation {
