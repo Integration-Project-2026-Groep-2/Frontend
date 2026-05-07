@@ -1,0 +1,18 @@
+<?php
+
+/**
+ * @file
+ * Hook implementations for the jarvis_chat module.
+ */
+
+/**
+ * Implements hook_theme().
+ */
+function jarvis_chat_theme($existing, $type, $theme, $path): array {
+  return [
+    'jarvis_chat' => [
+      'template' => 'jarvis-chat',
+      'variables' => [],
+    ],
+  ];
+}

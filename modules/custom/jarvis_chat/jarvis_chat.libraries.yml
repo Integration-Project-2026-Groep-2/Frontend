@@ -1,0 +1,11 @@
+widget:
+  version: 1.x
+  css:
+    component:
+      css/jarvis-chat.css: {}
+  js:
+    js/jarvis-chat.js: {}
+  dependencies:
+    - core/drupal
+    - core/drupalSettings
+    - core/once

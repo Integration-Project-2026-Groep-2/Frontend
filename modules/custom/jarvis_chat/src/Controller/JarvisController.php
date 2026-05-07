@@ -28,7 +28,13 @@ class JarvisController extends ControllerBase {
   }
 
   public function page(): array {
-    return ['#markup' => 'Jarvis'];
+    return [
+      '#theme' => 'jarvis_chat',
+      '#attached' => [
+        'library' => ['jarvis_chat/widget'],
+      ],
+      '#cache' => ['max-age' => 0],
+    ];
   }
 
   public function chat(Request $request): JsonResponse {
