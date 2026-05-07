@@ -59,12 +59,24 @@
     },
   };
 
+  // mcp-master wraps every answer in a triple-backtick code fence per
+  // `prompts.rs::SETUP_PROMPT` (Teams renders nicer that way). Browser-side
+  // we strip the outer fence so headings/lists render as real elements
+  // instead of monospace text. Inner code blocks survive — the regex is
+  // anchored to start/end-of-string and uses non-greedy match.
+  function stripOuterCodeFence(md) {
+    const trimmed = md.trim();
+    const match = trimmed.match(/^```(?:\w+)?\n([\s\S]*?)\n?```$/);
+    return match ? match[1] : md;
+  }
+
   // mcp-master returns LLM-authored markdown that may contain hostile
   // <script>/onerror. DOMPurify with RETURN_DOM_FRAGMENT strips those at
   // parse time and yields a safe DocumentFragment we can splice in via
   // replaceChildren — avoids any string-stage HTML write.
   function renderMarkdown(target, markdown) {
-    const rawHtml = window.marked.parse(markdown);
+    const unwrapped = stripOuterCodeFence(markdown);
+    const rawHtml = window.marked.parse(unwrapped);
     const fragment = window.DOMPurify.sanitize(rawHtml, {
       RETURN_DOM_FRAGMENT: true,
     });
