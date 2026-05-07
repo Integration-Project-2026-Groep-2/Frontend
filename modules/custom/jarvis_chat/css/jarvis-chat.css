@@ -1,11 +1,37 @@
-/* SHIFT FESTIVAL theme integration — colors + radii + Poppins font come
-   from `themes/custom/shift_theme/css/{global,forms,navbar}.css`. Tokens used:
+/* SHIFT FESTIVAL theme integration. Tokens taken from
+   `themes/custom/shift_theme/css/{global,forms,navbar,layout}.css`:
      #6333ea  primary purple (buttons, accents)
      #5128c7  primary purple darker (hover)
-     #f9f8ff  selected/wash (assistant bubble bg)
-     #e2e2ed  light border (cards, inputs)
-     #1a1a1a  primary text
-     #2d1a3d  emphasis text (matches scrollbar gradient endpoint) */
+     #0d121f  dark navy (navbar / footer / page-bg)
+     #311339  hero overlay (rgb 49,19,57 @ 0.9)
+     #1a1f2e  card background base (rgb 26,31,46)
+   The chat page mimics the homepage hero: dark venue image overlaid with
+   purple haze, frosted-glass conversation card, white text on dark. */
+
+/* Match the homepage hero on /jarvis (and any future page hosting the
+   widget). `:has(#jarvis-chat)` scopes this without needing a body-class
+   toggle from JS. */
+body:has(#jarvis-chat) {
+  background:
+    linear-gradient(rgba(49, 19, 57, 0.9), rgba(49, 19, 57, 0.9)),
+    url('/themes/custom/shift_theme/images/event-bg.jpg') !important;
+  background-size: cover !important;
+  background-position: center !important;
+  background-attachment: fixed !important;
+}
+
+/* Drupal's default page-title block renders dark on dark — make it white
+   so the "Jarvis" headline reads on the new dark background. */
+body:has(#jarvis-chat) .block-page-title-block,
+body:has(#jarvis-chat) .page-title,
+body:has(#jarvis-chat) h1.page-title {
+  color: #ffffff;
+}
+
+body:has(#jarvis-chat) .breadcrumb a,
+body:has(#jarvis-chat) .breadcrumb {
+  color: rgba(255, 255, 255, 0.7);
+}
 
 .jarvis-chat {
   max-width: 760px;
@@ -14,14 +40,18 @@
   font-family: 'Poppins', sans-serif;
 }
 
+/* Frosted-glass conversation card — same recipe as the homepage countdown
+   blocks (dark navy @ 50% + purple border + backdrop blur). */
 .jarvis-conversation {
   height: 520px;
   overflow-y: auto;
   padding: 1.5rem;
-  border: 1px solid #e2e2ed;
+  border: 1px solid rgba(99, 51, 234, 0.3);
   border-radius: 15px;
-  background: #ffffff;
-  box-shadow: 0 4px 20px rgba(99, 51, 234, 0.06);
+  background: rgba(26, 31, 46, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.35);
   margin-bottom: 1.5rem;
 }
 
@@ -40,13 +70,13 @@
   color: #ffffff;
   margin-left: auto;
   font-weight: 500;
-  box-shadow: 0 2px 10px rgba(99, 51, 234, 0.25);
+  box-shadow: 0 2px 12px rgba(99, 51, 234, 0.4);
 }
 
 .jarvis-assistant {
-  background: #f9f8ff;
-  color: #1a1a1a;
-  border: 1px solid #e2e2ed;
+  background: rgba(255, 255, 255, 0.08);
+  color: #f4f0ff;
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .jarvis-form {
@@ -58,20 +88,27 @@
 .jarvis-form textarea {
   flex: 1;
   padding: 14px 20px;
-  border: 1px solid #e2e2ed;
+  border: 1px solid rgba(99, 51, 234, 0.3);
   border-radius: 10px;
   font-size: 15px;
   font-family: 'Poppins', sans-serif;
   resize: vertical;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  background: #ffffff;
-  color: #1a1a1a;
+  background: rgba(26, 31, 46, 0.6);
+  color: #ffffff;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.jarvis-form textarea::placeholder {
+  color: rgba(255, 255, 255, 0.5);
 }
 
 .jarvis-form textarea:focus {
   border-color: #6333ea;
   outline: none;
-  box-shadow: 0 0 0 3px rgba(99, 51, 234, 0.12);
+  box-shadow: 0 0 0 3px rgba(99, 51, 234, 0.25);
+  background: rgba(26, 31, 46, 0.8);
 }
 
 .jarvis-form button {
@@ -92,7 +129,7 @@
 
 .jarvis-form button:hover:not([disabled]) {
   background: #5128c7;
-  box-shadow: 0 4px 15px rgba(99, 51, 234, 0.3);
+  box-shadow: 0 4px 18px rgba(99, 51, 234, 0.5);
 }
 
 .jarvis-form button[disabled] {
@@ -102,23 +139,25 @@
   box-shadow: none;
 }
 
-/* Markdown rendering inside assistant bubbles */
+/* Markdown rendering inside assistant bubbles — light-on-dark variant. */
 .jarvis-assistant pre {
-  background: #f4f1fa;
+  background: rgba(0, 0, 0, 0.3);
   padding: 0.85rem 1.1rem;
   border-radius: 8px;
   overflow-x: auto;
   font-size: 13px;
   margin: 0.6rem 0;
-  border: 1px solid #e2e2ed;
+  border: 1px solid rgba(99, 51, 234, 0.25);
+  color: #f4f0ff;
 }
 
 .jarvis-assistant code {
-  background: #f4f1fa;
+  background: rgba(0, 0, 0, 0.3);
   padding: 0.15rem 0.4rem;
   border-radius: 4px;
   font-size: 0.9em;
   font-family: 'Consolas', 'Monaco', monospace;
+  color: #c9b8ff;
 }
 
 .jarvis-assistant pre code {
@@ -130,7 +169,7 @@
 .jarvis-assistant h2,
 .jarvis-assistant h3 {
   margin: 0.7rem 0 0.4rem 0;
-  color: #1a1a1a;
+  color: #ffffff;
   font-weight: 700;
 }
 
@@ -153,14 +192,14 @@
 }
 
 .jarvis-assistant strong {
-  color: #2d1a3d;
+  color: #c9b8ff;
 }
 
 .jarvis-assistant a {
-  color: #6333ea;
+  color: #a98cff;
   text-decoration: underline;
 }
 
 .jarvis-assistant a:hover {
-  color: #5128c7;
+  color: #ffffff;
 }
