@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\Request;
 class JarvisController extends ControllerBase {
 
   private const DEFAULT_BACKEND_URL = 'http://mcp-master:8080';
-  private const REQUEST_TIMEOUT_SECONDS = 180;
+  private const REQUEST_TIMEOUT_SECONDS = 240;
 
   public function __construct(
     protected ClientInterface $httpClient,
