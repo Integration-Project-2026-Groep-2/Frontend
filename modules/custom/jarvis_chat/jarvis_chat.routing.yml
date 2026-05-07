@@ -13,6 +13,6 @@ jarvis_chat.api_chat:
   methods: [POST]
   requirements:
     _permission: 'use jarvis chat'
-    _csrf_token: 'TRUE'
+    _csrf_request_header_token: 'TRUE'
   options:
     no_cache: 'TRUE'
