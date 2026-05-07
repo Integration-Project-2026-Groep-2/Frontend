@@ -35,7 +35,16 @@
           appendBubble(convo, 'user', prompt);
           input.value = '';
           button.disabled = true;
-          const loading = appendBubble(convo, 'assistant', '...');
+          // Loading bubble starts as a 3-dot typing indicator. CSS animates
+          // the dots; once the real answer arrives, renderMarkdown's
+          // replaceChildren() (or textContent on error) clears them.
+          const loading = appendBubble(convo, 'assistant', '');
+          loading.classList.add('jarvis-typing');
+          for (let i = 0; i < 3; i += 1) {
+            const dot = document.createElement('span');
+            dot.className = 'dot';
+            loading.appendChild(dot);
+          }
 
           try {
             const csrf = await fetch('/session/token').then((r) => r.text());
@@ -58,9 +67,11 @@
               }
               renderMarkdown(loading, data.answer || '');
             } else {
+              loading.classList.remove('jarvis-typing');
               loading.textContent = `Fout: ${data.error || res.statusText}`;
             }
           } catch (err) {
+            loading.classList.remove('jarvis-typing');
             loading.textContent = `Fout: ${err.message}`;
           } finally {
             button.disabled = false;
@@ -91,6 +102,7 @@
     const fragment = window.DOMPurify.sanitize(rawHtml, {
       RETURN_DOM_FRAGMENT: true,
     });
+    target.classList.remove('jarvis-typing');
     target.replaceChildren(fragment);
   }
 

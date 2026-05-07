@@ -22,6 +22,41 @@ body:has(#jarvis-chat) {
   display: flex;
   align-items: stretch;
   justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Ambient glow orb — slow-drifting purple aura that adds depth without
+   distraction. Pure CSS, GPU-friendly transform animation. Mirrors the
+   Vercel / Linear / Stripe "soft gradient mesh" aesthetic. */
+.jarvis-chat-section::before {
+  content: '';
+  position: absolute;
+  top: 25%;
+  left: 50%;
+  width: 70vw;
+  height: 70vw;
+  max-width: 900px;
+  max-height: 900px;
+  background: radial-gradient(circle, rgba(99, 51, 234, 0.18) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(20px);
+  animation: jarvis-orb-drift 18s ease-in-out infinite alternate;
+}
+
+.jarvis-chat-section > * {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes jarvis-orb-drift {
+  0% {
+    transform: translate(-50%, -30px) scale(0.95);
+  }
+  100% {
+    transform: translate(-45%, 30px) scale(1.05);
+  }
 }
 
 /* === ACTIVE STATE — Claude.ai-style. No unified card around the whole
@@ -63,6 +98,54 @@ body:has(#jarvis-chat) {
   word-wrap: break-word;
   font-size: 16px;
   line-height: 1.65;
+  animation: jarvis-bubble-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes jarvis-bubble-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Typing indicator — 3 bouncing dots while waiting for the LLM. CSS-only
+   animation, JS just toggles the `.jarvis-typing` class. */
+.jarvis-typing {
+  display: inline-flex !important;
+  gap: 6px;
+  padding: 0.5rem 0 !important;
+  align-items: center;
+}
+
+.jarvis-typing .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  animation: jarvis-typing-bounce 1.4s ease-in-out infinite;
+}
+
+.jarvis-typing .dot:nth-child(2) {
+  animation-delay: 0.18s;
+}
+
+.jarvis-typing .dot:nth-child(3) {
+  animation-delay: 0.36s;
+}
+
+@keyframes jarvis-typing-bounce {
+  0%, 60%, 100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-6px);
+  }
 }
 
 /* User: subtle right-aligned pill — light purple wash, not bold solid. */
@@ -151,7 +234,12 @@ body:has(#jarvis-chat) {
 
 .jarvis-form button:hover:not([disabled]) {
   background: #5128c7;
-  box-shadow: 0 4px 18px rgba(99, 51, 234, 0.5);
+  box-shadow: 0 8px 24px rgba(99, 51, 234, 0.55);
+  transform: translateY(-1px);
+}
+
+.jarvis-form button:active:not([disabled]) {
+  transform: translateY(0);
 }
 
 .jarvis-form button[disabled] {
@@ -183,12 +271,16 @@ body:has(#jarvis-chat) {
   display: block;
   font-size: 44px;
   font-weight: 500;
-  color: rgba(255, 255, 255, 0.95);
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   margin: 0 0 0.75rem 0;
   letter-spacing: -1.2px;
-  /* Inter looks tighter at large sizes — negative tracking for a more
-     premium feel, like Stripe/Linear/Vercel display copy. */
+  /* Gradient text — white → soft pastel-purple → primary purple. The
+     `text-fill-color: transparent` trick clips the gradient to the type. */
+  background: linear-gradient(135deg, #ffffff 0%, #d4c4ff 55%, #8b5cff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 
 .jarvis-chat.is-empty .jarvis-subtitle {
