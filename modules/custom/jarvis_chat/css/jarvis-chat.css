@@ -8,14 +8,14 @@ body:has(#jarvis-chat) .block-page-title-block {
   display: none;
 }
 
-/* Make `<main>` a flex column so the chat-section can grow to fill the
-   viewport. Subtracts the shift_theme navbar (~80px) — admin toolbar
-   adds another ~40px on logged-in admin sessions, that minor diff is
-   acceptable for an admin-only chatbot. */
-body:has(#jarvis-chat) main[role="main"] {
-  display: flex;
-  flex-direction: column;
-  min-height: calc(100vh - 80px);
+/* Override the lavender body background on /jarvis. Drupal wraps page
+   content in extra region-divs that break a flex-cascade through
+   `<main>`, so we can't reliably stretch the chat-section to the full
+   viewport via flex. Instead: paint the body the same dark purple as
+   the hero overlay so any unstretched gap is visually invisible, then
+   give the chat-section a generous viewport-relative min-height. */
+body:has(#jarvis-chat) {
+  background: #311339 !important;
 }
 
 /* Compact hero — the chat is the page's main content. Shrinks
@@ -40,22 +40,25 @@ body:has(#jarvis-chat) main[role="main"] {
   color: rgba(255, 255, 255, 0.85);
 }
 
-/* Chat section grows to fill remaining viewport. Same color as the hero
-   overlay so the transition hero → chat is seamless. */
+/* Chat section. Same color as the hero overlay so the transition
+   hero → chat is seamless. Direct vh-sizing instead of flex-cascade —
+   Drupal's region-wrappers break flex-grow through `<main>`. */
 .jarvis-chat-section {
   background: #311339;
   padding: 1.5rem 20px 2rem 20px;
-  flex: 1 1 auto;
+  min-height: 65vh;
   display: flex;
   align-items: stretch;
 }
 
 /* Unified chat card: conversation grows, input pinned at bottom. Single
-   border/shadow wrapping both — no double-card look. */
+   border/shadow wrapping both — no double-card look. Fixed-vh height
+   guarantees the conversation flex:1 has bounded space to grow into. */
 .jarvis-chat {
   max-width: 1100px;
   margin: 0 auto;
   width: 100%;
+  min-height: 60vh;
   font-family: 'Poppins', sans-serif;
   display: flex;
   flex-direction: column;
