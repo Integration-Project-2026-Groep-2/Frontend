@@ -18,15 +18,18 @@ COPY ./themes/custom /tmp/themes/custom
 
 COPY ./modules/custom/custom_roles /opt/drupal/web/modules/custom/custom_roles
 
-# Heartbeat en consumer scripts
+# Heartbeat, consumer en RabbitMQ setup scripts
 COPY ./rabbitMQ/heartbeat.php /opt/drupal/heartbeat.php
 COPY ./rabbitMQ/consumer.php  /opt/drupal/consumer.php
+COPY ./rabbitMQ/setup.php     /opt/drupal/setup.php
 
 RUN chown -R www-data:www-data /opt/drupal/web/modules/custom \
     && chown www-data:www-data /opt/drupal/heartbeat.php \
     && chown www-data:www-data /opt/drupal/consumer.php \
+    && chown www-data:www-data /opt/drupal/setup.php \
     && chmod 750 /opt/drupal/heartbeat.php \
-    && chmod 750 /opt/drupal/consumer.php
+    && chmod 750 /opt/drupal/consumer.php \
+    && chmod 750 /opt/drupal/setup.php
 
 COPY ./docker-entrypoint.sh /docker-entrypoint-custom.sh
 RUN sed -i 's/\r//' /docker-entrypoint-custom.sh \

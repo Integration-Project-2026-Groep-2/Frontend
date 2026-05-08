@@ -16,12 +16,14 @@ if [ -x "$DRUSH" ]; then
     sleep 3
   done
 
-  "$DRUSH" en group ginvite -y || true
+  "$DRUSH" en group ginvite hello_world -y || true
 else
   echo "Drush not found, skipping Drupal init."
 fi
 
 php /opt/drupal/heartbeat.php &
+php /opt/drupal/setup.php
 php /opt/drupal/consumer.php confirmed &
 php /opt/drupal/consumer.php updated &
+php /opt/drupal/consumer.php deactivated &
 wait "$apache_pid"
