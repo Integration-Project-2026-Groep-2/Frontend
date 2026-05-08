@@ -394,3 +394,63 @@ body:has(#jarvis-chat) {
 .jarvis-assistant a:hover {
   color: #ffffff;
 }
+
+/* Tool-trace footer inside assistant bubbles. Renders mcp-master v1.4
+ * tool_trace as a collapsible <details>: compact summary "Used N tools
+ * (Tms)" by default, expand into a Tool/Server/Duration table on click. */
+.jarvis-tool-trace {
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  font-size: 0.85em;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.jarvis-tool-trace summary {
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+  padding: 0.25rem 0;
+}
+
+/* Triple cross-browser marker-hide: list-style covers Chrome+Firefox 119+,
+ * -webkit pseudo covers Safari, ::marker covers Firefox <119. */
+.jarvis-tool-trace summary::-webkit-details-marker { display: none; }
+.jarvis-tool-trace summary::marker { content: ""; }
+
+.jarvis-tool-trace summary::before {
+  content: '▸ ';
+  display: inline-block;
+}
+
+.jarvis-tool-trace[open] summary::before {
+  content: '▾ ';
+}
+
+.jarvis-tool-trace summary:hover {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.jarvis-tool-trace table {
+  width: 100%;
+  margin-top: 0.5rem;
+  border-collapse: collapse;
+  font-family: 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 0.85em;
+}
+
+.jarvis-tool-trace th,
+.jarvis-tool-trace td {
+  padding: 0.3rem 0.5rem;
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.jarvis-tool-trace th {
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.jarvis-tool-trace-failed {
+  color: rgba(220, 100, 100, 0.85);
+}

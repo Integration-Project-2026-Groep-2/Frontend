@@ -62,7 +62,14 @@ class JarvisController extends ControllerBase {
         'timeout' => self::REQUEST_TIMEOUT_SECONDS,
       ]);
       $data = json_decode((string) $response->getBody(), TRUE);
-      return new JsonResponse(['answer' => $data['answer'] ?? '']);
+      // Whitelist (not pass-through) so future mcp-master fields don't reach
+      // the browser without an explicit decision — defense-in-depth against
+      // a server-side bug that would otherwise leak PII (tokens, prompts, …)
+      // straight into the DOM.
+      return new JsonResponse([
+        'answer' => $data['answer'] ?? '',
+        'tool_trace' => $data['tool_trace'] ?? [],
+      ]);
     }
     catch (GuzzleException $e) {
       $this->logChannelFactory->get('jarvis_chat')

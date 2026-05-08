@@ -66,6 +66,9 @@
                 history.splice(0, history.length - MAX_HISTORY_TURNS);
               }
               renderMarkdown(loading, data.answer || '');
+              if (Array.isArray(data.tool_trace) && data.tool_trace.length > 0) {
+                appendToolTrace(loading, data.tool_trace);
+              }
             } else {
               loading.classList.remove('jarvis-typing');
               loading.textContent = `Fout: ${data.error || res.statusText}`;
@@ -113,5 +116,62 @@
     convo.appendChild(div);
     convo.scrollTop = convo.scrollHeight;
     return div;
+  }
+
+  // Render mcp-master's per-call audit data as a collapsible footer inside
+  // the assistant bubble. textContent + createElement only — server-side
+  // strings (tool, server, error) flow inert through the DOM regardless of
+  // a hypothetical mcp-master bug that puts user-shaped data in those
+  // fields.
+  function appendToolTrace(bubble, trace) {
+    const totalMs = trace.reduce((sum, t) => sum + (t.ms || 0), 0);
+    const failedCount = trace.filter((t) => t.ok === false).length;
+
+    const details = document.createElement('details');
+    details.className = 'jarvis-tool-trace';
+
+    const summary = document.createElement('summary');
+    summary.textContent = failedCount > 0
+      ? `Used ${trace.length} tools (${totalMs}ms) — ${failedCount} failed`
+      : `Used ${trace.length} tools (${totalMs}ms)`;
+    details.appendChild(summary);
+
+    const table = document.createElement('table');
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    ['Tool', 'Server', 'Duration'].forEach((h) => {
+      const th = document.createElement('th');
+      th.textContent = h;
+      headerRow.appendChild(th);
+    });
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+    trace.forEach((entry) => {
+      const tr = document.createElement('tr');
+      if (entry.ok === false) {
+        tr.classList.add('jarvis-tool-trace-failed');
+      }
+      const cells = [entry.tool || '?', entry.server || '?', `${entry.ms || 0}ms`];
+      cells.forEach((cellText, idx) => {
+        const td = document.createElement('td');
+        td.textContent = cellText;
+        if (idx === 0 && entry.ok === false && entry.error) {
+          td.title = entry.error;
+          td.setAttribute('aria-label', `Error: ${entry.error}`);
+        }
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+    table.appendChild(tbody);
+    details.appendChild(table);
+
+    bubble.appendChild(details);
+    // appendBubble's earlier scroll-pin fired before details existed —
+    // re-pin so a long answer + trace doesn't push content below the fold.
+    const convo = bubble.parentElement;
+    if (convo) convo.scrollTop = convo.scrollHeight;
   }
 })(Drupal, drupalSettings, once);

@@ -79,4 +79,37 @@ class JarvisControllerTest extends UnitTestCase {
     $this->assertStringContainsString('hello world', $response->getContent());
   }
 
+  public function testSuccessfulProxyForwardsToolTrace(): void {
+    $http = $this->createMock(ClientInterface::class);
+    $upstream = [
+      'answer' => 'pong',
+      'tool_trace' => [
+        ['tool' => 'ping', 'server' => 'stub', 'ms' => 42, 'ok' => true],
+      ],
+      // mcp-master also returns tokens/iterations/correlation_id; the
+      // controller whitelist must drop those (Lars's v1.5 scope: only
+      // tool_trace is rendered).
+      'tokens' => ['input' => 100, 'output' => 50],
+      'iterations' => 2,
+      'correlation_id' => 'abc-123',
+    ];
+    $http->method('request')->willReturn(
+      new Response(200, [], json_encode($upstream))
+    );
+    $controller = $this->makeController($http);
+    $response = $controller->chat($this->postRequest(['prompt' => 'hi']));
+    $this->assertSame(200, $response->getStatusCode());
+    $payload = json_decode($response->getContent(), TRUE);
+    $this->assertSame('pong', $payload['answer']);
+    $this->assertCount(1, $payload['tool_trace']);
+    $this->assertSame('ping', $payload['tool_trace'][0]['tool']);
+    $this->assertSame('stub', $payload['tool_trace'][0]['server']);
+    $this->assertSame(42, $payload['tool_trace'][0]['ms']);
+    $this->assertTrue($payload['tool_trace'][0]['ok']);
+    // Whitelist dropped these fields — confirm they never reach the browser.
+    $this->assertArrayNotHasKey('tokens', $payload);
+    $this->assertArrayNotHasKey('iterations', $payload);
+    $this->assertArrayNotHasKey('correlation_id', $payload);
+  }
+
 }
