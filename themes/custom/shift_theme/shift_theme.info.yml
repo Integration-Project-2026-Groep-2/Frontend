@@ -6,6 +6,8 @@ base theme: stark
 
 libraries:
   - shift_theme/global-styling
+  - shift_theme/fonts
+  - shift_theme/companies-page
 
 regions:
   header: 'Header'

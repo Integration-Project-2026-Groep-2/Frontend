@@ -1,5 +1,5 @@
 /* --- FORMULIER CONTAINER --- */
-#bezoeker-registratie-form {
+#shift-bezoeker-registratie-form {
   max-width: 100%;
   width: 100%;
   margin: 0;
@@ -8,7 +8,7 @@
   background-color: transparent !important;
 }
 
-/* Sectie Titels */
+/* --- SECTIE TITELS --- */
 .form-section-title {
   font-family: 'Poppins', sans-serif;
   font-size: 24px;
@@ -21,20 +21,30 @@
   padding-bottom: 10px;
 }
 
-/* --- DE KEUZE KAARTEN --- */
-.form-item-registratie-type {
+/* --- RADIO KEUZE KAARTEN --- */
+
+/* De wrapper van de radios krijgt flex layout */
+#shift-bezoeker-registratie-form .form-item-registratie-type .form-radios {
   display: flex;
   flex-direction: row;
   gap: 30px;
   margin-bottom: 50px;
 }
 
-.form-item-registratie-type input[type="radio"] {
+/* Elke individuele radio+label combinatie */
+#shift-bezoeker-registratie-form .form-item-registratie-type .js-form-item {
+  flex: 1;
+  margin: 0;
+  padding: 0;
+}
+
+/* Verberg de echte radio input */
+#shift-bezoeker-registratie-form .form-item-registratie-type input[type="radio"] {
   display: none;
 }
 
-.form-item-registratie-type label {
-  flex: 1;
+/* Label wordt de klikbare kaart */
+#shift-bezoeker-registratie-form .form-item-registratie-type label {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -43,37 +53,99 @@
   border-radius: 15px;
   cursor: pointer;
   font-weight: 600;
+  font-size: 16px;
   transition: all 0.3s ease;
   background: #fff;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-.form-item-registratie-type input[type="radio"]:checked + label {
+/* Geselecteerde kaart */
+#shift-bezoeker-registratie-form .form-item-registratie-type input[type="radio"]:checked + label {
   border-color: #6333ea;
   background: #f9f8ff;
   color: #6333ea;
 }
 
-/* --- GRID LAYOUT --- */
+/* --- GRID LAYOUT VOOR RIJEN --- */
 .form-row {
   display: grid !important;
   grid-template-columns: 1fr 1fr !important;
   column-gap: 60px !important;
   width: 100% !important;
+  margin-bottom: 20px;
 }
 
-/* --- INPUTS & BUTTONS --- */
-input[type="text"], input[type="email"], select {
+/* Zorg dat form-items in een grid-row hun volle breedte pakken */
+.form-row .form-item {
+  width: 100%;
+  min-width: 0; /* voorkomt overflow in grid */
+}
+
+/* --- LOSSE VELDEN (buiten form-row) --- */
+.form-item {
+  margin-bottom: 20px;
+}
+
+/* --- INPUTS --- */
+input[type="text"],
+input[type="email"],
+input[type="tel"],
+select {
   width: 100%;
   padding: 14px 20px;
   border: 1px solid #e2e2ed;
   border-radius: 10px;
+  font-size: 15px;
+  font-family: 'Poppins', sans-serif;
+  box-sizing: border-box;
+  background-color: #fff;
+  transition: border-color 0.2s ease;
 }
 
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="tel"]:focus,
+select:focus {
+  border-color: #6333ea;
+  outline: none;
+}
+
+/* --- SUBMIT KNOP --- */
 input[type="submit"] {
   background: #6333ea;
   color: white;
-  padding: 18px;
+  padding: 18px 40px;
+  border: none;
   border-radius: 12px;
   font-weight: 700;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 30px;
+  transition: background 0.2s ease;
+}
+
+input[type="submit"]:hover {
+  background: #5128c7;
+}
+
+/* --- CHECKBOX (GDPR) --- */
+.form-item-gdpr-consent {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.form-item-gdpr-consent input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #6333ea;
+  cursor: pointer;
+}
+
+.form-item-gdpr-consent label {
+  font-size: 14px;
+  color: #555;
   cursor: pointer;
 }
