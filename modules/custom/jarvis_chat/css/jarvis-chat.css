@@ -395,62 +395,97 @@ body:has(#jarvis-chat) {
   color: #ffffff;
 }
 
-/* Tool-trace footer inside assistant bubbles. Renders mcp-master v1.4
- * tool_trace as a collapsible <details>: compact summary "Used N tools
- * (Tms)" by default, expand into a Tool/Server/Duration table on click. */
-.jarvis-tool-trace {
-  margin-top: 0.75rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.12);
-  font-size: 0.85em;
-  color: rgba(255, 255, 255, 0.7);
-}
-
-.jarvis-tool-trace summary {
-  cursor: pointer;
-  user-select: none;
-  list-style: none;
-  padding: 0.25rem 0;
-}
-
-/* Triple cross-browser marker-hide: list-style covers Chrome+Firefox 119+,
- * -webkit pseudo covers Safari, ::marker covers Firefox <119. */
-.jarvis-tool-trace summary::-webkit-details-marker { display: none; }
-.jarvis-tool-trace summary::marker { content: ""; }
-
-.jarvis-tool-trace summary::before {
-  content: '▸ ';
+/* Tool-flow trigger inside assistant bubbles. Renders mcp-master v1.4
+ * tool_trace as a "View flow: N tools (Tms)" button. Click opens a
+ * native <dialog> with a Mermaid flowchart of master -> server hops. */
+.jarvis-tool-flow-trigger {
   display: inline-block;
-}
-
-.jarvis-tool-trace[open] summary::before {
-  content: '▾ ';
-}
-
-.jarvis-tool-trace summary:hover {
-  color: rgba(255, 255, 255, 0.95);
-}
-
-.jarvis-tool-trace table {
-  width: 100%;
-  margin-top: 0.5rem;
-  border-collapse: collapse;
-  font-family: 'SF Mono', Menlo, Consolas, monospace;
-  font-size: 0.85em;
-}
-
-.jarvis-tool-trace th,
-.jarvis-tool-trace td {
-  padding: 0.3rem 0.5rem;
-  text-align: left;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.jarvis-tool-trace th {
-  font-weight: 600;
+  margin-top: 0.75rem;
+  padding: 0.4rem 0.85rem;
+  background: rgba(99, 51, 234, 0.18);
+  border: 1px solid rgba(139, 92, 255, 0.5);
+  border-radius: 0.5rem;
   color: rgba(255, 255, 255, 0.85);
+  font: inherit;
+  font-size: 0.85em;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
 }
 
-.jarvis-tool-trace-failed {
-  color: rgba(220, 100, 100, 0.85);
+.jarvis-tool-flow-trigger:hover {
+  background: rgba(99, 51, 234, 0.32);
+  border-color: rgba(139, 92, 255, 0.85);
+}
+
+
+.jarvis-tool-flow-dialog {
+  position: relative;
+  border: 1px solid rgba(169, 140, 255, 0.35);
+  border-radius: 1.25rem;
+  background:
+    linear-gradient(145deg, rgba(58, 31, 79, 0.95) 0%, rgba(29, 11, 37, 0.98) 100%);
+  color: rgba(255, 255, 255, 0.95);
+  padding: 2rem 2.25rem 2.25rem;
+  width: min(92vw, 720px);
+  min-width: min(92vw, 480px);
+  max-height: 88vh;
+  overflow: auto;
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(169, 140, 255, 0.08) inset;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.jarvis-tool-flow-dialog::backdrop {
+  background: rgba(8, 2, 14, 0.7);
+  backdrop-filter: blur(6px);
+}
+
+.jarvis-tool-flow-close {
+  position: absolute;
+  top: 1rem;
+  right: 1.1rem;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background 0.15s, color 0.15s, transform 0.15s;
+}
+
+.jarvis-tool-flow-close:hover {
+  background: rgba(169, 140, 255, 0.18);
+  color: #ffffff;
+  transform: rotate(90deg);
+}
+
+.jarvis-tool-flow-heading {
+  margin: 0 0 1.5rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #ffffff;
+  background: linear-gradient(90deg, #ffffff 0%, #c4a8ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.jarvis-tool-flow-diagram {
+  text-align: center;
+  padding: 0.5rem 0;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.jarvis-tool-flow-diagram svg {
+  max-width: 100%;
+  height: auto;
+  filter: drop-shadow(0 6px 16px rgba(99, 51, 234, 0.25));
 }
