@@ -1,0 +1,491 @@
+/* SHIFT FESTIVAL theme integration. Two layouts on /jarvis:
+   1. Empty state (.jarvis-chat.is-empty): centered greeting + floating
+      input box, Claude.ai-style. No conversation visible yet.
+   2. Active state: unified chat card filling viewport, conversation +
+      pinned input. JS removes `.is-empty` on first submit. */
+
+/* Hide Drupal's default page-title block on this route. */
+body:has(#jarvis-chat) .block-page-title-block {
+  display: none;
+}
+
+/* Hide the shift_theme footer on /jarvis. Claude.ai has a full-app
+   layout (no site footer below chat) so the input box can stay pinned
+   to viewport-bottom forever without overlapping anything. */
+body:has(#jarvis-chat) footer {
+  display: none !important;
+}
+
+/* Body bg matches the hero overlay color so the chat-section blends
+   seamlessly into the page; also covers any unstretched gap. */
+body:has(#jarvis-chat) {
+  background: #311339 !important;
+}
+
+.jarvis-chat-section {
+  background: #311339;
+  padding: 2rem 20px 2rem 20px;
+  min-height: calc(100vh - 80px); /* fill below shift_theme navbar */
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Ambient glow orb — slow-drifting purple aura that adds depth without
+   distraction. Pure CSS, GPU-friendly transform animation. Mirrors the
+   Vercel / Linear / Stripe "soft gradient mesh" aesthetic. */
+.jarvis-chat-section::before {
+  content: '';
+  position: absolute;
+  top: 25%;
+  left: 50%;
+  width: 70vw;
+  height: 70vw;
+  max-width: 900px;
+  max-height: 900px;
+  background: radial-gradient(circle, rgba(99, 51, 234, 0.18) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+  filter: blur(20px);
+  animation: jarvis-orb-drift 18s ease-in-out infinite alternate;
+}
+
+.jarvis-chat-section > * {
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes jarvis-orb-drift {
+  0% {
+    transform: translate(-50%, -30px) scale(0.95);
+  }
+  100% {
+    transform: translate(-45%, 30px) scale(1.05);
+  }
+}
+
+/* === ACTIVE STATE — Claude.ai-style. No unified card around the whole
+       chat. Assistant messages render as plain text on the page bg.
+       User messages get a subtle pill. The form is a standalone
+       floating card pinned at the bottom. === */
+.jarvis-chat {
+  max-width: 100%;
+  width: 100%;
+  margin: 0 auto;
+  min-height: 75vh;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Greeting + subtitle hidden once a chat starts. */
+.jarvis-greeting,
+.jarvis-subtitle {
+  display: none;
+}
+
+/* Conversation column — narrow for readability, plain bg (no card). */
+.jarvis-conversation {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 2rem 20px;
+  max-width: 760px;
+  width: 100%;
+  margin: 0 auto;
+  background: transparent;
+  border: none;
+}
+
+.jarvis-bubble {
+  padding: 0.5rem 0;
+  margin: 1rem 0;
+  word-wrap: break-word;
+  font-size: 16px;
+  line-height: 1.65;
+  animation: jarvis-bubble-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes jarvis-bubble-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Typing indicator — 3 bouncing dots while waiting for the LLM. CSS-only
+   animation, JS just toggles the `.jarvis-typing` class. */
+.jarvis-typing {
+  display: inline-flex !important;
+  gap: 6px;
+  padding: 0.5rem 0 !important;
+  align-items: center;
+}
+
+.jarvis-typing .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  animation: jarvis-typing-bounce 1.4s ease-in-out infinite;
+}
+
+.jarvis-typing .dot:nth-child(2) {
+  animation-delay: 0.18s;
+}
+
+.jarvis-typing .dot:nth-child(3) {
+  animation-delay: 0.36s;
+}
+
+@keyframes jarvis-typing-bounce {
+  0%, 60%, 100% {
+    opacity: 0.3;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-6px);
+  }
+}
+
+/* User: subtle right-aligned pill — light purple wash, not bold solid. */
+.jarvis-user {
+  background: rgba(99, 51, 234, 0.18);
+  color: #ffffff;
+  margin-left: auto;
+  padding: 0.7rem 1rem;
+  border-radius: 14px;
+  max-width: 75%;
+  font-weight: 400;
+  border: 1px solid rgba(99, 51, 234, 0.25);
+}
+
+/* Assistant: plain text, no card, full available width. */
+.jarvis-assistant {
+  background: transparent;
+  color: #f4f0ff;
+  border: none;
+  padding: 0.25rem 0;
+  max-width: 100%;
+}
+
+/* Form: floating card pinned to the viewport. Claude.ai-style — always
+   visible at the bottom regardless of scroll. With the SHIFT footer
+   hidden on /jarvis, there's nothing below the chat for the input to
+   awkwardly overlap, so plain `position: fixed` is the right tool. */
+.jarvis-form {
+  flex-shrink: 0;
+  display: flex;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  background: rgba(26, 31, 46, 0.85);
+  border: 1px solid rgba(99, 51, 234, 0.3);
+  border-radius: 16px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+  align-items: stretch;
+  max-width: 760px;
+  width: calc(100% - 40px);
+  position: fixed;
+  bottom: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 100;
+}
+
+/* Active-state conversation needs bottom padding equal to the sticky
+   form's height + clearance, so the last message isn't hidden under
+   the form when scrolled to the chat-section's bottom. */
+.jarvis-chat:not(.is-empty) .jarvis-conversation {
+  padding-bottom: 140px;
+}
+
+.jarvis-form textarea {
+  flex: 1;
+  padding: 12px 16px;
+  border: 1px solid rgba(99, 51, 234, 0.3);
+  border-radius: 10px;
+  font-size: 15px;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  resize: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  background: rgba(26, 31, 46, 0.6);
+  color: #ffffff;
+  min-height: 48px;
+  max-height: 120px;
+}
+
+.jarvis-form textarea::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.jarvis-form textarea:focus {
+  border-color: #6333ea;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(99, 51, 234, 0.25);
+  background: rgba(26, 31, 46, 0.8);
+}
+
+.jarvis-form button {
+  background: #6333ea;
+  color: #ffffff;
+  border: none;
+  padding: 12px 28px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 14px;
+  font-family: 'Barlow', 'Inter', system-ui, -apple-system, sans-serif;
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  white-space: nowrap;
+}
+
+.jarvis-form button:hover:not([disabled]) {
+  background: #5128c7;
+  box-shadow: 0 8px 24px rgba(99, 51, 234, 0.55);
+  transform: translateY(-1px);
+}
+
+.jarvis-form button:active:not([disabled]) {
+  transform: translateY(0);
+}
+
+.jarvis-form button[disabled] {
+  opacity: 0.55;
+  cursor: wait;
+  background: #6333ea;
+  box-shadow: none;
+}
+
+/* === EMPTY STATE — overrides: centered greeting + floating input box.
+       Drops the unified card chrome (border/shadow/blur) so only the
+       form has its own card styling. === */
+.jarvis-chat.is-empty {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  display: block;
+  min-height: auto;
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 12vh 0 0 0;
+  text-align: center;
+  overflow: visible;
+}
+
+.jarvis-chat.is-empty .jarvis-greeting {
+  display: block;
+  font-size: 44px;
+  font-weight: 500;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  margin: 0 0 0.75rem 0;
+  letter-spacing: -1.2px;
+  /* Gradient text — white → soft pastel-purple → primary purple. The
+     `text-fill-color: transparent` trick clips the gradient to the type. */
+  background: linear-gradient(135deg, #ffffff 0%, #d4c4ff 55%, #8b5cff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.jarvis-chat.is-empty .jarvis-subtitle {
+  display: block;
+  font-size: 16px;
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.6);
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  margin: 0 auto 2.5rem auto;
+  max-width: 540px;
+  line-height: 1.5;
+}
+
+.jarvis-chat.is-empty .jarvis-conversation {
+  display: none;
+}
+
+.jarvis-chat.is-empty .jarvis-form {
+  /* In empty-state the form is centered under the greeting (no fixed-
+     pinning, no transform — it sits in document flow under the
+     subtitle). */
+  position: static;
+  transform: none;
+  left: auto;
+  bottom: auto;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 760px;
+  padding: 1rem;
+}
+
+/* Markdown rendering inside assistant bubbles — light-on-dark variant. */
+.jarvis-assistant pre {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.85rem 1.1rem;
+  border-radius: 8px;
+  overflow-x: auto;
+  font-size: 13px;
+  margin: 0.6rem 0;
+  border: 1px solid rgba(99, 51, 234, 0.25);
+  color: #f4f0ff;
+}
+
+.jarvis-assistant code {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.9em;
+  font-family: 'Consolas', 'Monaco', monospace;
+  color: #c9b8ff;
+}
+
+.jarvis-assistant pre code {
+  background: transparent;
+  padding: 0;
+}
+
+.jarvis-assistant h1,
+.jarvis-assistant h2,
+.jarvis-assistant h3 {
+  margin: 0.7rem 0 0.4rem 0;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.jarvis-assistant h3 {
+  font-size: 17px;
+}
+
+.jarvis-assistant h2 {
+  font-size: 19px;
+}
+
+.jarvis-assistant ul,
+.jarvis-assistant ol {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+}
+
+.jarvis-assistant li {
+  margin: 0.2rem 0;
+}
+
+.jarvis-assistant strong {
+  color: #c9b8ff;
+}
+
+.jarvis-assistant a {
+  color: #a98cff;
+  text-decoration: underline;
+}
+
+.jarvis-assistant a:hover {
+  color: #ffffff;
+}
+
+/* Tool-flow trigger inside assistant bubbles. Renders mcp-master v1.4
+ * tool_trace as a "View flow: N tools (Tms)" button. Click opens a
+ * native <dialog> with a Mermaid flowchart of master -> server hops. */
+.jarvis-tool-flow-trigger {
+  display: inline-block;
+  margin-top: 0.75rem;
+  padding: 0.4rem 0.85rem;
+  background: rgba(99, 51, 234, 0.18);
+  border: 1px solid rgba(139, 92, 255, 0.5);
+  border-radius: 0.5rem;
+  color: rgba(255, 255, 255, 0.85);
+  font: inherit;
+  font-size: 0.85em;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.jarvis-tool-flow-trigger:hover {
+  background: rgba(99, 51, 234, 0.32);
+  border-color: rgba(139, 92, 255, 0.85);
+}
+
+
+.jarvis-tool-flow-dialog {
+  position: relative;
+  border: 1px solid rgba(169, 140, 255, 0.35);
+  border-radius: 1.25rem;
+  background:
+    linear-gradient(145deg, rgba(58, 31, 79, 0.95) 0%, rgba(29, 11, 37, 0.98) 100%);
+  color: rgba(255, 255, 255, 0.95);
+  padding: 2rem 2.25rem 2.25rem;
+  width: min(92vw, 720px);
+  min-width: min(92vw, 480px);
+  max-height: 88vh;
+  overflow: auto;
+  box-shadow:
+    0 30px 80px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(169, 140, 255, 0.08) inset;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.jarvis-tool-flow-dialog::backdrop {
+  background: rgba(8, 2, 14, 0.7);
+  backdrop-filter: blur(6px);
+}
+
+.jarvis-tool-flow-close {
+  position: absolute;
+  top: 1rem;
+  right: 1.1rem;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 50%;
+  transition: background 0.15s, color 0.15s, transform 0.15s;
+}
+
+.jarvis-tool-flow-close:hover {
+  background: rgba(169, 140, 255, 0.18);
+  color: #ffffff;
+  transform: rotate(90deg);
+}
+
+.jarvis-tool-flow-heading {
+  margin: 0 0 1.5rem;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #ffffff;
+  background: linear-gradient(90deg, #ffffff 0%, #c4a8ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.jarvis-tool-flow-diagram {
+  text-align: center;
+  padding: 0.5rem 0;
+  min-height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.jarvis-tool-flow-diagram svg {
+  max-width: 100%;
+  height: auto;
+  filter: drop-shadow(0 6px 16px rgba(99, 51, 234, 0.25));
+}
