@@ -61,7 +61,14 @@
               // Mutate history only on success — a failed turn must not
               // pollute the conversation context for the retry.
               history.push(userTurn);
-              history.push({ role: 'assistant', content: data.answer || '' });
+              // Strip the SETUP_PROMPT triple-backtick fence before storing —
+              // Anthropic re-reading its own fenced turn treats it as a code
+              // snippet and re-attempts prior tool-calls thinking the question
+              // wasn't really answered.
+              history.push({
+                role: 'assistant',
+                content: stripOuterCodeFence(data.answer || ''),
+              });
               if (history.length > MAX_HISTORY_TURNS) {
                 history.splice(0, history.length - MAX_HISTORY_TURNS);
               }
