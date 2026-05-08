@@ -6,20 +6,3 @@ global-styling:
       css/navbar.css: {}
       css/forms.css: {}
       css/session.css: {}
-
-companies-page:
-  css:
-    theme:
-      css/companies.css: {}
-
-
-fonts:
-  css:
-    theme:
-      https://fonts.googleapis.com/css2?family=Barlow:wght@600;700;800&family=Playfair+Display:wght@700;900&family=Inter:wght@400;600;800&display=swap: { type: external, minified: true }
-
-countdown:
-  js:
-    js/countdown.js: {}
-  dependencies:
-    - core/drupal

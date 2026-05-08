@@ -12,13 +12,6 @@ function custom_roles_install(): void {
 }
 
 /**
- * Add missing roles/permissions on existing installs.
- */
-function custom_roles_update_9001(): void {
-  _custom_roles_ensure_roles_and_permissions();
-}
-
-/**
  * Create/update project roles and permissions (idempotent).
  */
 function _custom_roles_ensure_roles_and_permissions(): void {
@@ -42,13 +35,6 @@ function _custom_roles_ensure_roles_and_permissions(): void {
       'permissions' => [
         'access content',
         'access speaker area',
-      ],
-    ],
-    'kassa' => [
-      'label' => 'Kassa',
-      'permissions' => [
-        'access content',
-        'access kassa area',
       ],
     ],
   ];
