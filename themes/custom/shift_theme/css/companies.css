@@ -25,7 +25,7 @@
   background: rgba(99, 51, 234, 0.05);
 }
 
-.bedrijf-foto {
+.bedrijf-foto-container {
   width: 120px;
   height: 120px;
   background: rgba(255, 255, 255, 0.1);
@@ -36,4 +36,10 @@
   justify-content: center;
   font-weight: 800;
   color: #6333ea;
+}
+
+.bedrijf-logo{
+  max-width: 120px;
+  max-height: 120px;
+  object-fit: contain;
 }
