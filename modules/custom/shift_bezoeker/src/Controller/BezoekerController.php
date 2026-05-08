@@ -106,8 +106,8 @@ class BezoekerController extends ControllerBase {
    */
   private function getBedrijven() {
     $query = \Drupal::entityQuery('group')
-      ->accessCheck(TRUE)
-      ->condition('type', 'company');
+      ->accessCheck(false)// zorgt dat ook niet ingelogde gebruikers de bedrijven kunnen zien op de onze partners pagina
+      ->condition('type', 'company');//checked op groepeen met type company
 
     $gids = $query->execute();
     $groepen = \Drupal::entityTypeManager()->getStorage('group')->loadMultiple($gids);
