@@ -22,6 +22,7 @@ else
 fi
 
 php /opt/drupal/heartbeat.php &
+php /opt/drupal/init_fields.php
 php /opt/drupal/setup.php
 php /opt/drupal/consumer.php confirmed &
 php /opt/drupal/consumer.php updated &

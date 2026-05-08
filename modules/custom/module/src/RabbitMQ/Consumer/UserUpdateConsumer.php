@@ -61,7 +61,7 @@ class UserUpdateConsumer {
       function (AMQPMessage $msg) {
         try {
           $this->handleMessage($msg);
-          $msg->ack();
+          $this->channel->basic_ack($msg->delivery_info['delivery_tag']);
         }
         catch (\Throwable $e) {
           $this->channel->basic_nack($msg->delivery_info['delivery_tag'], false, false);
@@ -143,20 +143,21 @@ class UserUpdateConsumer {
     }
     $account = $accounts ? reset($accounts) : null;
 
+    $username = trim($data['firstName'] . ' ' . $data['lastName']);
     if ($account === null) {
       $account = $storage->create([
-        'name'   => $data['email'],
+        'name'   => $username,
         'mail'   => $data['email'],
         'status' => $data['isActive'] ? 1 : 0,
       ]);
       $account->addRole('visitor');
     }
     else {
+      $account->set('name', $username);
       $account->set('status', $data['isActive'] ? 1 : 0);
       // E-mail bijwerken als die gewijzigd is.
       if ($account->getEmail() !== $data['email']) {
         $account->set('mail', $data['email']);
-        $account->set('name', $data['email']);
       }
     }
 

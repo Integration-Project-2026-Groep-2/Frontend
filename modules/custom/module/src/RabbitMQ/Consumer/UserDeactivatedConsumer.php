@@ -24,9 +24,8 @@ class UserDeactivatedConsumer {
   private string $xsdPath;
 
   public function __construct() {
-    // Vanuit Consumer/ drie niveaus omhoog = module-root,
-    // daarna /xsd/user_deactivated.xsd.
-    $this->xsdPath = dirname(__DIR__, 3) . '/xsd/user_deactivated.xsd';
+    // Absoluut pad naar het XSD-bestand in de container.
+    $this->xsdPath = '/opt/drupal/xsd/user_deactivated.xsd';
   }
 
   public function listen(string $queueName = 'frontend.user.deactivated'): void {
@@ -65,7 +64,7 @@ class UserDeactivatedConsumer {
       function (AMQPMessage $msg) {
         try {
           $this->handleMessage($msg);
-          $msg->ack();
+          $this->channel->basic_ack($msg->delivery_info['delivery_tag']);
         }
         catch (\Throwable $e) {
           $this->channel->basic_nack($msg->delivery_info['delivery_tag'], false, false);
