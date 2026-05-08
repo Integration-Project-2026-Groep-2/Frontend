@@ -5,6 +5,11 @@
  */
 function shift_bezoeker_theme($existing, $type, $theme, $path) {
   return [
+    'bezoeker_bedrijven' => [
+      'variables' => ['bedrijven' => NULL],
+      'template' => 'bezoeker-bedrijven',
+      'path' => $path . '/templates',
+    ],
     'sessie_overzicht_template' => [
       'variables' => [
         'open_sessions' => NULL,
@@ -12,9 +17,17 @@ function shift_bezoeker_theme($existing, $type, $theme, $path) {
       ],
     ],
     'account_gegevens_template' => [
-          'variables' => [
-            'user' => NULL
-          ],
-        ],
+      'variables' => [
+        'user' => NULL,
+      ],
+    ],
+    'inschrijving_bevestigd' => [
+      'variables' => [
+        'session_id' => NULL,
+      ],
+    ],
+    'home_template' => [
+      'variables' => [],
+    ],
   ];
 }
