@@ -16,7 +16,7 @@ if [ -x "$DRUSH" ]; then
     sleep 3
   done
 
-  "$DRUSH" en group ginvite hello_world -y || true
+  "$DRUSH" en group ginvite hello_world custom_roles -y || true
 else
   echo "Drush not found, skipping Drupal init."
 fi

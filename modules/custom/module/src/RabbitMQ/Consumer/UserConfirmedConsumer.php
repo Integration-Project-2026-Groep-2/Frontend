@@ -171,10 +171,10 @@ class UserConfirmedConsumer {
   private function mapRole(string $crmRole): ?string {
     $map = [
       'visitor'         => 'visitor',
-      'company_contact' => 'company_contact',
+      'company_contact' => 'company',
       'speaker'         => 'speaker',
       'event_manager'   => 'event_manager',
-      'cashier'         => 'cashier',
+      'cashier'         => 'kassa',
       'bar_staff'       => 'bar_staff',
       'admin'           => 'administrator',
     ];
