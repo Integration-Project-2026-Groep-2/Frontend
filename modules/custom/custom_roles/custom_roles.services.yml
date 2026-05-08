@@ -1,0 +1,6 @@
+services:
+  custom_roles.login_redirection:
+    class: Drupal\custom_roles\EventSubscriber\LoginRedirectionSubscriber
+    arguments: ['@current_user']
+    tags:
+      - { name: event_subscriber }
