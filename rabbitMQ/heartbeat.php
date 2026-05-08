@@ -34,7 +34,7 @@ $channel->exchange_declare(
     false   // internal
 );
 
-echo "Heartbeat started. Press Ctrl+C to stop.\n";
+echo "Heartbeat started.\n";
 
 while (true) {
     $xml = new SimpleXMLElement('<Heartbeat/>');
@@ -52,7 +52,7 @@ while (true) {
         'routing.heartbeat'
     );
 
-    echo "Heartbeat sent at " . date('H:i:s') . "\n";
+    // Silent heartbeat — no console output.
 
     sleep(1);
 }
