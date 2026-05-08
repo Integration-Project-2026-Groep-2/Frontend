@@ -1,5 +1,5 @@
 <?php
-<?php
+
 
 namespace Drupal\session_management\Form;
 
