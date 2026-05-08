@@ -102,12 +102,12 @@ class BezoekerController extends ControllerBase {
   }
 
   /**
-   * Helper to load groups of type 'company_name' (optimized: load files in bulk).
+   * Helper to load groups of type 'company' (optimized: load files in bulk).
    */
   private function getBedrijven() {
     $query = \Drupal::entityQuery('group')
-      ->accessCheck(TRUE)
-      ->condition('type', 'company_name');
+      ->accessCheck(false)// zorgt dat ook niet ingelogde gebruikers de bedrijven kunnen zien op de onze partners pagina
+      ->condition('type', 'company');//checked op groepeen met type company
 
     $gids = $query->execute();
     $groepen = \Drupal::entityTypeManager()->getStorage('group')->loadMultiple($gids);
