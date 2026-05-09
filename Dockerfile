@@ -10,7 +10,8 @@ RUN apt-get update && apt-get install -y libgmp-dev libxml2-utils \
 RUN composer require \
     "php-amqplib/php-amqplib" \
     "drupal/group:^3.0" \
-    "drupal/ginvite"
+    "drupal/ginvite" \
+    "firebase/php-jwt"
 
 # Copy the custom module and custom theme into the Drupal modules directory
 COPY ./modules/custom /opt/drupal/web/modules/custom

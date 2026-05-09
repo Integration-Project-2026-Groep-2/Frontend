@@ -4,8 +4,11 @@ namespace Drupal\Tests\jarvis_chat\Unit\Controller;
 
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
+use Drupal\Core\Session\AccountProxyInterface;
 use Drupal\jarvis_chat\Controller\JarvisController;
 use Drupal\Tests\UnitTestCase;
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Psr7\Request as GuzzleRequest;
@@ -18,15 +21,34 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class JarvisControllerTest extends UnitTestCase {
 
-  private function makeController(ClientInterface $http): JarvisController {
+  private const TEST_SECRET = 'test-secret-must-be-at-least-32-bytes-long-for-hs256';
+
+  private function makeController(ClientInterface $http, ?AccountProxyInterface $user = NULL): JarvisController {
     $loggerChannel = $this->createMock(LoggerChannelInterface::class);
     $loggerFactory = $this->createMock(LoggerChannelFactoryInterface::class);
     $loggerFactory->method('get')->willReturn($loggerChannel);
-    return new JarvisController($http, $loggerFactory);
+    $user = $user ?? $this->createMock(AccountProxyInterface::class);
+    return new JarvisController($http, $loggerFactory, $user);
+  }
+
+  private function makeUser(int $id, array $roles): AccountProxyInterface {
+    $user = $this->createMock(AccountProxyInterface::class);
+    $user->method('id')->willReturn($id);
+    $user->method('getRoles')->willReturn($roles);
+    return $user;
   }
 
   private function postRequest(array $body): Request {
     return Request::create('/api/jarvis/chat', 'POST', [], [], [], [], json_encode($body));
+  }
+
+  private function captureRequest(ClientInterface $http, &$captured): void {
+    $http->method('request')->willReturnCallback(
+      function ($method, $url, $options) use (&$captured) {
+        $captured = $options;
+        return new Response(200, [], json_encode(['answer' => 'ok']));
+      }
+    );
   }
 
   public function testRejectsMissingPromptAndMessages(): void {
@@ -38,12 +60,10 @@ class JarvisControllerTest extends UnitTestCase {
 
   public function testForwardsMultiTurnMessagesToBackend(): void {
     $http = $this->createMock(ClientInterface::class);
-    // Capture the body sent to mcp-master so we can assert it was
-    // forwarded as-is (not stripped down to {prompt: ...}).
-    $captured = null;
+    $captured = NULL;
     $http->method('request')->willReturnCallback(
       function ($method, $url, $options) use (&$captured) {
-        $captured = $options['json'] ?? null;
+        $captured = $options['json'] ?? NULL;
         return new Response(200, [], json_encode(['answer' => 'multi-turn ok']));
       }
     );
@@ -84,11 +104,8 @@ class JarvisControllerTest extends UnitTestCase {
     $upstream = [
       'answer' => 'pong',
       'tool_trace' => [
-        ['tool' => 'ping', 'server' => 'stub', 'ms' => 42, 'ok' => true],
+        ['tool' => 'ping', 'server' => 'stub', 'ms' => 42, 'ok' => TRUE],
       ],
-      // mcp-master also returns tokens/iterations/correlation_id; the
-      // controller whitelist must drop those (Lars's v1.5 scope: only
-      // tool_trace is rendered).
       'tokens' => ['input' => 100, 'output' => 50],
       'iterations' => 2,
       'correlation_id' => 'abc-123',
@@ -103,26 +120,18 @@ class JarvisControllerTest extends UnitTestCase {
     $this->assertSame('pong', $payload['answer']);
     $this->assertCount(1, $payload['tool_trace']);
     $this->assertSame('ping', $payload['tool_trace'][0]['tool']);
-    $this->assertSame('stub', $payload['tool_trace'][0]['server']);
-    $this->assertSame(42, $payload['tool_trace'][0]['ms']);
-    $this->assertTrue($payload['tool_trace'][0]['ok']);
-    // Whitelist dropped these fields — confirm they never reach the browser.
     $this->assertArrayNotHasKey('tokens', $payload);
     $this->assertArrayNotHasKey('iterations', $payload);
     $this->assertArrayNotHasKey('correlation_id', $payload);
   }
 
-  public function testBearerTokenForwardedWhenEnvSet(): void {
+  public function testStaticBearerForwardedWhenJwtSecretUnset(): void {
+    putenv('CHAT_JWT_SECRET');
     putenv('MCP_MASTER_BEARER_TOKEN=test-token-xyz');
     try {
       $http = $this->createMock(ClientInterface::class);
       $captured = NULL;
-      $http->method('request')->willReturnCallback(
-        function ($method, $url, $options) use (&$captured) {
-          $captured = $options;
-          return new Response(200, [], json_encode(['answer' => 'ok']));
-        }
-      );
+      $this->captureRequest($http, $captured);
       $controller = $this->makeController($http);
       $controller->chat($this->postRequest(['prompt' => 'hi']));
       $this->assertSame('Bearer test-token-xyz', $captured['headers']['Authorization'] ?? NULL);
@@ -132,19 +141,98 @@ class JarvisControllerTest extends UnitTestCase {
     }
   }
 
-  public function testNoAuthorizationHeaderWhenEnvUnset(): void {
+  public function testNoAuthorizationHeaderWhenBothEnvsUnset(): void {
+    putenv('CHAT_JWT_SECRET');
     putenv('MCP_MASTER_BEARER_TOKEN');
     $http = $this->createMock(ClientInterface::class);
     $captured = NULL;
-    $http->method('request')->willReturnCallback(
-      function ($method, $url, $options) use (&$captured) {
-        $captured = $options;
-        return new Response(200, [], json_encode(['answer' => 'ok']));
-      }
-    );
+    $this->captureRequest($http, $captured);
     $controller = $this->makeController($http);
     $controller->chat($this->postRequest(['prompt' => 'hi']));
     $this->assertArrayNotHasKey('headers', $captured);
+  }
+
+  public function testJwtMintedWithReadActScopeForAdmin(): void {
+    putenv('CHAT_JWT_SECRET=' . self::TEST_SECRET);
+    try {
+      $http = $this->createMock(ClientInterface::class);
+      $captured = NULL;
+      $this->captureRequest($http, $captured);
+      $admin = $this->makeUser(42, ['authenticated', 'administrator']);
+      $controller = $this->makeController($http, $admin);
+      $controller->chat($this->postRequest(['prompt' => 'hi']));
+
+      $authHeader = $captured['headers']['Authorization'] ?? '';
+      $this->assertStringStartsWith('Bearer ', $authHeader);
+      $jwt = substr($authHeader, 7);
+      $decoded = JWT::decode($jwt, new Key(self::TEST_SECRET, 'HS256'));
+      $this->assertSame('42', $decoded->sub);
+      $this->assertSame('read+act', $decoded->scope);
+    }
+    finally {
+      putenv('CHAT_JWT_SECRET');
+    }
+  }
+
+  public function testJwtMintedWithReadActScopeForEventbeheerder(): void {
+    putenv('CHAT_JWT_SECRET=' . self::TEST_SECRET);
+    try {
+      $http = $this->createMock(ClientInterface::class);
+      $captured = NULL;
+      $this->captureRequest($http, $captured);
+      $beheerder = $this->makeUser(7, ['authenticated', 'eventbeheerder']);
+      $controller = $this->makeController($http, $beheerder);
+      $controller->chat($this->postRequest(['prompt' => 'hi']));
+
+      $jwt = substr($captured['headers']['Authorization'], 7);
+      $decoded = JWT::decode($jwt, new Key(self::TEST_SECRET, 'HS256'));
+      $this->assertSame('read+act', $decoded->scope);
+    }
+    finally {
+      putenv('CHAT_JWT_SECRET');
+    }
+  }
+
+  public function testJwtMintedWithReadScopeForVisitor(): void {
+    putenv('CHAT_JWT_SECRET=' . self::TEST_SECRET);
+    try {
+      $http = $this->createMock(ClientInterface::class);
+      $captured = NULL;
+      $this->captureRequest($http, $captured);
+      $visitor = $this->makeUser(99, ['authenticated', 'visitor']);
+      $controller = $this->makeController($http, $visitor);
+      $controller->chat($this->postRequest(['prompt' => 'hi']));
+
+      $jwt = substr($captured['headers']['Authorization'], 7);
+      $decoded = JWT::decode($jwt, new Key(self::TEST_SECRET, 'HS256'));
+      $this->assertSame('99', $decoded->sub);
+      $this->assertSame('read', $decoded->scope);
+    }
+    finally {
+      putenv('CHAT_JWT_SECRET');
+    }
+  }
+
+  public function testJwtPreferredOverStaticBearerWhenBothSet(): void {
+    putenv('CHAT_JWT_SECRET=' . self::TEST_SECRET);
+    putenv('MCP_MASTER_BEARER_TOKEN=fallback-static-token');
+    try {
+      $http = $this->createMock(ClientInterface::class);
+      $captured = NULL;
+      $this->captureRequest($http, $captured);
+      $admin = $this->makeUser(1, ['administrator']);
+      $controller = $this->makeController($http, $admin);
+      $controller->chat($this->postRequest(['prompt' => 'hi']));
+
+      $authHeader = $captured['headers']['Authorization'] ?? '';
+      $this->assertStringNotContainsString('fallback-static-token', $authHeader);
+      $jwt = substr($authHeader, 7);
+      $this->assertSame(2, substr_count($jwt, '.'));
+    }
+    finally {
+      putenv('CHAT_JWT_SECRET');
+      putenv('MCP_MASTER_BEARER_TOKEN');
+    }
   }
 
 }

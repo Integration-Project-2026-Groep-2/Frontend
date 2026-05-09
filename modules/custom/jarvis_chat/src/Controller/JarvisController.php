@@ -4,6 +4,8 @@ namespace Drupal\jarvis_chat\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+use Drupal\Core\Session\AccountProxyInterface;
+use Firebase\JWT\JWT;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -14,16 +16,20 @@ class JarvisController extends ControllerBase {
 
   private const DEFAULT_BACKEND_URL = 'http://mcp-master:8080';
   private const REQUEST_TIMEOUT_SECONDS = 240;
+  private const ELEVATED_ROLES = ['administrator', 'eventbeheerder'];
+  private const JWT_TTL_SECONDS = 300;
 
   public function __construct(
     protected ClientInterface $httpClient,
     protected LoggerChannelFactoryInterface $logChannelFactory,
+    protected AccountProxyInterface $userAccount,
   ) {}
 
   public static function create(ContainerInterface $container): self {
     return new self(
       $container->get('http_client'),
       $container->get('logger.factory'),
+      $container->get('current_user'),
     );
   }
 
@@ -60,8 +66,8 @@ class JarvisController extends ControllerBase {
       'json'    => $body,
       'timeout' => self::REQUEST_TIMEOUT_SECONDS,
     ];
-    $bearer = getenv('MCP_MASTER_BEARER_TOKEN');
-    if ($bearer !== FALSE && $bearer !== '') {
+    $bearer = $this->bearerToken();
+    if ($bearer !== NULL) {
       $options['headers'] = ['Authorization' => 'Bearer ' . $bearer];
     }
     try {
@@ -81,6 +87,33 @@ class JarvisController extends ControllerBase {
         ->error('mcp-master proxy failed: @msg', ['@msg' => $e->getMessage()]);
       return new JsonResponse(['error' => 'upstream error'], 502);
     }
+  }
+
+  private function bearerToken(): ?string {
+    $secret = getenv('CHAT_JWT_SECRET');
+    if ($secret !== FALSE && $secret !== '') {
+      return self::mintJwt($secret, $this->userAccount);
+    }
+    $static = getenv('MCP_MASTER_BEARER_TOKEN');
+    if ($static !== FALSE && $static !== '') {
+      return $static;
+    }
+    return NULL;
+  }
+
+  /**
+   * Mints HS256 JWT for mcp-master with role-derived scope.
+   *
+   * Static for direct unit-testability without container bootstrap.
+   */
+  public static function mintJwt(string $secret, AccountProxyInterface $user): string {
+    $roles = $user->getRoles();
+    $elevated = !empty(array_intersect($roles, self::ELEVATED_ROLES));
+    return JWT::encode([
+      'sub'   => (string) $user->id(),
+      'scope' => $elevated ? 'read+act' : 'read',
+      'exp'   => time() + self::JWT_TTL_SECONDS,
+    ], $secret, 'HS256');
   }
 
 }
