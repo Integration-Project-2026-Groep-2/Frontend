@@ -216,7 +216,7 @@
     try { data = await res.json(); } catch { /* empty body */ }
     if (!res.ok) {
       setCardBusy(card, false);
-      showCardError(errorBox, `Fout: ${data.error || res.statusText}`);
+      showCardError(errorBox, humaniseUpstreamError(data.error) || `Fout: ${data.error || res.statusText}`);
       return;
     }
     // HTTP 200 from /chat/approve doesn't always mean the dispatched tool
@@ -306,6 +306,23 @@
     const label = ROUTING_KEY_LABELS[parsed.routing_key] || 'Actie uitgevoerd';
     const sfId = parsed.salesforce_id ? ` (Salesforce id \`${parsed.salesforce_id}\`)` : '';
     return `${label}${sfId}.`;
+  }
+
+  // mcp-master's documented error strings on /chat/approve + /chat/reject
+  // (HTTP_API.md §1.5). Mapped to Dutch so the inline-error UX stays
+  // consistent with the rest of the module. Unknown values fall through
+  // to the existing `Fout: <upstream>` formatting in decideAction.
+  const UPSTREAM_ERROR_LABELS = {
+    'action not found': 'Deze actie is niet meer beschikbaar — vraag opnieuw.',
+    'action expired': 'De actie is verlopen (TTL 15 min) — vraag opnieuw.',
+    'action already decided': 'Deze actie is al verwerkt.',
+    'user mismatch': 'Deze actie hoort bij een andere gebruiker.',
+    'scope read+act required': 'Je account mag deze actie niet uitvoeren.',
+  };
+
+  function humaniseUpstreamError(error) {
+    if (typeof error !== 'string') return null;
+    return UPSTREAM_ERROR_LABELS[error.toLowerCase().trim()] || null;
   }
 
   // Map common CRM-MCP error patterns to Dutch operator-facing copy.
