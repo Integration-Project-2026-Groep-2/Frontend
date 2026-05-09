@@ -64,7 +64,7 @@ class JarvisController extends ControllerBase {
 
   public function approve(Request $request): JsonResponse {
     $body = json_decode($request->getContent(), TRUE);
-    if (!is_array($body) || !isset($body['action_id']) || trim((string) $body['action_id']) === '') {
+    if (!$this->isValidActionIdBody($body)) {
       return new JsonResponse(['error' => 'action_id required'], 400);
     }
     return $this->forwardToMaster('/chat/approve', ['action_id' => $body['action_id']], TRUE);
@@ -72,7 +72,7 @@ class JarvisController extends ControllerBase {
 
   public function reject(Request $request): JsonResponse {
     $body = json_decode($request->getContent(), TRUE);
-    if (!is_array($body) || !isset($body['action_id']) || trim((string) $body['action_id']) === '') {
+    if (!$this->isValidActionIdBody($body)) {
       return new JsonResponse(['error' => 'action_id required'], 400);
     }
     $payload = ['action_id' => $body['action_id']];
@@ -80,6 +80,18 @@ class JarvisController extends ControllerBase {
       $payload['reason'] = trim($body['reason']);
     }
     return $this->forwardToMaster('/chat/reject', $payload, TRUE);
+  }
+
+  /**
+   * is_string check stops `(string) $array_action_id === "Array"` PHP
+   * warnings + a downstream UUID-parse 400 from mcp-master that the user
+   * can't action on. Also catches null and other scalar shapes.
+   */
+  private function isValidActionIdBody(mixed $body): bool {
+    return is_array($body)
+      && isset($body['action_id'])
+      && is_string($body['action_id'])
+      && trim($body['action_id']) !== '';
   }
 
   /**
@@ -107,7 +119,7 @@ class JarvisController extends ControllerBase {
       $data = json_decode((string) $response->getBody(), TRUE);
       return new JsonResponse([
         'answer' => $data['answer'] ?? '',
-        'tool_trace' => $data['tool_trace'] ?? [],
+        'tool_trace' => self::filterToolTrace($data['tool_trace'] ?? []),
       ]);
     }
     catch (RequestException $e) {
@@ -131,6 +143,28 @@ class JarvisController extends ControllerBase {
         ->error('mcp-master @path failed: @msg', ['@path' => $path, '@msg' => $e->getMessage()]);
       return new JsonResponse(['error' => 'upstream error'], 502);
     }
+  }
+
+  /**
+   * Per-entry whitelist for tool_trace items reaching the browser.
+   *
+   * Defense-in-depth — the documented contract (HTTP_API.md §1.5) only
+   * exposes these 7 fields. If `CHAT_TRACE_INCLUDE_ARGS=true` ever flips
+   * on mcp-master, `args` would otherwise pass through with PII (BTW,
+   * emails, names from CRM-MCP write-tools). Drupal becomes the second
+   * wall against accidental DOM-side leaks.
+   */
+  private const TOOL_TRACE_FIELDS = ['tool', 'server', 'ms', 'ok', 'status', 'action_id', 'error'];
+
+  private static function filterToolTrace(mixed $trace): array {
+    if (!is_array($trace)) {
+      return [];
+    }
+    $allow = array_flip(self::TOOL_TRACE_FIELDS);
+    return array_values(array_map(
+      fn($t) => is_array($t) ? array_intersect_key($t, $allow) : [],
+      $trace,
+    ));
   }
 
 }

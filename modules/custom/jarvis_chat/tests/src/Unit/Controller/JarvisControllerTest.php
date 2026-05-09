@@ -141,6 +141,16 @@ class JarvisControllerTest extends UnitTestCase {
     $this->assertStringContainsString('action_id', $response->getContent());
   }
 
+  public function testApproveRejectsNonStringActionId(): void {
+    // Catches array/null/bool action_id before they reach mcp-master and
+    // produce ugly PHP "Array to string conversion" warnings on the way to
+    // a confusing 400.
+    $controller = $this->makeController($this->createMock(ClientInterface::class));
+    $response = $controller->approve($this->postRequest(['action_id' => ['x']]));
+    $this->assertSame(400, $response->getStatusCode());
+    $this->assertStringContainsString('action_id', $response->getContent());
+  }
+
   public function testApproveUpstream409Surfaces(): void {
     $http = $this->createMock(ClientInterface::class);
     $http->method('request')->willThrowException(
