@@ -4,6 +4,7 @@ namespace Drupal\Tests\jarvis_chat\Unit\Controller;
 
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
+use Drupal\Core\Session\AccountInterface;
 use Drupal\jarvis_chat\Controller\JarvisController;
 use Drupal\jarvis_chat\Service\JarvisJwtSigner;
 use Drupal\Tests\UnitTestCase;
@@ -20,13 +21,25 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class JarvisControllerTest extends UnitTestCase {
 
-  private function makeController(ClientInterface $http, ?string $mintedJwt = null): JarvisController {
+  private function makeController(
+    ClientInterface $http,
+    ?string $mintedJwt = null,
+    array $roles = ['administrator', 'authenticated'],
+  ): JarvisController {
     $loggerChannel = $this->createMock(LoggerChannelInterface::class);
     $loggerFactory = $this->createMock(LoggerChannelFactoryInterface::class);
     $loggerFactory->method('get')->willReturn($loggerChannel);
     $signer = $this->createMock(JarvisJwtSigner::class);
     $signer->method('mint')->willReturn($mintedJwt);
-    return new JarvisController($http, $loggerFactory, $signer);
+    $account = $this->createMock(AccountInterface::class);
+    // ControllerBase's getRoles($exclude_locked_roles=TRUE) drops 'authenticated'
+    // — match that behavior in the mock so role-gate sees only the elevated set.
+    $account->method('getRoles')->willReturnCallback(
+      fn(bool $excludeLocked = FALSE) => $excludeLocked
+        ? array_values(array_diff($roles, ['authenticated', 'anonymous']))
+        : $roles
+    );
+    return new JarvisController($http, $loggerFactory, $signer, $account);
   }
 
   private function postRequest(array $body): Request {
@@ -247,6 +260,59 @@ class JarvisControllerTest extends UnitTestCase {
     $controller = $this->makeController($http);
     $controller->chat($this->postRequest(['prompt' => 'hi']));
     $this->assertArrayNotHasKey('headers', $captured);
+  }
+
+  public function testChatRejectsAuthenticatedUserWithoutElevatedRole(): void {
+    $controller = $this->makeController(
+      $this->createMock(ClientInterface::class),
+      null,
+      ['authenticated'],
+    );
+    $response = $controller->chat($this->postRequest(['prompt' => 'hi']));
+    $this->assertSame(403, $response->getStatusCode());
+    $this->assertStringContainsString('elevated role', $response->getContent());
+  }
+
+  public function testChatAcceptsAdministrator(): void {
+    $http = $this->createMock(ClientInterface::class);
+    $http->method('request')->willReturn(
+      new Response(200, [], json_encode(['answer' => 'ok']))
+    );
+    $controller = $this->makeController($http, null, ['administrator', 'authenticated']);
+    $response = $controller->chat($this->postRequest(['prompt' => 'hi']));
+    $this->assertSame(200, $response->getStatusCode());
+  }
+
+  public function testChatAcceptsEventBeheerder(): void {
+    $http = $this->createMock(ClientInterface::class);
+    $http->method('request')->willReturn(
+      new Response(200, [], json_encode(['answer' => 'ok']))
+    );
+    $controller = $this->makeController($http, null, ['event_beheerder', 'authenticated']);
+    $response = $controller->chat($this->postRequest(['prompt' => 'hi']));
+    $this->assertSame(200, $response->getStatusCode());
+  }
+
+  public function testApproveRejectsNonElevatedRole(): void {
+    $controller = $this->makeController(
+      $this->createMock(ClientInterface::class),
+      null,
+      ['visitor', 'authenticated'],
+    );
+    $response = $controller->approve($this->postRequest(['action_id' => 'uuid-x']));
+    $this->assertSame(403, $response->getStatusCode());
+    $this->assertStringContainsString('elevated role', $response->getContent());
+  }
+
+  public function testRejectRejectsNonElevatedRole(): void {
+    $controller = $this->makeController(
+      $this->createMock(ClientInterface::class),
+      null,
+      ['visitor', 'authenticated'],
+    );
+    $response = $controller->reject($this->postRequest(['action_id' => 'uuid-x']));
+    $this->assertSame(403, $response->getStatusCode());
+    $this->assertStringContainsString('elevated role', $response->getContent());
   }
 
 }

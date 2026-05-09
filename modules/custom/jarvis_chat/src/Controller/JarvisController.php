@@ -4,6 +4,7 @@ namespace Drupal\jarvis_chat\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
+use Drupal\Core\Session\AccountInterface;
 use Drupal\jarvis_chat\Service\JarvisJwtSigner;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
@@ -16,11 +17,13 @@ class JarvisController extends ControllerBase {
 
   private const DEFAULT_BACKEND_URL = 'http://mcp-master:8080';
   private const REQUEST_TIMEOUT_SECONDS = 240;
+  private const ELEVATED_ROLES = ['administrator', 'event_beheerder'];
 
   public function __construct(
     protected ClientInterface $httpClient,
     protected LoggerChannelFactoryInterface $logChannelFactory,
     protected JarvisJwtSigner $jwtSigner,
+    protected AccountInterface $currentUser,
   ) {}
 
   public static function create(ContainerInterface $container): self {
@@ -28,6 +31,7 @@ class JarvisController extends ControllerBase {
       $container->get('http_client'),
       $container->get('logger.factory'),
       $container->get('jarvis_chat.jwt_signer'),
+      $container->get('current_user'),
     );
   }
 
@@ -42,6 +46,10 @@ class JarvisController extends ControllerBase {
   }
 
   public function chat(Request $request): JsonResponse {
+    if (($denial = $this->assertElevatedRole()) !== NULL) {
+      return $denial;
+    }
+
     $body = json_decode($request->getContent(), TRUE);
     if (!is_array($body)) {
       return new JsonResponse(['error' => 'invalid JSON body'], 400);
@@ -63,6 +71,9 @@ class JarvisController extends ControllerBase {
   }
 
   public function approve(Request $request): JsonResponse {
+    if (($denial = $this->assertElevatedRole()) !== NULL) {
+      return $denial;
+    }
     $body = json_decode($request->getContent(), TRUE);
     if (!$this->isValidActionIdBody($body)) {
       return new JsonResponse(['error' => 'action_id required'], 400);
@@ -71,6 +82,9 @@ class JarvisController extends ControllerBase {
   }
 
   public function reject(Request $request): JsonResponse {
+    if (($denial = $this->assertElevatedRole()) !== NULL) {
+      return $denial;
+    }
     $body = json_decode($request->getContent(), TRUE);
     if (!$this->isValidActionIdBody($body)) {
       return new JsonResponse(['error' => 'action_id required'], 400);
@@ -80,6 +94,19 @@ class JarvisController extends ControllerBase {
       $payload['reason'] = trim($body['reason']);
     }
     return $this->forwardToMaster('/chat/reject', $payload, TRUE);
+  }
+
+  /**
+   * Belt-and-braces gate: even if `'use jarvis chat'` permission ever
+   * leaks to a non-elevated role by config-typo, controller still 403's.
+   * Defense-in-depth complementing the route-level _permission check.
+   */
+  private function assertElevatedRole(): ?JsonResponse {
+    $roles = $this->currentUser->getRoles(TRUE);
+    if (empty(array_intersect($roles, self::ELEVATED_ROLES))) {
+      return new JsonResponse(['error' => 'jarvis chat requires elevated role'], 403);
+    }
+    return NULL;
   }
 
   /**
