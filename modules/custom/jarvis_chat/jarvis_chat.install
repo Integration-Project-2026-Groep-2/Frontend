@@ -12,7 +12,7 @@ use Drupal\user\Entity\Role;
  * already have the permission.
  */
 function jarvis_chat_install(): void {
-  foreach (['administrator', 'event_beheerder'] as $rid) {
+  foreach (['administrator', 'event_manager'] as $rid) {
     $role = Role::load($rid);
     if ($role !== NULL && !$role->hasPermission('use jarvis chat')) {
       $role->grantPermission('use jarvis chat');
@@ -24,7 +24,7 @@ function jarvis_chat_install(): void {
 /**
  * Re-run the permission grant on existing sites where jarvis_chat was
  * installed before the install-hook existed (admin had been granted via
- * `drush role:perm:add` but event_beheerder never was).
+ * `drush role:perm:add` but event_manager never was).
  */
 function jarvis_chat_update_8001(): void {
   jarvis_chat_install();

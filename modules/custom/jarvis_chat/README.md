@@ -47,11 +47,11 @@ docker compose exec frontend drush cache:rebuild
 ```
 
 `hook_install` (in `jarvis_chat.install`) auto-grants `'use jarvis chat'`
-to `administrator` and `event_beheerder` roles — no manual `drush
+to `administrator` and `event_manager` roles — no manual `drush
 role:perm:add` step needed. On existing deploys, run `drush updb -y` to
 trigger `hook_update_8001` which performs the same grant idempotently.
 
-After enabling, log in as a user with `administrator` or `event_beheerder`
+After enabling, log in as a user with `administrator` or `event_manager`
 role and visit `/jarvis`. Visitors and non-elevated users get a 403 from
 both the Drupal route-permission check **and** the controller's
 `assertElevatedRole()` defense-in-depth gate.
@@ -104,7 +104,7 @@ docker compose exec frontend vendor/bin/phpunit \
 - Auth: JWT primary path, MCP_MASTER_BEARER_TOKEN fallback, no header when
   neither configured
 - Role-gate: visitor/authenticated-only → 403 on chat/approve/reject;
-  administrator + event_beheerder → 200 on chat
+  administrator + event_manager → 200 on chat
 
 ## Local dev
 

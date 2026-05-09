@@ -288,7 +288,7 @@ class JarvisControllerTest extends UnitTestCase {
     $http->method('request')->willReturn(
       new Response(200, [], json_encode(['answer' => 'ok']))
     );
-    $controller = $this->makeController($http, null, ['event_beheerder', 'authenticated']);
+    $controller = $this->makeController($http, null, ['event_manager', 'authenticated']);
     $response = $controller->chat($this->postRequest(['prompt' => 'hi']));
     $this->assertSame(200, $response->getStatusCode());
   }

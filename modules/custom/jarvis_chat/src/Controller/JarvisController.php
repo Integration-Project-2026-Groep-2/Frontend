@@ -17,7 +17,7 @@ class JarvisController extends ControllerBase {
 
   private const DEFAULT_BACKEND_URL = 'http://mcp-master:8080';
   private const REQUEST_TIMEOUT_SECONDS = 240;
-  private const ELEVATED_ROLES = ['administrator', 'event_beheerder'];
+  private const ELEVATED_ROLES = ['administrator', 'event_manager'];
 
   /**
    * mcp-master's documented /chat/approve + /chat/reject 4xx errors
