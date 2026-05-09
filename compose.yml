@@ -44,6 +44,9 @@ services:
       - RABBITMQ_USER=${RABBITMQ_USER}
       - RABBITMQ_PASS=${RABBITMQ_PASS}
       - SKIP_AMQP_CONSUMERS=${SKIP_AMQP_CONSUMERS:-0}
+      - MCP_MASTER_URL=${MCP_MASTER_URL:-http://mcp-master:8080}
+      - MCP_MASTER_BEARER_TOKEN=${MCP_MASTER_BEARER_TOKEN:-}
+      - CHAT_JWT_SECRET=${CHAT_JWT_SECRET:-}
 
   frontend_db:
     image: mariadb:12
