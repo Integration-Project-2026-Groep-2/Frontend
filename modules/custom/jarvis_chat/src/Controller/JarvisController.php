@@ -56,11 +56,16 @@ class JarvisController extends ControllerBase {
     }
 
     $url = getenv('MCP_MASTER_URL') ?: self::DEFAULT_BACKEND_URL;
+    $options = [
+      'json'    => $body,
+      'timeout' => self::REQUEST_TIMEOUT_SECONDS,
+    ];
+    $bearer = getenv('MCP_MASTER_BEARER_TOKEN');
+    if ($bearer !== FALSE && $bearer !== '') {
+      $options['headers'] = ['Authorization' => 'Bearer ' . $bearer];
+    }
     try {
-      $response = $this->httpClient->request('POST', $url . '/chat', [
-        'json'    => $body,
-        'timeout' => self::REQUEST_TIMEOUT_SECONDS,
-      ]);
+      $response = $this->httpClient->request('POST', $url . '/chat', $options);
       $data = json_decode((string) $response->getBody(), TRUE);
       // Whitelist (not pass-through) so future mcp-master fields don't reach
       // the browser without an explicit decision — defense-in-depth against
