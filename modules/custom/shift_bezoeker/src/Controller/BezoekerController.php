@@ -3,7 +3,8 @@
 namespace Drupal\shift_bezoeker\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
-
+use Drupal\file\Entity\File;
+use Drupal\shift_bezoeker\Form\EditAccountForm;
 
 class BezoekerController extends ControllerBase {
 
@@ -59,15 +60,7 @@ class BezoekerController extends ControllerBase {
   }
 
   public function accountPage() {
-    return [
-      '#theme' => 'account_gegevens_template',
-      '#user' => [
-        'firstName' => 'Bezoeker',
-        'lastName' => 'Naam',
-        'email' => 'test@shift.be',
-        'company' => 'Shift Festival',
-      ],
-    ];
+    return $this->formBuilder()->getForm(EditAccountForm::class);
   }
   public function inschrijven($session_id) {
     return [
@@ -87,27 +80,7 @@ class BezoekerController extends ControllerBase {
   }
 
   public function bedrijvenPage() {
-
-    $query = \Drupal::entityQuery('user')
-      ->accessCheck(TRUE)
-      ->condition('status', 1)
-      ->condition('roles', 'bedrijf');
-
-    $ids = $query->execute();
-
-    $bedrijven = [];
-
-    // Alleen proberen te laden als we daadwerkelijk ID's hebben gevonden
-    if (!empty($ids)) {
-      $users = \Drupal\user\Entity\User::loadMultiple($ids);
-
-      foreach ($users as $user) {
-        $bedrijven[] = [
-          'naam' => $user->getDisplayName(),
-          // Eventueel later: 'logo' => $user->get('field_logo')->entity->getFileUri(),
-        ];
-      }
-    }
+    $bedrijven = $this->getBedrijven();
 
     return [
       '#theme' => 'bezoeker_bedrijven',
@@ -119,5 +92,72 @@ class BezoekerController extends ControllerBase {
         ],
       ],
     ];
+  }
+
+  /**
+   * Helper to load groups of type 'company' (optimized: load files in bulk).
+   */
+  private function getBedrijven() {
+    $query = \Drupal::entityQuery('group')
+      ->accessCheck(false)// zorgt dat ook niet ingelogde gebruikers de bedrijven kunnen zien op de onze partners pagina
+      ->condition('type', 'company');//checked op groepeen met type company
+
+    $gids = $query->execute();
+    $groepen = \Drupal::entityTypeManager()->getStorage('group')->loadMultiple($gids);
+
+    // Verzamel alle fids eerst.
+    $fids = [];
+    foreach ($groepen as $groep) {
+      if ($groep->hasField('field_logo')) {
+        $field = $groep->get('field_logo');
+        if (!$field->isEmpty()) {
+          $fid = $field->target_id ?? NULL;
+          if ($fid) {
+            $fids[$fid] = $fid;
+          }
+        }
+      }
+    }
+
+    // Laad bestanden in één keer.
+    $files = [];
+    if (!empty($fids)) {
+      $files = File::loadMultiple($fids);
+    }
+
+    $result = [];
+    $url_generator = \Drupal::service('file_url_generator');
+
+    foreach ($groepen as $groep) {
+      $naam = $groep->label();
+
+      $beschrijving = '';
+      if ($groep->hasField('field_description')) {
+        $desc_field = $groep->get('field_description');
+        if (!$desc_field->isEmpty()) {
+          $beschrijving = $desc_field->value ?? '';
+        }
+      }
+
+      $logo_url = NULL;
+      if ($groep->hasField('field_logo')) {
+        $logo_field = $groep->get('field_logo');
+        if (!$logo_field->isEmpty()) {
+          $fid = $logo_field->target_id ?? NULL;
+          if ($fid && isset($files[$fid])) {
+            $file = $files[$fid];
+            $logo_url = $url_generator->generateAbsoluteString($file->getFileUri());
+          }
+        }
+      }
+
+      $result[] = [
+        'naam' => $naam,
+        'beschrijving' => $beschrijving,
+        'logo' => $logo_url,
+      ];
+    }
+
+    return $result;
   }
 }

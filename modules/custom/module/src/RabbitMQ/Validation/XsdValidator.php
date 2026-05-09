@@ -35,7 +35,7 @@ class XsdValidator {
       return;
     }
 
-    $xsdPath     = $this->registry->getXsdPath();
+    $xsdPath     = $this->registry->getXsdPath($type);
     $rootElement = $this->registry->getRootElement($type);
 
     $dom = new \DOMDocument();

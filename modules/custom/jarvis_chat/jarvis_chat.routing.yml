@@ -16,3 +16,25 @@ jarvis_chat.api_chat:
     _csrf_request_header_token: 'TRUE'
   options:
     no_cache: 'TRUE'
+
+jarvis_chat.api_approve:
+  path: '/api/jarvis/chat/approve'
+  defaults:
+    _controller: '\Drupal\jarvis_chat\Controller\JarvisController::approve'
+  methods: [POST]
+  requirements:
+    _permission: 'use jarvis chat'
+    _csrf_request_header_token: 'TRUE'
+  options:
+    no_cache: 'TRUE'
+
+jarvis_chat.api_reject:
+  path: '/api/jarvis/chat/reject'
+  defaults:
+    _controller: '\Drupal\jarvis_chat\Controller\JarvisController::reject'
+  methods: [POST]
+  requirements:
+    _permission: 'use jarvis chat'
+    _csrf_request_header_token: 'TRUE'
+  options:
+    no_cache: 'TRUE'

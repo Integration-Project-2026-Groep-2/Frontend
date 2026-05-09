@@ -60,7 +60,7 @@ class RegistrationChangeMessage implements MessageInterface {
   }
 
   public function getRoutingKey(): string {
-    return 'frontend.user.updated';
+    return 'frontend.registration.updated';
   }
 
   public function getType(): string {

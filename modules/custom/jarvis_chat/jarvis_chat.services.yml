@@ -1,0 +1,4 @@
+services:
+  jarvis_chat.jwt_signer:
+    class: Drupal\jarvis_chat\Service\JarvisJwtSigner
+    arguments: ['@current_user']
