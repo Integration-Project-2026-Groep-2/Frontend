@@ -209,8 +209,18 @@
       showCardError(errorBox, `Fout: ${data.error || res.statusText}`);
       return;
     }
-    finalizeCard(card, resolvedLabel);
-    appendDecisionBubble(convo, data.answer || '');
+    // HTTP 200 from /chat/approve doesn't always mean the dispatched tool
+    // succeeded — mcp-master returns 200 once the action transitioned to
+    // Executed even when the underlying CRM-MCP tool returned an error
+    // (TOOL_ERROR prefix in answer + ok:false in tool_trace). Detect that
+    // and render the card as 'Mislukt' so users don't think a duplicate
+    // VAT got accepted.
+    const toolFailed = (Array.isArray(data.tool_trace) &&
+                        data.tool_trace.some((t) => t.ok === false)) ||
+                       (typeof data.answer === 'string' &&
+                        data.answer.startsWith('TOOL_ERROR'));
+    finalizeCard(card, toolFailed ? 'Mislukt' : resolvedLabel);
+    appendDecisionBubble(convo, data.answer || '', toolFailed);
   }
 
   function setCardBusy(card, busy) {
@@ -252,9 +262,10 @@
   // salesforce_id}). Don't surface that to end-users — humanise based on the
   // routing_key into a Dutch one-liner. Plain prose answers (read-tools or
   // future write-tools that return text) fall through to markdown unchanged.
-  function appendDecisionBubble(convo, answer) {
+  function appendDecisionBubble(convo, answer, isError) {
     const humanised = humaniseDecisionAnswer(answer);
     const bubble = appendBubble(convo, 'assistant', '');
+    if (isError) bubble.classList.add('jarvis-error');
     renderMarkdown(bubble, humanised);
     history.push({ role: 'assistant', content: stripOuterCodeFence(humanised) });
     if (history.length > MAX_HISTORY_TURNS) {
@@ -273,13 +284,36 @@
 
   function humaniseDecisionAnswer(answer) {
     if (typeof answer !== 'string' || answer.trim() === '') return answer;
+    if (answer.startsWith('TOOL_ERROR')) {
+      const reason = answer.replace(/^TOOL_ERROR:?\s*/i, '').trim();
+      const friendly = humaniseToolError(reason) || reason;
+      return `**De actie kon niet worden uitgevoerd.**\n\n${friendly}`;
+    }
     let parsed;
     try { parsed = JSON.parse(answer); }
     catch { return answer; }
     if (!parsed || typeof parsed !== 'object' || !parsed.success) return answer;
     const label = ROUTING_KEY_LABELS[parsed.routing_key] || 'Actie uitgevoerd';
     const sfId = parsed.salesforce_id ? ` (Salesforce id \`${parsed.salesforce_id}\`)` : '';
-    return `✓ ${label}${sfId}.`;
+    return `${label}${sfId}.`;
+  }
+
+  // Map common CRM-MCP error patterns to Dutch operator-facing copy.
+  // Returns null if no pattern matches; caller falls back to the raw
+  // (English) reason from the tool. Keep short — CRM-MCP errors are
+  // already concise; we just translate the boilerplate.
+  function humaniseToolError(raw) {
+    if (/vat[_\s-]?number .* (already exists|in use)/i.test(raw))
+      return 'Een bedrijf met dit BTW-nummer bestaat al in Salesforce.';
+    if (/email .* (already exists|in use)/i.test(raw))
+      return 'Een contact met dit e-mailadres bestaat al in Salesforce.';
+    if (/(not found|does not exist)/i.test(raw))
+      return 'Het opgevraagde record bestaat niet (meer) in Salesforce.';
+    if (/(active contacts? linked|active registrations?|has dependents)/i.test(raw))
+      return 'Kan niet verwijderen — er zijn nog actieve gekoppelde records.';
+    if (/(invalid|malformed) (vat|email|phone)/i.test(raw))
+      return 'Ongeldige invoerwaarde. Controleer BTW, e-mail of telefoon.';
+    return null;
   }
 
   // mcp-master wraps every answer in a triple-backtick code fence per

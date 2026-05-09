@@ -645,6 +645,23 @@ body:has(#jarvis-chat) {
   background: rgba(220, 100, 100, 0.12);
 }
 
+.jarvis-approval-card__status[data-label="Mislukt"] {
+  color: #dc6464;
+  background: rgba(220, 100, 100, 0.12);
+}
+
+.jarvis-bubble.jarvis-error {
+  border-left: 3px solid #dc6464;
+  background: rgba(220, 100, 100, 0.08);
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  margin: 0.5rem 0;
+}
+
+.jarvis-bubble.jarvis-error strong {
+  color: #ff8a8a;
+}
+
 .jarvis-approval-card__error {
   font-size: 0.9rem;
   color: #dc6464;
