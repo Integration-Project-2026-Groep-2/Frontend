@@ -10,10 +10,18 @@ Admin-facing chatbot UI. Renders `/jarvis` as a chat page that proxies
   conversation area)
 - `POST /api/jarvis/chat` — Drupal-side proxy to `http://mcp-master:8080/chat`
   with CSRF + permission gating
+- `POST /api/jarvis/chat/approve` and `POST /api/jarvis/chat/reject` —
+  Drupal-side proxies for R2 actionable-agent write-tool approval-flow
+  (see [R2_APPROVAL_CARD.md](R2_APPROVAL_CARD.md))
 - Markdown rendering of LLM answers via `marked` + `DOMPurify` (XSS-safe)
 - Multi-turn conversation: previous user/assistant turns are included with
   every request so follow-up questions ("geef me daar het volledige object
   van") keep their context
+- **R2 approval-card UI** — when mcp-master returns `tool_trace[i].status="pending"`,
+  the assistant bubble renders a Goedkeuren/Afwijzen card. Approval
+  dispatches the proposed write-tool against Salesforce (via mcp-master
+  → CRM-MCP → SF + `contact.topic` AMQP broadcast); reject discards it
+  with an optional reason
 
 ## Multi-turn behavior
 
@@ -53,7 +61,18 @@ services:
   frontend:
     environment:
       - MCP_MASTER_URL=http://host.docker.internal:8080
+      # R2: Drupal-side JWT minting for /chat/approve + /chat/reject.
+      # MUST match the value mcp-master reads from CHAT_JWT_SECRET. When
+      # unset (legacy /chat-only mode), approve/reject return 403 cleanly.
+      - CHAT_JWT_SECRET=${CHAT_JWT_SECRET:-}
 ```
+
+`CHAT_JWT_SECRET`: shared HS256 secret. Drupal mints a JWT per-call with
+`sub=currentUser->id()`, `scope=read+act`, `exp=+1h`. mcp-master's
+`AuthScope` extractor decodes it and binds it to the `PendingAction.user_id`
+so proposer-equals-confirmer enforcement works (see `R2_APPROVAL_CARD.md`
+for the detailed flow). Generate with `openssl rand -hex 32` and set the
+same value on both containers.
 
 ## Network requirement (production)
 
@@ -66,11 +85,17 @@ options.
 
 ```bash
 docker compose exec frontend vendor/bin/phpunit \
-  modules/custom/jarvis_chat
+  -c web/core/phpunit.xml.dist \
+  --bootstrap web/core/tests/bootstrap.php \
+  web/modules/custom/custom/jarvis_chat/tests
 ```
 
-Three PHPUnit unit tests cover the proxy controller: empty prompt → 400,
-upstream Guzzle failure → 502, valid response → 200 with answer body.
+11 PHPUnit unit tests cover the proxy controller: prompt validation,
+multi-turn forward, upstream failure → 502, response whitelist (drops
+tokens/iterations/correlation_id), R2 approve forwards action_id +
+Authorization Bearer header, missing/non-string action_id → 400,
+upstream 409 surfaces, reject reason forwarded, approve response
+whitelist drops extra fields.
 
 ## Local dev
 
@@ -83,5 +108,9 @@ upstream Guzzle failure → 502, valid response → 200 with answer body.
 
 ## See also
 
-- Backend contract: `mcp-master/.claude/rules/HTTP_API.md`
+- [R2_APPROVAL_CARD.md](R2_APPROVAL_CARD.md) — module-side spec for the
+  actionable-agent flow (JWT signer, JS rendering, error humanisation)
+- Backend contract: `mcp-master/.claude/rules/HTTP_API.md` (especially
+  §1.5 Approval-flow)
+- Deploy handover: `mcp-master/.claude/rules/R2_DEPLOY_HANDOVER.md`
 - AI-team architecture: `mcp-master/.claude/rules/ai-team-architecture.md`
