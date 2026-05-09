@@ -315,4 +315,24 @@ class JarvisControllerTest extends UnitTestCase {
     $this->assertStringContainsString('elevated role', $response->getContent());
   }
 
+  public function testApproveUnknownUpstreamErrorCollapsedToGeneric(): void {
+    // Defense-in-depth: a regression in mcp-master that emits a verbose
+    // error (Salesforce stack-trace, JWT-debug, secret fragment) must NOT
+    // reach the browser. Only the documented HTTP_API.md §1.5 error-strings
+    // pass through; everything else collapses to 'upstream error'.
+    $http = $this->createMock(ClientInterface::class);
+    $http->method('request')->willThrowException(
+      new RequestException(
+        'leak',
+        new GuzzleRequest('POST', '/chat/approve'),
+        new Response(409, [], json_encode(['error' => 'verbose internal stack trace 0x123 secret=abc']))
+      )
+    );
+    $controller = $this->makeController($http, 'fake-jwt-token');
+    $response = $controller->approve($this->postRequest(['action_id' => 'uuid-x']));
+    $this->assertSame(409, $response->getStatusCode());
+    $payload = json_decode($response->getContent(), TRUE);
+    $this->assertSame('upstream error', $payload['error']);
+  }
+
 }

@@ -19,6 +19,21 @@ class JarvisController extends ControllerBase {
   private const REQUEST_TIMEOUT_SECONDS = 240;
   private const ELEVATED_ROLES = ['administrator', 'event_beheerder'];
 
+  /**
+   * mcp-master's documented /chat/approve + /chat/reject 4xx errors
+   * (HTTP_API.md §1.5). Anything outside this set collapses to a generic
+   * 'upstream error' so a regression that emits Salesforce stack traces
+   * or auth-debug fragments doesn't leak straight to the browser DOM.
+   */
+  private const KNOWN_UPSTREAM_ERRORS = [
+    'action not found',
+    'action expired',
+    'action already decided',
+    'user mismatch',
+    'scope read+act required',
+    'action_id required',
+  ];
+
   public function __construct(
     protected ClientInterface $httpClient,
     protected LoggerChannelFactoryInterface $logChannelFactory,
@@ -157,8 +172,7 @@ class JarvisController extends ControllerBase {
         $status = $upstream->getStatusCode();
         if ($status >= 400 && $status < 500) {
           $errBody = json_decode((string) $upstream->getBody(), TRUE);
-          $msg = (is_array($errBody) && isset($errBody['error'])) ? $errBody['error'] : 'upstream error';
-          return new JsonResponse(['error' => $msg], $status);
+          return new JsonResponse(['error' => self::safeUpstreamError($errBody)], $status);
         }
       }
       $this->logChannelFactory->get('jarvis_chat')
@@ -192,6 +206,17 @@ class JarvisController extends ControllerBase {
       fn($t) => is_array($t) ? array_intersect_key($t, $allow) : [],
       $trace,
     ));
+  }
+
+  private static function safeUpstreamError(mixed $errBody): string {
+    if (!is_array($errBody) || !isset($errBody['error']) || !is_string($errBody['error'])) {
+      return 'upstream error';
+    }
+    $msg = trim($errBody['error']);
+    if (in_array(strtolower($msg), self::KNOWN_UPSTREAM_ERRORS, TRUE)) {
+      return $msg;
+    }
+    return 'upstream error';
   }
 
   /**
