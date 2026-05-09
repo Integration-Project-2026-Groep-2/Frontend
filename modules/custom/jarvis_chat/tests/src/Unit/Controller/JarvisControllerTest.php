@@ -5,6 +5,7 @@ namespace Drupal\Tests\jarvis_chat\Unit\Controller;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\jarvis_chat\Controller\JarvisController;
+use Drupal\jarvis_chat\Service\JarvisJwtSigner;
 use Drupal\Tests\UnitTestCase;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\ConnectException;
@@ -18,11 +19,13 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class JarvisControllerTest extends UnitTestCase {
 
-  private function makeController(ClientInterface $http): JarvisController {
+  private function makeController(ClientInterface $http, ?string $mintedJwt = null): JarvisController {
     $loggerChannel = $this->createMock(LoggerChannelInterface::class);
     $loggerFactory = $this->createMock(LoggerChannelFactoryInterface::class);
     $loggerFactory->method('get')->willReturn($loggerChannel);
-    return new JarvisController($http, $loggerFactory);
+    $signer = $this->createMock(JarvisJwtSigner::class);
+    $signer->method('mint')->willReturn($mintedJwt);
+    return new JarvisController($http, $loggerFactory, $signer);
   }
 
   private function postRequest(array $body): Request {

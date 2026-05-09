@@ -17,7 +17,7 @@ use Drupal\Core\Session\AccountInterface;
  * Returns null when CHAT_JWT_SECRET is unset — caller (JarvisController)
  * forwards without Authorization header so mcp-master falls back cleanly.
  */
-final class JarvisJwtSigner {
+class JarvisJwtSigner {
 
   public function __construct(private readonly AccountInterface $currentUser) {
   }
