@@ -4,6 +4,7 @@ namespace Drupal\shift_bezoeker\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\file\Entity\File;
+use Drupal\shift_bezoeker\Form\EditAccountForm;
 
 class BezoekerController extends ControllerBase {
 
@@ -59,15 +60,7 @@ class BezoekerController extends ControllerBase {
   }
 
   public function accountPage() {
-    return [
-      '#theme' => 'account_gegevens_template',
-      '#user' => [
-        'firstName' => 'Bezoeker',
-        'lastName' => 'Naam',
-        'email' => 'test@shift.be',
-        'company' => 'Shift Festival',
-      ],
-    ];
+    return $this->formBuilder()->getForm(EditAccountForm::class);
   }
   public function inschrijven($session_id) {
     return [
