@@ -3,7 +3,7 @@ FROM drupal:11
 
 WORKDIR /opt/drupal
 
-RUN apt-get update && apt-get install -y libgmp-dev \
+RUN apt-get update && apt-get install -y libgmp-dev libxml2-utils \
     && docker-php-ext-install bcmath \
     && rm -rf /var/lib/apt/lists/*
 

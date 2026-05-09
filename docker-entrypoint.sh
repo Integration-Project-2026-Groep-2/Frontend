@@ -21,10 +21,14 @@ else
   echo "Drush not found, skipping Drupal init."
 fi
 
-php /opt/drupal/heartbeat.php &
-php /opt/drupal/init_fields.php
-php /opt/drupal/setup.php
-php /opt/drupal/consumer.php confirmed &
-php /opt/drupal/consumer.php updated &
-php /opt/drupal/consumer.php deactivated &
+if [ "${SKIP_AMQP_CONSUMERS:-0}" = "1" ]; then
+  echo "SKIP_AMQP_CONSUMERS=1 — geen heartbeat/consumer-processen starten (prod-broker test mode)"
+else
+  php /opt/drupal/heartbeat.php &
+  php /opt/drupal/init_fields.php
+  php /opt/drupal/setup.php
+  php /opt/drupal/consumer.php confirmed &
+  php /opt/drupal/consumer.php updated &
+  php /opt/drupal/consumer.php deactivated &
+fi
 wait "$apache_pid"
