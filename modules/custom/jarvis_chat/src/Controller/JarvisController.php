@@ -208,6 +208,12 @@ class JarvisController extends ControllerBase {
     ));
   }
 
+  /**
+   * Filters upstream error strings against the documented allowlist.
+   *
+   * mcp-master regressions could otherwise leak Salesforce stack-traces or
+   * JWT-debug fragments into the browser DOM via /chat/approve|reject 4xx.
+   */
   private static function safeUpstreamError(mixed $errBody): string {
     if (!is_array($errBody) || !isset($errBody['error']) || !is_string($errBody['error'])) {
       return 'upstream error';
