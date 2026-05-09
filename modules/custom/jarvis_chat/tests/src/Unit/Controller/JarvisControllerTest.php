@@ -27,7 +27,7 @@ class JarvisControllerTest extends UnitTestCase {
     $loggerChannel = $this->createMock(LoggerChannelInterface::class);
     $loggerFactory = $this->createMock(LoggerChannelFactoryInterface::class);
     $loggerFactory->method('get')->willReturn($loggerChannel);
-    $user = $user ?? $this->createMock(AccountProxyInterface::class);
+    $user = $user ?? $this->makeUser(1, ['administrator']);
     return new JarvisController($http, $loggerFactory, $user);
   }
 
@@ -193,24 +193,13 @@ class JarvisControllerTest extends UnitTestCase {
     }
   }
 
-  public function testJwtMintedWithReadScopeForVisitor(): void {
-    putenv('CHAT_JWT_SECRET=' . self::TEST_SECRET);
-    try {
-      $http = $this->createMock(ClientInterface::class);
-      $captured = NULL;
-      $this->captureRequest($http, $captured);
-      $visitor = $this->makeUser(99, ['authenticated', 'visitor']);
-      $controller = $this->makeController($http, $visitor);
-      $controller->chat($this->postRequest(['prompt' => 'hi']));
-
-      $jwt = substr($captured['headers']['Authorization'], 7);
-      $decoded = JWT::decode($jwt, new Key(self::TEST_SECRET, 'HS256'));
-      $this->assertSame('99', $decoded->sub);
-      $this->assertSame('read', $decoded->scope);
-    }
-    finally {
-      putenv('CHAT_JWT_SECRET');
-    }
+  public function testNonElevatedRoleGets403(): void {
+    $http = $this->createMock(ClientInterface::class);
+    $http->expects($this->never())->method('request');
+    $visitor = $this->makeUser(99, ['authenticated', 'visitor']);
+    $controller = $this->makeController($http, $visitor);
+    $response = $controller->chat($this->postRequest(['prompt' => 'hi']));
+    $this->assertSame(403, $response->getStatusCode());
   }
 
   public function testJwtPreferredOverStaticBearerWhenBothSet(): void {

@@ -61,6 +61,10 @@ class JarvisController extends ControllerBase {
       return new JsonResponse(['error' => 'prompt or messages required'], 400);
     }
 
+    if (!$this->isElevated()) {
+      return new JsonResponse(['error' => 'jarvis access requires admin or eventbeheerder role'], 403);
+    }
+
     $url = getenv('MCP_MASTER_URL') ?: self::DEFAULT_BACKEND_URL;
     $options = [
       'json'    => $body,
@@ -87,6 +91,10 @@ class JarvisController extends ControllerBase {
         ->error('mcp-master proxy failed: @msg', ['@msg' => $e->getMessage()]);
       return new JsonResponse(['error' => 'upstream error'], 502);
     }
+  }
+
+  private function isElevated(): bool {
+    return !empty(array_intersect($this->userAccount->getRoles(), self::ELEVATED_ROLES));
   }
 
   private function bearerToken(): ?string {
