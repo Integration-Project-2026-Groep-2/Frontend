@@ -247,13 +247,39 @@
   // arrives as data.answer — render it as a regular assistant bubble so the
   // conversation reads chronologically + push to history so a follow-up
   // turn includes the resolved action's outcome in Anthropic's context.
+  //
+  // CRM-MCP write-tools return raw JSON envelopes ({id, success, routing_key,
+  // salesforce_id}). Don't surface that to end-users — humanise based on the
+  // routing_key into a Dutch one-liner. Plain prose answers (read-tools or
+  // future write-tools that return text) fall through to markdown unchanged.
   function appendDecisionBubble(convo, answer) {
+    const humanised = humaniseDecisionAnswer(answer);
     const bubble = appendBubble(convo, 'assistant', '');
-    renderMarkdown(bubble, answer);
-    history.push({ role: 'assistant', content: stripOuterCodeFence(answer) });
+    renderMarkdown(bubble, humanised);
+    history.push({ role: 'assistant', content: stripOuterCodeFence(humanised) });
     if (history.length > MAX_HISTORY_TURNS) {
       history.splice(0, history.length - MAX_HISTORY_TURNS);
     }
+  }
+
+  const ROUTING_KEY_LABELS = {
+    'crm.company.confirmed': 'Bedrijf aangemaakt',
+    'crm.company.updated': 'Bedrijf bijgewerkt',
+    'crm.company.deactivated': 'Bedrijf gedeactiveerd',
+    'crm.user.confirmed': 'Contact aangemaakt',
+    'crm.user.updated': 'Contact bijgewerkt',
+    'crm.user.deactivated': 'Contact gedeactiveerd',
+  };
+
+  function humaniseDecisionAnswer(answer) {
+    if (typeof answer !== 'string' || answer.trim() === '') return answer;
+    let parsed;
+    try { parsed = JSON.parse(answer); }
+    catch { return answer; }
+    if (!parsed || typeof parsed !== 'object' || !parsed.success) return answer;
+    const label = ROUTING_KEY_LABELS[parsed.routing_key] || 'Actie uitgevoerd';
+    const sfId = parsed.salesforce_id ? ` (Salesforce id \`${parsed.salesforce_id}\`)` : '';
+    return `✓ ${label}${sfId}.`;
   }
 
   // mcp-master wraps every answer in a triple-backtick code fence per
