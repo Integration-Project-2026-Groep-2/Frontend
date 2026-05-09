@@ -76,11 +76,9 @@ class UserDeactivatedConsumer {
     while (count($this->channel->callbacks)) {
       try {
         $this->channel->wait(null, false, 60);
-        echo "[" . date('H:i:s') . "] Wachten op berichten...\n";
       }
       catch (\PhpAmqpLib\Exception\AMQPTimeoutException $e) {
         // Normaal — geen berichten binnen 60s, gewoon verder wachten.
-        echo "[" . date('H:i:s') . "] Wachten op berichten...\n";
       }
     }
   }
@@ -182,6 +180,7 @@ class UserDeactivatedConsumer {
 
     $account = reset($accounts);
     $account->set('status', 0);
+    $account->_is_rabbitmq_sync = TRUE;
     $account->save();
 
     \Drupal::logger('rabbitmq')->info(

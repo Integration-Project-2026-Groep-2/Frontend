@@ -28,3 +28,42 @@ function _hello_world_login_email_validator($form, &$form_state) {
     $form_state->setValue('name', $account->getAccountName());
   }
 }
+
+/**
+ * Implements hook_user_insert().
+ */
+function hello_world_user_insert(\Drupal\user\UserInterface $account) {
+  if (!empty($account->_is_rabbitmq_sync)) {
+    return;
+  }
+  $publisher = new \Drupal\hello_world\RabbitMQ\Publisher\UserCreatedPublisher($account);
+  $publisher->publish();
+}
+
+/**
+ * Implements hook_user_update().
+ */
+function hello_world_user_update(\Drupal\user\UserInterface $account) {
+  if (!empty($account->_is_rabbitmq_sync)) {
+    return;
+  }
+  // Check if status changed to inactive
+  if ($account->original && $account->original->isActive() && !$account->isActive()) {
+    $publisher = new \Drupal\hello_world\RabbitMQ\Publisher\UserUpdatedPublisher($account, 'cancelled');
+    $publisher->publish();
+  } else {
+    $publisher = new \Drupal\hello_world\RabbitMQ\Publisher\UserUpdatedPublisher($account, 'updated');
+    $publisher->publish();
+  }
+}
+
+/**
+ * Implements hook_user_delete().
+ */
+function hello_world_user_delete(\Drupal\user\UserInterface $account) {
+  if (!empty($account->_is_rabbitmq_sync)) {
+    return;
+  }
+  $publisher = new \Drupal\hello_world\RabbitMQ\Publisher\UserUpdatedPublisher($account, 'cancelled');
+  $publisher->publish();
+}

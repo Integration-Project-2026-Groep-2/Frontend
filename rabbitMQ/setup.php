@@ -2,6 +2,7 @@
 
 // Onderdruk E_DEPRECATED van php-amqplib (PHP-8.4 parameter-volgorde warnings).
 error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+ini_set('display_errors', '0');
 
 /**
  * /opt/drupal/setup.php
