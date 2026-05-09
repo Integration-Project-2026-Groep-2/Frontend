@@ -1,5 +1,6 @@
 /* --- FORMULIER CONTAINER --- */
-#shift-bezoeker-registratie-form {
+#shift-bezoeker-registratie-form,
+#user-login-form {
   max-width: 720px;
   width: 100%;
   margin: 60px auto;
@@ -8,6 +9,10 @@
   background-color: #fff !important;
   border-radius: 20px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+#user-login-form {
+  max-width: 480px;
 }
 
 /* Eerste sectie-titel zonder dubbele top-padding binnen de card. */
@@ -196,7 +201,8 @@ input[type="submit"]:hover {
 
 /* --- MOBILE RESPONSIVE --- */
 @media (max-width: 768px) {
-  #shift-bezoeker-registratie-form {
+  #shift-bezoeker-registratie-form,
+  #user-login-form {
     margin: 30px 16px;
     padding: 30px 24px;
   }
