@@ -157,10 +157,9 @@ class EditAccountForm extends FormBase {
       company:    $diff['company_name'] ?? NULL,
     );
 
+    $client = RabbitMQClient::fromEnv();
     try {
-      $client = RabbitMQClient::fromEnv();
       $client->publish($message);
-      $client->disconnect();
       \Drupal::logger('shift_bezoeker')->info(
         'AMQP published profile update for @email (fields: @fields)',
         ['@email' => $account->getEmail(), '@fields' => implode(',', array_keys($diff))],
@@ -171,6 +170,9 @@ class EditAccountForm extends FormBase {
         'AMQP publish failed for profile update (@email): @msg',
         ['@email' => $account->getEmail(), '@msg' => $e->getMessage()],
       );
+    }
+    finally {
+      $client->disconnect();
     }
   }
 

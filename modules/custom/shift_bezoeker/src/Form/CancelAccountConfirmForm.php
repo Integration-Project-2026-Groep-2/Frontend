@@ -73,10 +73,9 @@ class CancelAccountConfirmForm extends ConfirmFormBase {
       changeType: 'cancelled',
     );
 
+    $client = RabbitMQClient::fromEnv();
     try {
-      $client = RabbitMQClient::fromEnv();
       $client->publish($message);
-      $client->disconnect();
       \Drupal::logger('shift_bezoeker')->info(
         'AMQP published account cancel for @email',
         ['@email' => $email],
@@ -87,6 +86,9 @@ class CancelAccountConfirmForm extends ConfirmFormBase {
         'AMQP publish failed for account cancel (@email): @msg',
         ['@email' => $email, '@msg' => $e->getMessage()],
       );
+    }
+    finally {
+      $client->disconnect();
     }
   }
 
