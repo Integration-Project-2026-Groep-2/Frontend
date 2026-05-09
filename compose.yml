@@ -26,6 +26,7 @@ services:
       - drupal_sites:/opt/drupal/web/sites
       - ./modules/custom:/opt/drupal/web/modules/custom
       - ./themes:/opt/drupal/web/themes/custom
+      - ./xsd:/opt/drupal/xsd:ro
     restart: unless-stopped
     depends_on:
       frontend_db:
@@ -39,9 +40,10 @@ services:
       - DRUPAL_DB_NAME=${FRONTEND_DB_NAME}
       - DRUPAL_DB_USER=${FRONTEND_DB_USER}
       - DRUPAL_DB_PASS=${FRONTEND_DB_PASS}
-      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_HOST=${RABBITMQ_HOST}
       - RABBITMQ_USER=${RABBITMQ_USER}
       - RABBITMQ_PASS=${RABBITMQ_PASS}
+      - SKIP_AMQP_CONSUMERS=${SKIP_AMQP_CONSUMERS:-0}
 
   frontend_db:
     image: mariadb:12

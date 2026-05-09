@@ -112,4 +112,39 @@ class JarvisControllerTest extends UnitTestCase {
     $this->assertArrayNotHasKey('correlation_id', $payload);
   }
 
+  public function testBearerTokenForwardedWhenEnvSet(): void {
+    putenv('MCP_MASTER_BEARER_TOKEN=test-token-xyz');
+    try {
+      $http = $this->createMock(ClientInterface::class);
+      $captured = NULL;
+      $http->method('request')->willReturnCallback(
+        function ($method, $url, $options) use (&$captured) {
+          $captured = $options;
+          return new Response(200, [], json_encode(['answer' => 'ok']));
+        }
+      );
+      $controller = $this->makeController($http);
+      $controller->chat($this->postRequest(['prompt' => 'hi']));
+      $this->assertSame('Bearer test-token-xyz', $captured['headers']['Authorization'] ?? NULL);
+    }
+    finally {
+      putenv('MCP_MASTER_BEARER_TOKEN');
+    }
+  }
+
+  public function testNoAuthorizationHeaderWhenEnvUnset(): void {
+    putenv('MCP_MASTER_BEARER_TOKEN');
+    $http = $this->createMock(ClientInterface::class);
+    $captured = NULL;
+    $http->method('request')->willReturnCallback(
+      function ($method, $url, $options) use (&$captured) {
+        $captured = $options;
+        return new Response(200, [], json_encode(['answer' => 'ok']));
+      }
+    );
+    $controller = $this->makeController($http);
+    $controller->chat($this->postRequest(['prompt' => 'hi']));
+    $this->assertArrayNotHasKey('headers', $captured);
+  }
+
 }

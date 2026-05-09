@@ -3,7 +3,7 @@ FROM drupal:11
 
 WORKDIR /opt/drupal
 
-RUN apt-get update && apt-get install -y libgmp-dev \
+RUN apt-get update && apt-get install -y libgmp-dev libxml2-utils \
     && docker-php-ext-install bcmath \
     && rm -rf /var/lib/apt/lists/*
 
@@ -14,7 +14,7 @@ RUN composer require \
 
 # Copy the custom module and custom theme into the Drupal modules directory
 COPY ./modules/custom /opt/drupal/web/modules/custom
-COPY ./themes/custom /tmp/themes/custom
+COPY --chown=www-data:www-data ./themes/custom /opt/drupal/web/themes/custom
 
 COPY ./modules/custom/custom_roles /opt/drupal/web/modules/custom/custom_roles
 COPY ./xsd /opt/drupal/xsd

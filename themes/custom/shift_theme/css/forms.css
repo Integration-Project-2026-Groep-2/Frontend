@@ -1,11 +1,25 @@
 /* --- FORMULIER CONTAINER --- */
-#shift-bezoeker-registratie-form {
-  max-width: 100%;
+#shift-bezoeker-registratie-form,
+#user-login-form,
+#shift-bezoeker-edit-account-form,
+#shift-bezoeker-cancel-account-confirm-form {
+  max-width: 720px;
   width: 100%;
-  margin: 0;
-  padding: 60px 10%;
+  margin: 60px auto;
+  padding: 50px 60px;
   box-sizing: border-box;
-  background-color: transparent !important;
+  background-color: #fff !important;
+  border-radius: 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+#user-login-form {
+  max-width: 480px;
+}
+
+/* Eerste sectie-titel zonder dubbele top-padding binnen de card. */
+#shift-bezoeker-registratie-form > .form-item-registratie-type {
+  margin-top: 0;
 }
 
 /* --- SECTIE TITELS --- */
@@ -91,6 +105,7 @@
 input[type="text"],
 input[type="email"],
 input[type="tel"],
+input[type="password"],
 select {
   width: 100%;
   padding: 14px 20px;
@@ -106,9 +121,45 @@ select {
 input[type="text"]:focus,
 input[type="email"]:focus,
 input[type="tel"]:focus,
+input[type="password"]:focus,
 select:focus {
   border-color: #6333ea;
+  box-shadow: 0 0 0 3px rgba(99, 51, 234, 0.12);
   outline: none;
+}
+
+input[type="text"].error,
+input[type="email"].error,
+input[type="tel"].error,
+input[type="password"].error,
+select.error {
+  border-color: #c53030;
+}
+
+/* --- VALIDATION FEEDBACK + HELPER TEXT --- */
+.messages--error,
+.messages.error {
+  background: #fff5f5;
+  border: 1px solid #ffd0d0;
+  border-radius: 10px;
+  padding: 16px 20px;
+  color: #c53030;
+  margin-bottom: 24px;
+  font-size: 14px;
+}
+
+.form-item--error-message,
+.form-item .form-item__error-message {
+  font-size: 13px;
+  color: #c53030;
+  margin-top: 6px;
+}
+
+.form-item .description,
+#shift-bezoeker-registratie-form .description {
+  font-size: 13px;
+  color: #6b6b75;
+  margin-top: 6px;
 }
 
 /* --- SUBMIT KNOP --- */
@@ -148,4 +199,80 @@ input[type="submit"]:hover {
   font-size: 14px;
   color: #555;
   cursor: pointer;
+}
+
+/* --- PROFILE PAGE UTILITIES --- */
+.page-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 30px 0;
+}
+
+.form-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 30px;
+  align-items: center;
+}
+
+.form-actions input[type="submit"] {
+  margin-top: 0;
+}
+
+.btn-danger {
+  background: #fff;
+  color: #c53030;
+  border: 1.5px solid #c53030;
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 15px;
+  text-decoration: none;
+  transition: background 0.2s ease, color 0.2s ease;
+  display: inline-block;
+}
+
+.btn-danger:hover {
+  background: #c53030;
+  color: #fff;
+}
+
+#shift-bezoeker-cancel-account-confirm-form input[name="op"] {
+  background: #c53030;
+}
+
+#shift-bezoeker-cancel-account-confirm-form input[name="op"]:hover {
+  background: #a02020;
+}
+
+/* --- MOBILE RESPONSIVE --- */
+@media (max-width: 768px) {
+  #shift-bezoeker-registratie-form,
+  #user-login-form,
+  #shift-bezoeker-edit-account-form,
+  #shift-bezoeker-cancel-account-confirm-form {
+    margin: 30px 16px;
+    padding: 30px 24px;
+  }
+  .form-row {
+    grid-template-columns: 1fr !important;
+    column-gap: 0 !important;
+    row-gap: 0;
+  }
+  #shift-bezoeker-registratie-form .form-item-registratie-type .form-radios {
+    flex-direction: column;
+    gap: 16px;
+  }
+  #shift-bezoeker-registratie-form .form-item-registratie-type label {
+    padding: 24px;
+  }
+  .form-section-title {
+    font-size: 20px;
+    margin-top: 36px !important;
+  }
+  .page-title {
+    font-size: 24px;
+  }
 }
