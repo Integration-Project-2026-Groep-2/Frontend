@@ -12,7 +12,15 @@ shift_bezoeker.account:
     _controller: '\Drupal\shift_bezoeker\Controller\BezoekerController::accountPage'
     _title: 'Mijn Account'
   requirements:
-    _permission: 'access content'
+    _user_is_logged_in: 'TRUE'
+
+shift_bezoeker.account_cancel:
+  path: '/bezoeker/account/cancel'
+  defaults:
+    _form: '\Drupal\shift_bezoeker\Form\CancelAccountConfirmForm'
+    _title: 'Account verwijderen'
+  requirements:
+    _user_is_logged_in: 'TRUE'
 
 shift_bezoeker.inschrijven:
   path: '/sessie/inschrijven/{session_id}'
