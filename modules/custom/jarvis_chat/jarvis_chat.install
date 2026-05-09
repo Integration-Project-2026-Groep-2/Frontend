@@ -1,0 +1,31 @@
+<?php
+
+declare(strict_types=1);
+
+use Drupal\user\Entity\Role;
+
+/**
+ * Implements hook_install().
+ *
+ * Grants `'use jarvis chat'` permission to the elevated roles. Idempotent —
+ * skips roles that don't exist (yet) and re-grants are no-ops on roles that
+ * already have the permission.
+ */
+function jarvis_chat_install(): void {
+  foreach (['administrator', 'event_beheerder'] as $rid) {
+    $role = Role::load($rid);
+    if ($role !== NULL && !$role->hasPermission('use jarvis chat')) {
+      $role->grantPermission('use jarvis chat');
+      $role->save();
+    }
+  }
+}
+
+/**
+ * Re-run the permission grant on existing sites where jarvis_chat was
+ * installed before the install-hook existed (admin had been granted via
+ * `drush role:perm:add` but event_beheerder never was).
+ */
+function jarvis_chat_update_8001(): void {
+  jarvis_chat_install();
+}
