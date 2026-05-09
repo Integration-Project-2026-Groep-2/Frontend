@@ -117,7 +117,42 @@ input[type="tel"]:focus,
 input[type="password"]:focus,
 select:focus {
   border-color: #6333ea;
+  box-shadow: 0 0 0 3px rgba(99, 51, 234, 0.12);
   outline: none;
+}
+
+input[type="text"].error,
+input[type="email"].error,
+input[type="tel"].error,
+input[type="password"].error,
+select.error {
+  border-color: #c53030;
+}
+
+/* --- VALIDATION FEEDBACK + HELPER TEXT --- */
+.messages--error,
+.messages.error {
+  background: #fff5f5;
+  border: 1px solid #ffd0d0;
+  border-radius: 10px;
+  padding: 16px 20px;
+  color: #c53030;
+  margin-bottom: 24px;
+  font-size: 14px;
+}
+
+.form-item--error-message,
+.form-item .form-item__error-message {
+  font-size: 13px;
+  color: #c53030;
+  margin-top: 6px;
+}
+
+.form-item .description,
+#shift-bezoeker-registratie-form .description {
+  font-size: 13px;
+  color: #6b6b75;
+  margin-top: 6px;
 }
 
 /* --- SUBMIT KNOP --- */
