@@ -161,6 +161,10 @@ class EditAccountForm extends FormBase {
       $client = RabbitMQClient::fromEnv();
       $client->publish($message);
       $client->disconnect();
+      \Drupal::logger('shift_bezoeker')->info(
+        'AMQP published profile update for @email (fields: @fields)',
+        ['@email' => $account->getEmail(), '@fields' => implode(',', array_keys($diff))],
+      );
     }
     catch (\Throwable $e) {
       \Drupal::logger('shift_bezoeker')->error(

@@ -77,6 +77,10 @@ class CancelAccountConfirmForm extends ConfirmFormBase {
       $client = RabbitMQClient::fromEnv();
       $client->publish($message);
       $client->disconnect();
+      \Drupal::logger('shift_bezoeker')->info(
+        'AMQP published account cancel for @email',
+        ['@email' => $email],
+      );
     }
     catch (\Throwable $e) {
       \Drupal::logger('shift_bezoeker')->error(
