@@ -1,6 +1,8 @@
 /* --- FORMULIER CONTAINER --- */
 #shift-bezoeker-registratie-form,
-#user-login-form {
+#user-login-form,
+#shift-bezoeker-edit-account-form,
+#shift-bezoeker-cancel-account-confirm-form {
   max-width: 720px;
   width: 100%;
   margin: 60px auto;
@@ -199,10 +201,58 @@ input[type="submit"]:hover {
   cursor: pointer;
 }
 
+/* --- PROFILE PAGE UTILITIES --- */
+.page-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 32px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin: 0 0 30px 0;
+}
+
+.form-actions {
+  display: flex;
+  gap: 16px;
+  margin-top: 30px;
+  align-items: center;
+}
+
+.form-actions input[type="submit"] {
+  margin-top: 0;
+}
+
+.btn-danger {
+  background: #fff;
+  color: #c53030;
+  border: 1.5px solid #c53030;
+  padding: 14px 28px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 15px;
+  text-decoration: none;
+  transition: background 0.2s ease, color 0.2s ease;
+  display: inline-block;
+}
+
+.btn-danger:hover {
+  background: #c53030;
+  color: #fff;
+}
+
+#shift-bezoeker-cancel-account-confirm-form input[name="op"] {
+  background: #c53030;
+}
+
+#shift-bezoeker-cancel-account-confirm-form input[name="op"]:hover {
+  background: #a02020;
+}
+
 /* --- MOBILE RESPONSIVE --- */
 @media (max-width: 768px) {
   #shift-bezoeker-registratie-form,
-  #user-login-form {
+  #user-login-form,
+  #shift-bezoeker-edit-account-form,
+  #shift-bezoeker-cancel-account-confirm-form {
     margin: 30px 16px;
     padding: 30px 24px;
   }
@@ -221,5 +271,8 @@ input[type="submit"]:hover {
   .form-section-title {
     font-size: 20px;
     margin-top: 36px !important;
+  }
+  .page-title {
+    font-size: 24px;
   }
 }
