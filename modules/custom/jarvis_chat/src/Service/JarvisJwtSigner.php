@@ -27,14 +27,25 @@ class JarvisJwtSigner {
     if ($secret === '') {
       return NULL;
     }
-    $header = ['alg' => 'HS256', 'typ' => 'JWT'];
-    $payload = [
-      'sub' => (string) $this->currentUser->id(),
-      'scope' => $scope,
-      'exp' => time() + $ttlSeconds,
-    ];
-    $signingInput = self::b64url(json_encode($header, JSON_UNESCAPED_SLASHES))
-      . '.' . self::b64url(json_encode($payload, JSON_UNESCAPED_SLASHES));
+    // Defense-in-depth: refuse to sign anything other than a numeric Drupal
+    // uid. Drupal core always returns int but a future SSO/masquerade module
+    // could return a non-numeric string that escapes the JSON shape.
+    $sub = (string) $this->currentUser->id();
+    if ($sub === '' || !ctype_digit($sub)) {
+      return NULL;
+    }
+    // JSON_THROW_ON_ERROR turns silent encoding failures (which would
+    // otherwise concatenate `false` into the signing input and produce a
+    // signed-but-malformed token) into a JsonException the caller handles.
+    $headerJson = json_encode(
+      ['alg' => 'HS256', 'typ' => 'JWT'],
+      JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR,
+    );
+    $payloadJson = json_encode(
+      ['sub' => $sub, 'scope' => $scope, 'exp' => time() + $ttlSeconds],
+      JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR,
+    );
+    $signingInput = self::b64url($headerJson) . '.' . self::b64url($payloadJson);
     $signature = hash_hmac('sha256', $signingInput, $secret, TRUE);
     return $signingInput . '.' . self::b64url($signature);
   }
