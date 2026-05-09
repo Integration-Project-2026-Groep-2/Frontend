@@ -315,6 +315,27 @@ class JarvisControllerTest extends UnitTestCase {
     $this->assertStringContainsString('elevated role', $response->getContent());
   }
 
+  public function testInvalidBackendUrlFallsBackToDefault(): void {
+    putenv('MCP_MASTER_URL=http://attacker.tld/log?x=1');
+    try {
+      $http = $this->createMock(ClientInterface::class);
+      $captured = NULL;
+      $http->method('request')->willReturnCallback(
+        function ($method, $url, $options) use (&$captured) {
+          $captured = $url;
+          return new Response(200, [], json_encode(['answer' => 'ok']));
+        }
+      );
+      $controller = $this->makeController($http);
+      $controller->chat($this->postRequest(['prompt' => 'hi']));
+      $this->assertStringStartsWith('http://mcp-master:8080', (string) $captured);
+      $this->assertStringEndsWith('/chat', (string) $captured);
+    }
+    finally {
+      putenv('MCP_MASTER_URL');
+    }
+  }
+
   public function testApproveUnknownUpstreamErrorCollapsedToGeneric(): void {
     // Defense-in-depth: a regression in mcp-master that emits a verbose
     // error (Salesforce stack-trace, JWT-debug, secret fragment) must NOT

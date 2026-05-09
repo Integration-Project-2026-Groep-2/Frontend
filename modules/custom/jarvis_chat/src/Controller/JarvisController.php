@@ -146,7 +146,7 @@ class JarvisController extends ControllerBase {
    *   collapses to 502 to keep cause-chains out of the browser.
    */
   private function forwardToMaster(string $path, array $body, bool $surfaceUpstreamStatus): JsonResponse {
-    $url = getenv('MCP_MASTER_URL') ?: self::DEFAULT_BACKEND_URL;
+    $url = $this->backendBaseUrl();
     $options = [
       'json' => $body,
       'timeout' => self::REQUEST_TIMEOUT_SECONDS,
@@ -217,6 +217,34 @@ class JarvisController extends ControllerBase {
       return $msg;
     }
     return 'upstream error';
+  }
+
+  /**
+   * Validates MCP_MASTER_URL — falls back to default on any malformed value.
+   *
+   * Threat: env-var compromise (rotated `.env` leaks have happened in this
+   * sprint) could redirect a freshly-minted JWT to attacker.tld. Validating
+   * scheme/host/path/query/fragment closes the SSRF seam without locking us
+   * into a host-allowlist (which differs between local-dev and prod).
+   */
+  private function backendBaseUrl(): string {
+    $raw = getenv('MCP_MASTER_URL');
+    if ($raw === FALSE || $raw === '') {
+      return self::DEFAULT_BACKEND_URL;
+    }
+    $parsed = parse_url($raw);
+    $isValid = is_array($parsed)
+      && in_array($parsed['scheme'] ?? '', ['http', 'https'], TRUE)
+      && !empty($parsed['host'])
+      && empty($parsed['query'])
+      && empty($parsed['fragment'])
+      && (!isset($parsed['path']) || $parsed['path'] === '' || $parsed['path'] === '/');
+    if (!$isValid) {
+      $this->logChannelFactory->get('jarvis_chat')
+        ->warning('Invalid MCP_MASTER_URL — falling back to default');
+      return self::DEFAULT_BACKEND_URL;
+    }
+    return rtrim($raw, '/');
   }
 
   /**
