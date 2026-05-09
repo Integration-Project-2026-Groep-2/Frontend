@@ -47,14 +47,8 @@
           }
 
           try {
-            const csrf = await fetch('/session/token').then((r) => r.text());
-            const res = await fetch('/api/jarvis/chat', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'X-CSRF-Token': csrf,
-              },
-              body: JSON.stringify({ messages: [...history, userTurn] }),
+            const res = await jarvisFetch('/api/jarvis/chat', {
+              messages: [...history, userTurn],
             });
             const data = await res.json();
             if (res.ok) {
@@ -74,6 +68,7 @@
               }
               renderMarkdown(loading, data.answer || '');
               if (Array.isArray(data.tool_trace) && data.tool_trace.length > 0) {
+                appendApprovalCards(loading, data.tool_trace, convo);
                 appendToolFlow(loading, data.tool_trace);
               }
             } else {
@@ -90,6 +85,263 @@
       });
     },
   };
+
+  // CSRF + JSON POST helper — same dance for /chat, /chat/approve, /chat/reject.
+  // Token fetched per-call rather than cached because Drupal's session token can
+  // rotate; the cost is one extra GET (~5ms intra-network) and the benefit is no
+  // 403-after-rotation surprises during long-lived chat sessions.
+  async function jarvisFetch(path, body) {
+    const csrf = await fetch('/session/token').then((r) => r.text());
+    return fetch(path, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': csrf,
+      },
+      body: JSON.stringify(body),
+    });
+  }
+
+  // Iterate the trace, render one approval-card per status='pending' entry.
+  // Cards live INSIDE the assistant bubble so they scroll naturally with the
+  // conversation. Buttons capture the action_id via closure and POST to the
+  // /chat/approve and /chat/reject Drupal proxy actions on click.
+  function appendApprovalCards(bubble, trace, convo) {
+    trace.forEach((entry) => {
+      if (entry.status !== 'pending' || !entry.action_id) return;
+      bubble.appendChild(buildApprovalCard(entry, convo));
+    });
+  }
+
+  function buildApprovalCard(entry, convo) {
+    const card = document.createElement('div');
+    card.className = 'jarvis-approval-card';
+    card.dataset.actionId = entry.action_id;
+
+    const title = document.createElement('div');
+    title.className = 'jarvis-approval-card__title';
+    title.textContent = 'Goedkeuring vereist';
+    card.appendChild(title);
+
+    const meta = document.createElement('dl');
+    meta.className = 'jarvis-approval-card__meta';
+    appendMetaRow(meta, 'Tool', entry.tool || '?');
+    appendMetaRow(meta, 'Server', entry.server || '?');
+    appendMetaRow(meta, 'Action ID', entry.action_id, true);
+    card.appendChild(meta);
+
+    const reason = document.createElement('textarea');
+    reason.className = 'jarvis-approval-card__reason';
+    reason.rows = 2;
+    reason.placeholder = 'Reden voor afwijzing (optioneel)';
+    card.appendChild(reason);
+
+    const actions = document.createElement('div');
+    actions.className = 'jarvis-approval-card__actions';
+
+    const approveBtn = document.createElement('button');
+    approveBtn.type = 'button';
+    approveBtn.className = 'jarvis-approve-btn';
+    approveBtn.textContent = 'Goedkeuren';
+
+    const rejectBtn = document.createElement('button');
+    rejectBtn.type = 'button';
+    rejectBtn.className = 'jarvis-reject-btn';
+    rejectBtn.textContent = 'Afwijzen';
+
+    const errorBox = document.createElement('div');
+    errorBox.className = 'jarvis-approval-card__error';
+    errorBox.hidden = true;
+
+    // Synchronous busy-flag set BEFORE any await. setCardBusy inside
+    // decideAction lands too late — the first await (CSRF token fetch)
+    // gives the user a window to click the other button and fire a second
+    // request for the same action_id.
+    const guardClick = (handler) => async () => {
+      if (card.dataset.busy === '1' || card.classList.contains('is-resolved')) return;
+      card.dataset.busy = '1';
+      try { await handler(); }
+      finally { card.dataset.busy = ''; }
+    };
+    approveBtn.addEventListener('click', guardClick(async () => {
+      await decideAction(card, errorBox, '/api/jarvis/chat/approve', { action_id: entry.action_id }, 'Goedgekeurd', convo);
+    }));
+    rejectBtn.addEventListener('click', guardClick(async () => {
+      const r = reason.value.trim();
+      const body = { action_id: entry.action_id };
+      if (r !== '') body.reason = r;
+      await decideAction(card, errorBox, '/api/jarvis/chat/reject', body, 'Afgewezen', convo);
+    }));
+
+    actions.appendChild(approveBtn);
+    actions.appendChild(rejectBtn);
+    card.appendChild(actions);
+    card.appendChild(errorBox);
+
+    return card;
+  }
+
+  function appendMetaRow(dl, label, value, mono) {
+    const dt = document.createElement('dt');
+    dt.textContent = label;
+    const dd = document.createElement('dd');
+    if (mono) {
+      const code = document.createElement('code');
+      code.textContent = value;
+      dd.appendChild(code);
+    } else {
+      dd.textContent = value;
+    }
+    dl.appendChild(dt);
+    dl.appendChild(dd);
+  }
+
+  // Disable inputs while the request is in flight; on response, either lock
+  // the card into a resolved state with status label + new assistant bubble
+  // (2xx), or restore inputs with an inline error message (4xx/5xx) so the
+  // user can retry — including 409 'already decided' for double-click cases.
+  async function decideAction(card, errorBox, path, body, resolvedLabel, convo) {
+    setCardBusy(card, true);
+    errorBox.hidden = true;
+    errorBox.textContent = '';
+    let res;
+    try {
+      res = await jarvisFetch(path, body);
+    } catch (err) {
+      setCardBusy(card, false);
+      showCardError(errorBox, `Fout: ${err.message}`);
+      return;
+    }
+    let data = {};
+    try { data = await res.json(); } catch { /* empty body */ }
+    if (!res.ok) {
+      setCardBusy(card, false);
+      showCardError(errorBox, humaniseUpstreamError(data.error) || `Fout: ${data.error || res.statusText}`);
+      return;
+    }
+    // HTTP 200 from /chat/approve doesn't always mean the dispatched tool
+    // succeeded — mcp-master returns 200 once the action transitioned to
+    // Executed even when the underlying CRM-MCP tool returned an error
+    // (TOOL_ERROR prefix in answer + ok:false in tool_trace). Detect that
+    // and render the card as 'Mislukt' so users don't think a duplicate
+    // VAT got accepted.
+    const toolFailed = (Array.isArray(data.tool_trace) &&
+                        data.tool_trace.some((t) => t.ok === false)) ||
+                       (typeof data.answer === 'string' &&
+                        data.answer.startsWith('TOOL_ERROR'));
+    finalizeCard(card, toolFailed ? 'Mislukt' : resolvedLabel);
+    appendDecisionBubble(convo, data.answer || '', toolFailed);
+  }
+
+  function setCardBusy(card, busy) {
+    card.classList.toggle('is-pending-decision', busy);
+    card.querySelectorAll('button, textarea').forEach((el) => {
+      el.disabled = busy;
+    });
+  }
+
+  function showCardError(errorBox, msg) {
+    errorBox.textContent = msg;
+    errorBox.hidden = false;
+  }
+
+  // Final card state — keep the meta-rows visible (so the action stays
+  // auditable in the conversation) but swap the action area for a status
+  // label. is-resolved class also dims the whole card via CSS.
+  function finalizeCard(card, statusLabel) {
+    card.classList.add('is-resolved');
+    card.classList.remove('is-pending-decision');
+    const actions = card.querySelector('.jarvis-approval-card__actions');
+    const reason = card.querySelector('.jarvis-approval-card__reason');
+    if (reason) reason.remove();
+    if (actions) {
+      const status = document.createElement('span');
+      status.className = 'jarvis-approval-card__status';
+      status.dataset.label = statusLabel;
+      status.textContent = statusLabel;
+      actions.replaceChildren(status);
+    }
+  }
+
+  // After approve/reject the dispatched-tool-result (or rejection notice)
+  // arrives as data.answer — render it as a regular assistant bubble so the
+  // conversation reads chronologically + push to history so a follow-up
+  // turn includes the resolved action's outcome in Anthropic's context.
+  //
+  // CRM-MCP write-tools return raw JSON envelopes ({id, success, routing_key,
+  // salesforce_id}). Don't surface that to end-users — humanise based on the
+  // routing_key into a Dutch one-liner. Plain prose answers (read-tools or
+  // future write-tools that return text) fall through to markdown unchanged.
+  function appendDecisionBubble(convo, answer, isError) {
+    const humanised = humaniseDecisionAnswer(answer);
+    const bubble = appendBubble(convo, 'assistant', '');
+    if (isError) bubble.classList.add('jarvis-error');
+    renderMarkdown(bubble, humanised);
+    history.push({ role: 'assistant', content: stripOuterCodeFence(humanised) });
+    if (history.length > MAX_HISTORY_TURNS) {
+      history.splice(0, history.length - MAX_HISTORY_TURNS);
+    }
+  }
+
+  const ROUTING_KEY_LABELS = {
+    'crm.company.confirmed': 'Bedrijf aangemaakt',
+    'crm.company.updated': 'Bedrijf bijgewerkt',
+    'crm.company.deactivated': 'Bedrijf gedeactiveerd',
+    'crm.user.confirmed': 'Contact aangemaakt',
+    'crm.user.updated': 'Contact bijgewerkt',
+    'crm.user.deactivated': 'Contact gedeactiveerd',
+  };
+
+  function humaniseDecisionAnswer(answer) {
+    if (typeof answer !== 'string' || answer.trim() === '') return answer;
+    if (answer.startsWith('TOOL_ERROR')) {
+      const reason = answer.replace(/^TOOL_ERROR:?\s*/i, '').trim();
+      const friendly = humaniseToolError(reason) || reason;
+      return `**De actie kon niet worden uitgevoerd.**\n\n${friendly}`;
+    }
+    let parsed;
+    try { parsed = JSON.parse(answer); }
+    catch { return answer; }
+    if (!parsed || typeof parsed !== 'object' || !parsed.success) return answer;
+    const label = ROUTING_KEY_LABELS[parsed.routing_key] || 'Actie uitgevoerd';
+    const sfId = parsed.salesforce_id ? ` (Salesforce id \`${parsed.salesforce_id}\`)` : '';
+    return `${label}${sfId}.`;
+  }
+
+  // mcp-master's documented error strings on /chat/approve + /chat/reject
+  // (HTTP_API.md §1.5). Mapped to Dutch so the inline-error UX stays
+  // consistent with the rest of the module. Unknown values fall through
+  // to the existing `Fout: <upstream>` formatting in decideAction.
+  const UPSTREAM_ERROR_LABELS = {
+    'action not found': 'Deze actie is niet meer beschikbaar — vraag opnieuw.',
+    'action expired': 'De actie is verlopen (TTL 15 min) — vraag opnieuw.',
+    'action already decided': 'Deze actie is al verwerkt.',
+    'user mismatch': 'Deze actie hoort bij een andere gebruiker.',
+    'scope read+act required': 'Je account mag deze actie niet uitvoeren.',
+  };
+
+  function humaniseUpstreamError(error) {
+    if (typeof error !== 'string') return null;
+    return UPSTREAM_ERROR_LABELS[error.toLowerCase().trim()] || null;
+  }
+
+  // Map common CRM-MCP error patterns to Dutch operator-facing copy.
+  // Returns null if no pattern matches; caller falls back to the raw
+  // (English) reason from the tool. Keep short — CRM-MCP errors are
+  // already concise; we just translate the boilerplate.
+  function humaniseToolError(raw) {
+    if (/vat[_\s-]?number .* (already exists|in use)/i.test(raw))
+      return 'Een bedrijf met dit BTW-nummer bestaat al in Salesforce.';
+    if (/email .* (already exists|in use)/i.test(raw))
+      return 'Een contact met dit e-mailadres bestaat al in Salesforce.';
+    if (/(not found|does not exist)/i.test(raw))
+      return 'Het opgevraagde record bestaat niet (meer) in Salesforce.';
+    if (/(active contacts? linked|active registrations?|has dependents)/i.test(raw))
+      return 'Kan niet verwijderen — er zijn nog actieve gekoppelde records.';
+    if (/(invalid|malformed) (vat|email|phone)/i.test(raw))
+      return 'Ongeldige invoerwaarde. Controleer BTW, e-mail of telefoon.';
+    return null;
+  }
 
   // mcp-master wraps every answer in a triple-backtick code fence per
   // `prompts.rs::SETUP_PROMPT` (Teams renders nicer that way). Browser-side

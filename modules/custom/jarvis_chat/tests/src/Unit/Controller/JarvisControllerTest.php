@@ -5,9 +5,11 @@ namespace Drupal\Tests\jarvis_chat\Unit\Controller;
 use Drupal\Core\Logger\LoggerChannelFactoryInterface;
 use Drupal\Core\Logger\LoggerChannelInterface;
 use Drupal\jarvis_chat\Controller\JarvisController;
+use Drupal\jarvis_chat\Service\JarvisJwtSigner;
 use Drupal\Tests\UnitTestCase;
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\ConnectException;
+use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Request as GuzzleRequest;
 use GuzzleHttp\Psr7\Response;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,11 +20,13 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class JarvisControllerTest extends UnitTestCase {
 
-  private function makeController(ClientInterface $http): JarvisController {
+  private function makeController(ClientInterface $http, ?string $mintedJwt = null): JarvisController {
     $loggerChannel = $this->createMock(LoggerChannelInterface::class);
     $loggerFactory = $this->createMock(LoggerChannelFactoryInterface::class);
     $loggerFactory->method('get')->willReturn($loggerChannel);
-    return new JarvisController($http, $loggerFactory);
+    $signer = $this->createMock(JarvisJwtSigner::class);
+    $signer->method('mint')->willReturn($mintedJwt);
+    return new JarvisController($http, $loggerFactory, $signer);
   }
 
   private function postRequest(array $body): Request {
@@ -112,8 +116,106 @@ class JarvisControllerTest extends UnitTestCase {
     $this->assertArrayNotHasKey('correlation_id', $payload);
   }
 
-  public function testBearerTokenForwardedWhenEnvSet(): void {
-    putenv('MCP_MASTER_BEARER_TOKEN=test-token-xyz');
+  public function testApproveForwardsActionIdAndAuthorizationHeader(): void {
+    $http = $this->createMock(ClientInterface::class);
+    $captured = [];
+    $http->method('request')->willReturnCallback(
+      function ($method, $url, $options) use (&$captured) {
+        $captured = ['method' => $method, 'url' => $url, 'options' => $options];
+        return new Response(200, [], json_encode(['answer' => 'company created']));
+      }
+    );
+    $controller = $this->makeController($http, 'fake-jwt-token');
+    $response = $controller->approve($this->postRequest(['action_id' => 'uuid-123']));
+    $this->assertSame(200, $response->getStatusCode());
+    $this->assertSame('POST', $captured['method']);
+    $this->assertStringEndsWith('/chat/approve', $captured['url']);
+    $this->assertSame(['action_id' => 'uuid-123'], $captured['options']['json']);
+    $this->assertSame('Bearer fake-jwt-token', $captured['options']['headers']['Authorization']);
+  }
+
+  public function testApproveMissingActionIdReturns400(): void {
+    $controller = $this->makeController($this->createMock(ClientInterface::class));
+    $response = $controller->approve($this->postRequest([]));
+    $this->assertSame(400, $response->getStatusCode());
+    $this->assertStringContainsString('action_id', $response->getContent());
+  }
+
+  public function testApproveRejectsNonStringActionId(): void {
+    // Catches array/null/bool action_id before they reach mcp-master and
+    // produce ugly PHP "Array to string conversion" warnings on the way to
+    // a confusing 400.
+    $controller = $this->makeController($this->createMock(ClientInterface::class));
+    $response = $controller->approve($this->postRequest(['action_id' => ['x']]));
+    $this->assertSame(400, $response->getStatusCode());
+    $this->assertStringContainsString('action_id', $response->getContent());
+  }
+
+  public function testApproveUpstream409Surfaces(): void {
+    $http = $this->createMock(ClientInterface::class);
+    $http->method('request')->willThrowException(
+      new RequestException(
+        'conflict',
+        new GuzzleRequest('POST', '/chat/approve'),
+        new Response(409, [], json_encode(['error' => 'action already decided']))
+      )
+    );
+    $controller = $this->makeController($http, 'fake-jwt-token');
+    $response = $controller->approve($this->postRequest(['action_id' => 'uuid-409']));
+    $this->assertSame(409, $response->getStatusCode());
+    $payload = json_decode($response->getContent(), TRUE);
+    $this->assertSame('action already decided', $payload['error']);
+  }
+
+  public function testRejectWithReasonForwardsBoth(): void {
+    $http = $this->createMock(ClientInterface::class);
+    $captured = null;
+    $http->method('request')->willReturnCallback(
+      function ($method, $url, $options) use (&$captured) {
+        $captured = $options['json'] ?? null;
+        return new Response(200, [], json_encode(['answer' => 'Action rejected: vendor mismatch']));
+      }
+    );
+    $controller = $this->makeController($http, 'fake-jwt-token');
+    $response = $controller->reject($this->postRequest([
+      'action_id' => 'uuid-rej',
+      'reason' => 'vendor mismatch',
+    ]));
+    $this->assertSame(200, $response->getStatusCode());
+    $this->assertSame(['action_id' => 'uuid-rej', 'reason' => 'vendor mismatch'], $captured);
+  }
+
+  public function testApproveResponseWhitelistDropsExtraFields(): void {
+    $http = $this->createMock(ClientInterface::class);
+    $upstream = [
+      'answer' => 'company created',
+      'tool_trace' => [
+        ['tool' => 'create_company', 'server' => 'crm', 'ms' => 412, 'ok' => true, 'status' => 'executed', 'action_id' => 'uuid-x'],
+      ],
+      'tokens' => ['input' => 0, 'output' => 0],
+      'iterations' => 0,
+      'correlation_id' => 'cid-123',
+    ];
+    $http->method('request')->willReturn(
+      new Response(200, [], json_encode($upstream))
+    );
+    $controller = $this->makeController($http, 'fake-jwt-token');
+    $response = $controller->approve($this->postRequest(['action_id' => 'uuid-x']));
+    $this->assertSame(200, $response->getStatusCode());
+    $payload = json_decode($response->getContent(), TRUE);
+    $this->assertSame('company created', $payload['answer']);
+    $this->assertCount(1, $payload['tool_trace']);
+    // Same defense-in-depth as /chat — extra fields don't reach the browser.
+    $this->assertArrayNotHasKey('tokens', $payload);
+    $this->assertArrayNotHasKey('iterations', $payload);
+    $this->assertArrayNotHasKey('correlation_id', $payload);
+  }
+
+  public function testStaticBearerFallbackUsedWhenJwtAbsent(): void {
+    // PR #43 retained: when JWT signer can't mint (no CHAT_JWT_SECRET) but
+    // MCP_MASTER_BEARER_TOKEN is set, fall back to static bearer so legacy
+    // read-only deploys keep working before R2 secret is wired.
+    putenv('MCP_MASTER_BEARER_TOKEN=legacy-static');
     try {
       $http = $this->createMock(ClientInterface::class);
       $captured = NULL;
@@ -125,14 +227,14 @@ class JarvisControllerTest extends UnitTestCase {
       );
       $controller = $this->makeController($http);
       $controller->chat($this->postRequest(['prompt' => 'hi']));
-      $this->assertSame('Bearer test-token-xyz', $captured['headers']['Authorization'] ?? NULL);
+      $this->assertSame('Bearer legacy-static', $captured['headers']['Authorization'] ?? NULL);
     }
     finally {
       putenv('MCP_MASTER_BEARER_TOKEN');
     }
   }
 
-  public function testNoAuthorizationHeaderWhenEnvUnset(): void {
+  public function testNoAuthorizationHeaderWhenNeitherJwtNorBearer(): void {
     putenv('MCP_MASTER_BEARER_TOKEN');
     $http = $this->createMock(ClientInterface::class);
     $captured = NULL;
