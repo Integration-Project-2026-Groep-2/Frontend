@@ -23,7 +23,7 @@ class JarvisController extends ControllerBase {
     protected ClientInterface $httpClient,
     protected LoggerChannelFactoryInterface $logChannelFactory,
     protected JarvisJwtSigner $jwtSigner,
-    protected AccountInterface $currentUser,
+    protected AccountInterface $account,
   ) {}
 
   public static function create(ContainerInterface $container): self {
@@ -102,7 +102,7 @@ class JarvisController extends ControllerBase {
    * Defense-in-depth complementing the route-level _permission check.
    */
   private function assertElevatedRole(): ?JsonResponse {
-    $roles = $this->currentUser->getRoles(TRUE);
+    $roles = $this->account->getRoles(TRUE);
     if (empty(array_intersect($roles, self::ELEVATED_ROLES))) {
       return new JsonResponse(['error' => 'jarvis chat requires elevated role'], 403);
     }
