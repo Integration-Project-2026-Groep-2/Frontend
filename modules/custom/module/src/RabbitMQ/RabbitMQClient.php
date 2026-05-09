@@ -185,9 +185,6 @@ class RabbitMQClient {
     $this->channel->exchange_declare(
       self::EXCHANGE_HEARTBEAT, 'direct', FALSE, TRUE, FALSE
     );
-    $this->channel->exchange_declare(
-      'session.topic', 'topic', false, true, false
-    );
   }
   
   /**

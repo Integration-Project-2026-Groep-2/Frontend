@@ -139,7 +139,7 @@ class UserUpdateConsumer {
     }
 
     $this->setField($account, 'field_first_name',   $data['firstName']);
-    $this->setField($account, 'field_surname',    $data['lastName']);
+    $this->setField($account, 'field_last_name',    $data['lastName']);
     $this->setField($account, 'field_phone',        $data['phone']);
     $this->setField($account, 'field_street',       $data['street']);
     $this->setField($account, 'field_house_number', $data['houseNumber']);
@@ -147,7 +147,6 @@ class UserUpdateConsumer {
     $this->setField($account, 'field_city',         $data['city']);
     $this->setField($account, 'field_country',      $data['country']);
     $this->setField($account, 'field_role',         $data['role']);
-    $this->setField($account, 'field_crm_id',        $data['id']);
     $this->setField($account, 'field_company_id',   $data['companyId']);
     $this->setField($account, 'field_badge_code',   $data['badgeCode']);
     $this->setField($account, 'field_is_active',    $data['isActive']);

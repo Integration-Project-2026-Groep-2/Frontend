@@ -3,46 +3,62 @@
 namespace Drupal\shift_bezoeker\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
-use Drupal\file\Entity\File;
+
 
 class BezoekerController extends ControllerBase {
 
-  /**
-   * Pagina voor het sessie overzicht.
-   */
   public function sessionsPage() {
-    $open_sessions = [
-      ['sessionName' => 'AI & Design', 'startTime' => '10:00', 'location' => 'Zaal A'],
-      ['sessionName' => 'Future of Tech', 'startTime' => '13:00', 'location' => 'Main Stage'],
+    // 1. Haal alle sessies op die Team Planning heeft aangemaakt
+    $query = \Drupal::entityQuery('node')
+      ->accessCheck(TRUE)
+      ->condition('status', 1)
+      ->condition('type', 'session'); // Check of ze het 'session' of 'sessie' hebben genoemd!
+
+    $nids = $query->execute();
+    $nodes = \Drupal\node\Entity\Node::loadMultiple($nids);
+
+    $grid_data = [];
+
+    // 2. Loop door de database resultaten
+    foreach ($nodes as $node) {
+      // Haal de waarden op uit de velden van Team Planning
+      // Let op: vervang 'field_...' door de echte machine-namen van hun velden!
+      $start_time = $node->get('field_start_time')->value; // Bijv: '10:00'
+      $end_time = $node->get('field_end_time')->value;     // Bijv: '11:30'
+      $stage_key = $node->get('field_stage')->value;      // Bijv: 'main', 'zaal_a', 'zaal_b'
+
+      // Vul de grid_data array dynamisch
+      $grid_data[$stage_key][$start_time] = [
+        'id'    => $node->id(),
+        'title' => $node->getTitle(),
+        'time'  => $start_time . ' - ' . $end_time,
+        'type'  => 'open', // Dit kun je later linken aan inschrijvingen
+      ];
+    }
+
+    // De definities van je grid blijven hier staan
+    $time_slots = [
+      '10:00' => '10:00', '11:00' => '11:00', '12:00' => '12:00',
+      '13:00' => '13:00', '14:00' => '14:00', '15:00' => '15:00', '16:00' => '16:00',
     ];
 
-    $my_sessions = [
-      ['sessionName' => 'Sustainability in Code', 'startTime' => '15:30', 'location' => 'Zaal B'],
+    $stages = [
+      'main' => 'Main Stage',
+      'zaal_a' => 'Zaal A',
+      'zaal_b' => 'Zaal B',
     ];
 
     return [
       '#theme' => 'sessie_overzicht_template',
-      '#open_sessions' => $open_sessions,
-      '#my_sessions' => $my_sessions,
-      '#attached' => [
-        'library' => ['shift_theme/global-styling'],
-      ],
+      '#current_date' => '22 April 2026',
+      '#day_number' => '01',
+      '#time_slots' => $time_slots,
+      '#stages' => $stages,
+      '#grid_data' => $grid_data,
     ];
   }
 
-  /**
-   * Pagina voor de accountgegevens.
-   */
   public function accountPage() {
-    $user_data = [
-      'firstName' => 'Liam',
-      'lastName' => 'Stammeleer',
-      'email' => 'liam.stammeleer@example.com',
-      'phone' => '+32 470 00 00 00',
-      'company' => 'Erasmus',
-      'role' => 'Bezoeker',
-    ];
-
     return [
       '#theme' => 'account_gegevens_template',
       '#user' => [
@@ -71,81 +87,37 @@ class BezoekerController extends ControllerBase {
   }
 
   public function bedrijvenPage() {
-    $bedrijven = $this->getBedrijven();
+
+    $query = \Drupal::entityQuery('user')
+      ->accessCheck(TRUE)
+      ->condition('status', 1)
+      ->condition('roles', 'bedrijf');
+
+    $ids = $query->execute();
+
+    $bedrijven = [];
+
+    // Alleen proberen te laden als we daadwerkelijk ID's hebben gevonden
+    if (!empty($ids)) {
+      $users = \Drupal\user\Entity\User::loadMultiple($ids);
+
+      foreach ($users as $user) {
+        $bedrijven[] = [
+          'naam' => $user->getDisplayName(),
+          // Eventueel later: 'logo' => $user->get('field_logo')->entity->getFileUri(),
+        ];
+      }
+    }
 
     return [
       '#theme' => 'bezoeker_bedrijven',
       '#bedrijven' => $bedrijven,
       '#attached' => [
-        'library' => ['shift_theme/global-styling'],
+        'library' => [
+          'shift_theme/global-styling',
+          'shift_theme/companies-page',
+        ],
       ],
     ];
-  }
-
-  /**
-   * Helper to load groups of type 'company' (optimized: load files in bulk).
-   */
-  private function getBedrijven() {
-    $query = \Drupal::entityQuery('group')
-      ->accessCheck(false)// zorgt dat ook niet ingelogde gebruikers de bedrijven kunnen zien op de onze partners pagina
-      ->condition('type', 'company');//checked op groepeen met type company
-
-    $gids = $query->execute();
-    $groepen = \Drupal::entityTypeManager()->getStorage('group')->loadMultiple($gids);
-
-    // Verzamel alle fids eerst.
-    $fids = [];
-    foreach ($groepen as $groep) {
-      if ($groep->hasField('field_logo')) {
-        $field = $groep->get('field_logo');
-        if (!$field->isEmpty()) {
-          $fid = $field->target_id ?? NULL;
-          if ($fid) {
-            $fids[$fid] = $fid;
-          }
-        }
-      }
-    }
-
-    // Laad bestanden in één keer.
-    $files = [];
-    if (!empty($fids)) {
-      $files = File::loadMultiple($fids);
-    }
-
-    $result = [];
-    $url_generator = \Drupal::service('file_url_generator');
-
-    foreach ($groepen as $groep) {
-      $naam = $groep->label();
-
-      $beschrijving = '';
-      if ($groep->hasField('field_description')) {
-        $desc_field = $groep->get('field_description');
-        if (!$desc_field->isEmpty()) {
-          $beschrijving = $desc_field->value ?? '';
-        }
-      }
-
-      $logo_url = NULL;
-      if ($groep->hasField('field_logo')) {
-        $logo_field = $groep->get('field_logo');
-        if (!$logo_field->isEmpty()) {
-          $fid = $logo_field->target_id ?? NULL;
-          if ($fid && isset($files[$fid])) {
-            $file = $files[$fid];
-            $logo_url = $url_generator->generateAbsoluteString($file->getFileUri());
-          }
-        }
-      }
-
-      $result[] = [
-        'naam' => $naam,
-        'beschrijving' => $beschrijving,
-        'logo' => $logo_url,
-      ];
-    }
-
-    return $result;
   }
 }

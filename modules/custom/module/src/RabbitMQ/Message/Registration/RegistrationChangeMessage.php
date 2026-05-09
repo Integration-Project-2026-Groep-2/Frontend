@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\hello_world\RabbitMQ\Message\Registration;
+namespace Drupal\hello_world\RabbitMQ\Message;
 
 /**
  * Bouwt de XML-payload voor Contract 2: Frontend → CRM (inschrijving wijzigen).
@@ -8,7 +8,7 @@ namespace Drupal\hello_world\RabbitMQ\Message\Registration;
  * Root-element: <RegistrationChange>
  * Routing key:  frontend.user.updated
  */
-class RegistrationChangeMessage implements \Drupal\hello_world\RabbitMQ\Message\MessageInterface {
+class RegistrationChangeMessage implements MessageInterface {
 
   public function __construct(
     private readonly string  $email,

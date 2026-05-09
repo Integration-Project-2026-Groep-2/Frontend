@@ -128,9 +128,9 @@ class UserConfirmedConsumer {
     }
 
     $this->setField($account, 'field_first_name',   $data['firstName']);
-    $this->setField($account, 'field_surname',    $data['lastName']);
+    $this->setField($account, 'field_last_name',    $data['lastName']);
     $this->setField($account, 'field_phone',        $data['phone']);
-    $this->setField($account, 'field_crm_id',       $data['id']);
+    $this->setField($account, 'field_crm_id',       $data['crmId']);
     $this->setField($account, 'field_company_id',   $data['companyId']);
     $this->setField($account, 'field_badge_code',   $data['badgeCode']);
     $this->setField($account, 'field_gdpr_consent', $data['gdprConsent']);
