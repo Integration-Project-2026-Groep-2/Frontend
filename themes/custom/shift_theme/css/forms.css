@@ -158,3 +158,27 @@ input[type="submit"]:hover {
   color: #555;
   cursor: pointer;
 }
+
+/* --- MOBILE RESPONSIVE --- */
+@media (max-width: 768px) {
+  #shift-bezoeker-registratie-form {
+    margin: 30px 16px;
+    padding: 30px 24px;
+  }
+  .form-row {
+    grid-template-columns: 1fr !important;
+    column-gap: 0 !important;
+    row-gap: 0;
+  }
+  #shift-bezoeker-registratie-form .form-item-registratie-type .form-radios {
+    flex-direction: column;
+    gap: 16px;
+  }
+  #shift-bezoeker-registratie-form .form-item-registratie-type label {
+    padding: 24px;
+  }
+  .form-section-title {
+    font-size: 20px;
+    margin-top: 36px !important;
+  }
+}
