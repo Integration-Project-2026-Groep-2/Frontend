@@ -1,18 +1,22 @@
 <?php
 
+// Onderdruk E_DEPRECATED van php-amqplib (PHP-8.4 parameter-volgorde warnings).
+// Dit zijn library-bugs, geen fouten in onze code.
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+
 /**
  * /opt/drupal/consumer.php
  *
  * Gebruik:
- *   php consumer.php confirmed   → start UserConfirmedConsumer
- *   php consumer.php updated     → start UserUpdateConsumer
+ *   php consumer.php confirmed    → start UserConfirmedConsumer  (frontend.user.confirmed)
+ *   php consumer.php updated      → start UserUpdateConsumer     (frontend.user.updated)
+ *   php consumer.php deactivated  → start UserDeactivatedConsumer (frontend.user.deactivated)
  */
 
-// nasr: reflection?
 $type = $argv[1] ?? null;
 
-if (!in_array($type, ['confirmed', 'updated'])) {
-  echo "Gebruik: php consumer.php [confirmed|updated]\n";
+if (!in_array($type, ['confirmed', 'updated', 'deactivated'])) {
+  echo "Gebruik: php consumer.php [confirmed|updated|deactivated]\n";
   exit(1);
 }
 
@@ -60,20 +64,60 @@ $kernel  = DrupalKernel::createFromRequest($request, $autoloader, 'prod');
 $kernel->boot();
 $kernel->preHandle($request);
 
+// Fallback class loader.
+// Als het hello_world-module geïnstalleerd is in Drupal (drush en hello_world)
+// zijn de klassen al beschikbaar via Drupal's eigen PSR-4 autoloader en
+// wordt dit blok overgeslagen. Zo niet, laden we de bestanden direct op
+// via glob() — robuust en onafhankelijk van de exacte directory-naam.
+$_consumerClasses = [
+  'Drupal\\hello_world\\RabbitMQ\\Validation\\XsdRegistry'           => 'RabbitMQ/Validation/XsdRegistry.php',
+  'Drupal\\hello_world\\RabbitMQ\\Validation\\XsdValidator'          => 'RabbitMQ/Validation/XsdValidator.php',
+  'Drupal\\hello_world\\RabbitMQ\\Consumer\\UserConfirmedConsumer'   => 'RabbitMQ/Consumer/UserConfirmedConsumer.php',
+  'Drupal\\hello_world\\RabbitMQ\\Consumer\\UserUpdateConsumer'      => 'RabbitMQ/Consumer/UserUpdateConsumer.php',
+  'Drupal\\hello_world\\RabbitMQ\\Consumer\\UserDeactivatedConsumer' => 'RabbitMQ/Consumer/UserDeactivatedConsumer.php',
+];
+
+// Zoek de module-directory via glob (werkt ongeacht de naam van de map).
+$_infoFiles  = glob(DRUPAL_ROOT . '/modules/custom/*/hello_world.info.yml') ?: [];
+$_moduleBase = $_infoFiles ? dirname($_infoFiles[0]) . '/src/' : null;
+
+foreach ($_consumerClasses as $_fqcn => $_rel) {
+  if (class_exists($_fqcn, false)) {
+    continue; // Al geladen door Drupal's autoloader — overslaan.
+  }
+  if (!$_moduleBase) {
+    echo "[FOUT] hello_world module-directory niet gevonden in {$_consumerClasses[$_fqcn]}. Consumer stopt.\n";
+    exit(1);
+  }
+  $_path = $_moduleBase . $_rel;
+  if (!file_exists($_path)) {
+    echo "[FOUT] Klasse-bestand niet gevonden: {$_path}\n";
+    exit(1);
+  }
+  require_once $_path;
+}
+unset($_consumerClasses, $_infoFiles, $_moduleBase, $_fqcn, $_rel, $_path);
+
 echo "Drupal gebootstrapt.\n";
 
 // ─── Consumer starten ─────────────────────────────────────────────────────────
 
 use Drupal\hello_world\RabbitMQ\Consumer\UserConfirmedConsumer;
 use Drupal\hello_world\RabbitMQ\Consumer\UserUpdateConsumer;
+use Drupal\hello_world\RabbitMQ\Consumer\UserDeactivatedConsumer;
 
 if ($type === 'confirmed') {
   echo "UserConfirmedConsumer starten...\n";
   $consumer = new UserConfirmedConsumer();
-  $consumer->listen('crm.user.confirmed');
+  $consumer->listen('frontend.user.confirmed');
 }
 elseif ($type === 'updated') {
   echo "UserUpdateConsumer starten...\n";
   $consumer = new UserUpdateConsumer();
-  $consumer->listen('crm.user.updated');
+  $consumer->listen('frontend.user.updated');
+}
+elseif ($type === 'deactivated') {
+  echo "UserDeactivatedConsumer starten...\n";
+  $consumer = new UserDeactivatedConsumer();
+  $consumer->listen('frontend.user.deactivated');
 }

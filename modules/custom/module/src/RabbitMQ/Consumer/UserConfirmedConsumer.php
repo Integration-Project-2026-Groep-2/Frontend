@@ -4,12 +4,15 @@ namespace Drupal\hello_world\RabbitMQ\Consumer;
 
 use Drupal\hello_world\RabbitMQ\Validation\XsdRegistry;
 use Drupal\hello_world\RabbitMQ\Validation\XsdValidator;
-use Drupal\user\Entity\User;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 
 /**
  * Verwerkt inkomende <UserConfirmed>-berichten (Contract 13).
+ *
+ * Queue  : frontend.user.confirmed
+ * Exchange: contact.topic
+ * Routing key (inbound): crm.user.confirmed
  */
 class UserConfirmedConsumer {
 
@@ -21,7 +24,7 @@ class UserConfirmedConsumer {
     $this->validator = $validator ?? new XsdValidator(new XsdRegistry());
   }
 
-  public function listen(string $queueName = 'crm.user.confirmed'): void {
+  public function listen(string $queueName = 'frontend.user.confirmed'): void {
     echo "UserConfirmedConsumer luistert op '{$queueName}'...\n";
 
     $this->connection = new AMQPStreamConnection(
@@ -45,10 +48,10 @@ class UserConfirmedConsumer {
     // Exchange declareren
     $this->channel->exchange_declare('contact.topic', 'topic', false, true, false);
 
-    // Queue declareren
+    // Queue declareren (duurzaam)
     $this->channel->queue_declare($queueName, false, true, false, false);
 
-    // Queue binden aan exchange
+    // Queue binden aan exchange met CRM routing key
     $this->channel->queue_bind($queueName, 'contact.topic', 'crm.user.confirmed');
 
     $this->channel->basic_qos(null, 1, null);
@@ -57,7 +60,7 @@ class UserConfirmedConsumer {
       function (AMQPMessage $msg) {
         try {
           $this->handleMessage($msg);
-          $msg->ack();
+          $this->channel->basic_ack($msg->delivery_info['delivery_tag']);
         }
         catch (\Throwable $e) {
           $this->channel->basic_nack($msg->delivery_info['delivery_tag'], false, false);
@@ -79,7 +82,20 @@ class UserConfirmedConsumer {
   }
 
   private function handleMessage(AMQPMessage $msg): void {
-    $xml  = $msg->getBody();
+    $xml = $msg->getBody();
+
+    // XSD-validatie — gooit een RuntimeException bij fouten.
+    try {
+      $this->validator->validate($xml, 'user_confirmed');
+    }
+    catch (\RuntimeException $e) {
+      \Drupal::logger('rabbitmq')->error(
+        'UserConfirmed XSD-validatie mislukt: @msg',
+        ['@msg' => $e->getMessage()]
+      );
+      throw $e;
+    }
+
     $data = $this->parse($xml);
     $this->upsertDrupalUser($data);
 
@@ -92,7 +108,7 @@ class UserConfirmedConsumer {
   private function parse(string $xml): array {
     $el = new \SimpleXMLElement($xml);
     return [
-      'crmId'       => (string) $el->id,
+      'crmId'       => (string) $el->id,          // CRM Master UUID → field_crm_id
       'email'       => (string) $el->email,
       'firstName'   => (string) $el->firstName,
       'lastName'    => (string) $el->lastName,
@@ -107,18 +123,31 @@ class UserConfirmedConsumer {
 
   private function upsertDrupalUser(array $data): void {
     /** @var \Drupal\user\UserStorageInterface $storage */
-    $storage  = \Drupal::entityTypeManager()->getStorage('user');
-    $accounts = $storage->loadByProperties(['mail' => $data['email']]);
-    $account  = $accounts ? reset($accounts) : null;
+    $storage = \Drupal::entityTypeManager()->getStorage('user');
 
+    // Controleer of field_crm_id bestaat voordat we er op zoeken.
+    // Het veld moet aangemaakt worden in Drupal's veld-configuratie.
+    $accounts = [];
+    $fields   = \Drupal::service('entity_field.manager')
+      ->getFieldDefinitions('user', 'user');
+    if (isset($fields['field_crm_id'])) {
+      $accounts = $storage->loadByProperties(['field_crm_id' => $data['crmId']]);
+    }
+    if (!$accounts) {
+      $accounts = $storage->loadByProperties(['mail' => $data['email']]);
+    }
+    $account = $accounts ? reset($accounts) : null;
+
+    $username = trim($data['firstName'] . ' ' . $data['lastName']);
     if ($account === null) {
       $account = $storage->create([
-        'name'   => $data['email'],
+        'name'   => $username,
         'mail'   => $data['email'],
         'status' => $data['isActive'] ? 1 : 0,
       ]);
     }
     else {
+      $account->set('name', $username);
       $account->set('status', $data['isActive'] ? 1 : 0);
     }
 
@@ -127,10 +156,11 @@ class UserConfirmedConsumer {
       $account->addRole($drupalRole);
     }
 
+    // field_crm_id slaat de CRM Master UUID op.
+    $this->setField($account, 'field_crm_id',       $data['crmId']);
     $this->setField($account, 'field_first_name',   $data['firstName']);
-    $this->setField($account, 'field_surname',    $data['lastName']);
+    $this->setField($account, 'field_surname',      $data['lastName']);
     $this->setField($account, 'field_phone',        $data['phone']);
-    $this->setField($account, 'field_crm_id',       $data['id']);
     $this->setField($account, 'field_company_id',   $data['companyId']);
     $this->setField($account, 'field_badge_code',   $data['badgeCode']);
     $this->setField($account, 'field_gdpr_consent', $data['gdprConsent']);
@@ -141,10 +171,10 @@ class UserConfirmedConsumer {
   private function mapRole(string $crmRole): ?string {
     $map = [
       'visitor'         => 'visitor',
-      'company_contact' => 'company_contact',
+      'company_contact' => 'company',
       'speaker'         => 'speaker',
       'event_manager'   => 'event_manager',
-      'cashier'         => 'cashier',
+      'cashier'         => 'kassa',
       'bar_staff'       => 'bar_staff',
       'admin'           => 'administrator',
     ];

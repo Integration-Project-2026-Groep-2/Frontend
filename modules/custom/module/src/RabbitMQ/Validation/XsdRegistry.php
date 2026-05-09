@@ -81,9 +81,8 @@ class XsdRegistry {
   ];
 
   public function __construct() {
-    // Twee niveaus omhoog vanuit src/RabbitMQ/Validation/ => module root.
-    $moduleRoot    = dirname(__DIR__, 3);
-    $this->xsdPath = $moduleRoot . '/xsd/crm-master.xsd';
+    // Absoluut pad naar het master XSD-bestand in de container.
+    $this->xsdPath = '/opt/drupal/xsd/crm-master.xsd';
   }
 
   /**
