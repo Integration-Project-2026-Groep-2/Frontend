@@ -43,17 +43,26 @@ Implications:
 
 ```bash
 docker compose exec frontend drush en jarvis_chat -y
-docker compose exec frontend drush role:perm:add administrator 'use jarvis chat'
 docker compose exec frontend drush cache:rebuild
 ```
 
-After enabling, log in as a user with the `administrator` role and visit
-`/jarvis`. Anonymous and non-admin users get a 403.
+`hook_install` (in `jarvis_chat.install`) auto-grants `'use jarvis chat'`
+to `administrator` and `event_beheerder` roles — no manual `drush
+role:perm:add` step needed. On existing deploys, run `drush updb -y` to
+trigger `hook_update_8001` which performs the same grant idempotently.
+
+After enabling, log in as a user with `administrator` or `event_beheerder`
+role and visit `/jarvis`. Visitors and non-elevated users get a 403 from
+both the Drupal route-permission check **and** the controller's
+`assertElevatedRole()` defense-in-depth gate.
 
 ## Configure
 
-`MCP_MASTER_URL` (env var on the `frontend` container) — defaults to
-`http://mcp-master:8080`. Override for local dev:
+| Env var | Default | Purpose |
+|---|---|---|
+| `MCP_MASTER_URL` | `http://mcp-master:8080` | mcp-master backend endpoint. Override naar `http://host.docker.internal:8080` voor lokale dev. |
+| `CHAT_JWT_SECRET` | _unset_ | Shared HS256 secret for R2 JWT-minting. Generate with `openssl rand -hex 32` and set **same value** on mcp-master container. Without this, approve/reject return 403; legacy `/chat` falls back to `MCP_MASTER_BEARER_TOKEN`. |
+| `MCP_MASTER_BEARER_TOKEN` | _unset_ | Static bearer fallback for transitional deploys (used only when `CHAT_JWT_SECRET` is unset). mcp-master in skip-warn mode accepteert ANY non-empty waarde. |
 
 ```yaml
 # compose.yml fragment
@@ -61,18 +70,14 @@ services:
   frontend:
     environment:
       - MCP_MASTER_URL=http://host.docker.internal:8080
-      # R2: Drupal-side JWT minting for /chat/approve + /chat/reject.
-      # MUST match the value mcp-master reads from CHAT_JWT_SECRET. When
-      # unset (legacy /chat-only mode), approve/reject return 403 cleanly.
       - CHAT_JWT_SECRET=${CHAT_JWT_SECRET:-}
+      - MCP_MASTER_BEARER_TOKEN=${MCP_MASTER_BEARER_TOKEN:-}
 ```
 
-`CHAT_JWT_SECRET`: shared HS256 secret. Drupal mints a JWT per-call with
-`sub=currentUser->id()`, `scope=read+act`, `exp=+1h`. mcp-master's
-`AuthScope` extractor decodes it and binds it to the `PendingAction.user_id`
-so proposer-equals-confirmer enforcement works (see `R2_APPROVAL_CARD.md`
-for the detailed flow). Generate with `openssl rand -hex 32` and set the
-same value on both containers.
+JWT-minting flow: Drupal mints a JWT per-call met `sub=currentUser->id()`,
+`scope=read+act`, `exp=+1h`. mcp-master's `AuthScope` extractor decodes het
+en bindt het aan `PendingAction.user_id` voor proposer-equals-confirmer
+enforcement (zie `R2_APPROVAL_CARD.md` voor de volledige flow).
 
 ## Network requirement (production)
 
@@ -90,12 +95,16 @@ docker compose exec frontend vendor/bin/phpunit \
   web/modules/custom/custom/jarvis_chat/tests
 ```
 
-11 PHPUnit unit tests cover the proxy controller: prompt validation,
-multi-turn forward, upstream failure → 502, response whitelist (drops
-tokens/iterations/correlation_id), R2 approve forwards action_id +
-Authorization Bearer header, missing/non-string action_id → 400,
-upstream 409 surfaces, reject reason forwarded, approve response
-whitelist drops extra fields.
+18 PHPUnit unit tests cover the proxy controller:
+- Prompt validation, multi-turn forward, upstream-failure → 502, response
+  whitelist (drops tokens/iterations/correlation_id)
+- R2: approve forwards action_id + Authorization Bearer header,
+  missing/non-string action_id → 400, upstream 409 surfaces, reject reason
+  forwarded, approve response whitelist drops extra fields
+- Auth: JWT primary path, MCP_MASTER_BEARER_TOKEN fallback, no header when
+  neither configured
+- Role-gate: visitor/authenticated-only → 403 on chat/approve/reject;
+  administrator + event_beheerder → 200 on chat
 
 ## Local dev
 
