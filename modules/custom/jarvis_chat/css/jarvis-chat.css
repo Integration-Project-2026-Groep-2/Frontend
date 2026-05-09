@@ -489,3 +489,167 @@ body:has(#jarvis-chat) {
   height: auto;
   filter: drop-shadow(0 6px 16px rgba(99, 51, 234, 0.25));
 }
+
+/* R2 approval-card — rendered inside an assistant bubble whenever a
+   tool_trace[i].status === 'pending'. Shares the dialog's purple gradient
+   surface for visual consistency with the existing tool-flow popup. */
+.jarvis-approval-card {
+  margin: 0.75rem 0 0;
+  padding: 1rem 1.1rem 1rem;
+  border-radius: 0.85rem;
+  border: 1px solid rgba(139, 92, 255, 0.5);
+  background: linear-gradient(180deg, rgba(58, 31, 79, 0.55) 0%, rgba(29, 11, 37, 0.7) 100%);
+  box-shadow: 0 8px 24px rgba(8, 2, 14, 0.35);
+  animation: jarvis-bubble-in 0.35s cubic-bezier(0.16, 0.84, 0.44, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.jarvis-approval-card.is-resolved {
+  opacity: 0.65;
+}
+
+.jarvis-approval-card.is-pending-decision {
+  opacity: 0.75;
+}
+
+.jarvis-approval-card__title {
+  font-family: 'Barlow', 'Inter', system-ui, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #c4a8ff;
+}
+
+.jarvis-approval-card__meta {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 0.4rem 1rem;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.jarvis-approval-card__meta dt {
+  color: rgba(212, 196, 255, 0.75);
+  font-weight: 600;
+}
+
+.jarvis-approval-card__meta dd {
+  margin: 0;
+  color: #ffffff;
+  word-break: break-word;
+}
+
+.jarvis-approval-card__meta dd code {
+  font-family: 'Consolas', 'Monaco', monospace;
+  font-size: 0.85rem;
+  padding: 0.1rem 0.45rem;
+  border-radius: 0.35rem;
+  background: rgba(99, 51, 234, 0.2);
+  color: #d4c4ff;
+}
+
+.jarvis-approval-card__reason {
+  width: 100%;
+  min-height: 2.5rem;
+  padding: 0.55rem 0.75rem;
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 0.95rem;
+  color: #ffffff;
+  background: rgba(8, 2, 14, 0.55);
+  border: 1px solid rgba(139, 92, 255, 0.35);
+  border-radius: 0.5rem;
+  resize: vertical;
+}
+
+.jarvis-approval-card__reason:focus {
+  outline: none;
+  border-color: #8b5cff;
+  box-shadow: 0 0 0 2px rgba(139, 92, 255, 0.25);
+}
+
+.jarvis-approval-card__reason:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.jarvis-approval-card__actions {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.jarvis-approve-btn,
+.jarvis-reject-btn {
+  font-family: 'Barlow', 'Inter', system-ui, sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.6rem 1.1rem;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+
+.jarvis-approve-btn {
+  background: #6333ea;
+  border: 1px solid #6333ea;
+  color: #ffffff;
+}
+
+.jarvis-approve-btn:hover:not(:disabled) {
+  background: #5128c7;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(99, 51, 234, 0.35);
+}
+
+.jarvis-reject-btn {
+  background: rgba(220, 100, 100, 0.08);
+  border: 1px solid #dc6464;
+  color: #dc6464;
+}
+
+.jarvis-reject-btn:hover:not(:disabled) {
+  background: #dc6464;
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(220, 100, 100, 0.35);
+}
+
+.jarvis-approve-btn:disabled,
+.jarvis-reject-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.jarvis-approval-card__status {
+  font-family: 'Barlow', 'Inter', system-ui, sans-serif;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 0.45rem 0.9rem;
+  border-radius: 0.4rem;
+}
+
+.jarvis-approval-card__status[data-label="Goedgekeurd"] {
+  color: #a98cff;
+  background: rgba(99, 51, 234, 0.18);
+}
+
+.jarvis-approval-card__status[data-label="Afgewezen"] {
+  color: #dc6464;
+  background: rgba(220, 100, 100, 0.12);
+}
+
+.jarvis-approval-card__error {
+  font-size: 0.9rem;
+  color: #dc6464;
+  padding: 0.45rem 0.7rem;
+  border-radius: 0.4rem;
+  background: rgba(220, 100, 100, 0.08);
+  border: 1px solid rgba(220, 100, 100, 0.3);
+}
