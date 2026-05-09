@@ -63,6 +63,8 @@ $request = Request::createFromGlobals();
 $kernel  = DrupalKernel::createFromRequest($request, $autoloader, 'prod');
 $kernel->boot();
 $kernel->preHandle($request);
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+ini_set('display_errors', '0'); // Ook display_errors uitzetten om zeker te zijn dat ze niet in de stdout verschijnen.
 
 // Fallback class loader.
 // Als het hello_world-module geïnstalleerd is in Drupal (drush en hello_world)

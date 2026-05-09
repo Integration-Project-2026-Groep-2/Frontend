@@ -72,11 +72,9 @@ class UserConfirmedConsumer {
     while (count($this->channel->callbacks)) {
       try {
         $this->channel->wait(null, false, 60);
-        echo "[" . date('H:i:s') . "] Wachten op berichten...\n";
       }
       catch (\PhpAmqpLib\Exception\AMQPTimeoutException $e) {
         // Normaal — geen berichten binnen 60s, gewoon verder wachten.
-        echo "[" . date('H:i:s') . "] Wachten op berichten...\n";
       }
     }
   }
@@ -165,6 +163,7 @@ class UserConfirmedConsumer {
     $this->setField($account, 'field_badge_code',   $data['badgeCode']);
     $this->setField($account, 'field_gdpr_consent', $data['gdprConsent']);
 
+    $account->_is_rabbitmq_sync = TRUE;
     $account->save();
   }
 
