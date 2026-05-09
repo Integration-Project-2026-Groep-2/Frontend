@@ -47,14 +47,14 @@ class CancelAccountConfirmForm extends ConfirmFormBase {
 
     $email = $account->getEmail();
 
-    $this->publishCancelEvent($uid, $email);
-
     $account->block();
     $account->save();
 
-    user_logout();
+    $this->publishCancelEvent($uid, $email);
 
     \Drupal::messenger()->addStatus($this->t('Je account is verwijderd.'));
+
+    user_logout();
     $form_state->setRedirectUrl(Url::fromUri('internal:/'));
   }
 
