@@ -18,6 +18,7 @@ set -euo pipefail
 BASE="${1:-http://localhost:8090}"
 DB="${2:-frontend_db}"
 APP="${3:-frontend_drupal}"
+MQ="${4:-rabbitmq_management}"
 
 JAR=$(mktemp)
 trap "rm -f $JAR" EXIT
@@ -26,6 +27,8 @@ EMAIL_BZ="e2e-bz-$(date +%s)@local.test"
 EMAIL_CO="e2e-co-$(date +%s)@local.test"
 PASS_BZ="bezoeker1234"
 PASS_CO="bedrijf1234567"
+QUEUE_REG="e2e-test-registration-$(date +%s)"
+QUEUE_CO="e2e-test-company-$(date +%s)"
 
 assert_eq() {
   local actual="$1" expected="$2" label="$3"
@@ -61,6 +64,73 @@ post_register() {
     --data "$data"
 }
 
+# RabbitMQ helpers — all via `docker exec` since rabbitmq_management
+# doesn't always expose 15672 to the host (depends on compose state).
+RABBIT_USER="${RABBITMQ_USER:-guest}"
+RABBIT_PASS="${RABBITMQ_PASS:-guest}"
+
+mq_admin() {
+  docker exec "$MQ" rabbitmqadmin -u "$RABBIT_USER" -p "$RABBIT_PASS" "$@"
+}
+
+mq_declare_queue() {
+  mq_admin declare queue --name="$1" --durable=true --auto-delete=false
+}
+
+mq_declare_exchange_user_topic() {
+  # Idempotent — RabbitMQClient also declares this on first connect.
+  mq_admin declare exchange --name=user.topic --type=topic --durable=true
+}
+
+mq_bind() {
+  local queue="$1" routing_key="$2"
+  mq_admin declare binding --source=user.topic --destination-type=queue \
+    --destination="$queue" --routing-key="$routing_key"
+}
+
+mq_delete_queue() {
+  mq_admin delete queue --name="$1" 2>/dev/null || true
+}
+
+# Drains a single message and prints the XML payload to stdout.
+# Returns non-zero (and empty stdout) if the queue is empty.
+# Uses docker exec frontend_drupal curl (since rabbitmq_management has no
+# curl + the host port may not be published).
+mq_drain_one_xml() {
+  local queue="$1" body
+  body=$(docker exec "$APP" curl -s -u "$RABBIT_USER:$RABBIT_PASS" \
+    -X POST -H 'Content-Type: application/json' \
+    "http://rabbitmq:15672/api/queues/%2F/$queue/get" \
+    -d '{"count":1,"ackmode":"ack_requeue_false","encoding":"auto"}' 2>/dev/null)
+  # Empty array means no messages.
+  if [[ -z "$body" || "$body" == "[]" ]]; then
+    return 1
+  fi
+  # Strip the JSON wrapper and unescape the payload field.
+  # Format: [{"payload_bytes":N,...,"payload":"<xml...>","payload_encoding":"string"}]
+  echo "$body" | perl -pe 's/.*"payload":"//; s/","payload_encoding":.*//; s/\\"/"/g; s/\\\//\//g; s/\\n/\n/g'
+}
+
+assert_xml_validates_against() {
+  local xml_file="$1" xsd="$2" label="$3"
+  if docker exec -i "$APP" sh -c "xmllint --schema /opt/drupal/$xsd --noout - >/dev/null 2>&1" < "$xml_file"; then
+    echo "  ok  [$label]: XML validates against $xsd"
+  else
+    echo "FAIL [$label]: XSD validation failed for $xsd"
+    docker exec -i "$APP" sh -c "xmllint --schema /opt/drupal/$xsd --noout -" < "$xml_file" 2>&1 | head -10
+    exit 1
+  fi
+}
+
+echo "=== AMQP test queues ==="
+mq_declare_exchange_user_topic
+mq_declare_queue "$QUEUE_REG"
+mq_declare_queue "$QUEUE_CO"
+mq_bind "$QUEUE_REG" "frontend.registration.created"
+mq_bind "$QUEUE_CO"  "frontend.company.created"
+echo "  ok  declared $QUEUE_REG + $QUEUE_CO bound to user.topic"
+
+echo ""
 echo "=== Bezoeker flow ==="
 HTML=$(curl -s -c "$JAR" -b "$JAR" --max-time 10 "$BASE/registreer")
 BUILD_ID=$(extract_form_id "$HTML")
@@ -83,6 +153,21 @@ assert_eq "$ROLE" "visitor" "bezoeker role assigned"
 
 FNAME=$(docker exec "$DB" sh -c "mariadb -u drupal -pdrupal_pass drupal -sNe \"SELECT value FROM users_data WHERE uid=$UID_BZ AND name='first_name'\"" 2>&1 | tail -1 | tr -d '"')
 assert_contains "$FNAME" "E2E" "first_name persisted via UserData"
+
+# Drain the registration queue and validate the XML payload.
+TMP_XML=$(mktemp)
+trap "rm -f $JAR $TMP_XML" EXIT
+if mq_drain_one_xml "$QUEUE_REG" > "$TMP_XML" && [[ -s "$TMP_XML" ]]; then
+  echo "  ok  bezoeker registration message published"
+  assert_contains "$(cat "$TMP_XML")" "$EMAIL_BZ" "AMQP payload contains bezoeker email"
+  assert_contains "$(cat "$TMP_XML")" "<role>visitor</role>" "AMQP payload role=visitor"
+  assert_xml_validates_against "$TMP_XML" "xsd/frontend-contract.xsd" "bezoeker registration XSD"
+else
+  echo "FAIL: no registration message drained from $QUEUE_REG"
+  mq_delete_queue "$QUEUE_REG"
+  mq_delete_queue "$QUEUE_CO"
+  exit 1
+fi
 
 echo ""
 echo "=== Logout + re-login round-trip ==="
@@ -109,7 +194,7 @@ curl -s -c "$JAR" -b "$JAR" --max-time 10 -o /dev/null "$BASE/user/logout"
 HTML=$(curl -s -c "$JAR" -b "$JAR" --max-time 10 "$BASE/registreer")
 BUILD_ID=$(extract_form_id "$HTML")
 TOKEN=$(extract_form_token "$HTML")
-DATA="registratie_type=bedrijf&firstName=&lastName=&email=$EMAIL_CO&phone=&role=&companyName=E2E+BV&vatNumber=BE0888777666&street=Stationsstraat+1&city=Brussel&gdpr_consent=1&pass[pass1]=$PASS_CO&pass[pass2]=$PASS_CO&op=Registreer!&form_build_id=$BUILD_ID&form_token=$TOKEN&form_id=shift_bezoeker_registratie_form"
+DATA="registratie_type=bedrijf&firstName=Lars&lastName=Cowe&email=$EMAIL_CO&phone=&role=&companyName=E2E+BV&vatNumber=BE0888777666&street=Stationsstraat+1&city=Brussel&gdpr_consent=1&pass[pass1]=$PASS_CO&pass[pass2]=$PASS_CO&op=Registreer!&form_build_id=$BUILD_ID&form_token=$TOKEN&form_id=shift_bezoeker_registratie_form"
 RESULT=$(post_register "$DATA")
 HTTP_CODE=$(echo "$RESULT" | awk '{print $1}')
 assert_eq "$HTTP_CODE" "303" "bedrijf POST /registreer status"
@@ -124,6 +209,34 @@ assert_eq "$ROLE_CO" "company" "bedrijf role assigned"
 VAT=$(docker exec "$DB" sh -c "mariadb -u drupal -pdrupal_pass drupal -sNe \"SELECT value FROM users_data WHERE uid=$UID_CO AND name='vat_number'\"" 2>&1 | tail -1 | tr -d '"')
 assert_contains "$VAT" "BE0888777666" "vat_number persisted + uppercase"
 
+CO_FNAME=$(docker exec "$DB" sh -c "mariadb -u drupal -pdrupal_pass drupal -sNe \"SELECT value FROM users_data WHERE uid=$UID_CO AND name='first_name'\"" 2>&1 | tail -1 | tr -d '"')
+assert_contains "$CO_FNAME" "Lars" "bedrijf contact-persoon first_name persisted"
+
+# Drain both queues — bedrijf publishes Registration AND CompanyCreated.
+if mq_drain_one_xml "$QUEUE_REG" > "$TMP_XML" && [[ -s "$TMP_XML" ]]; then
+  echo "  ok  bedrijf registration message published"
+  assert_contains "$(cat "$TMP_XML")" "<role>company_contact</role>" "bedrijf registration role=company_contact"
+  assert_contains "$(cat "$TMP_XML")" "<firstName>Lars</firstName>" "bedrijf registration firstName=contact-persoon (not companyName)"
+  assert_xml_validates_against "$TMP_XML" "xsd/frontend-contract.xsd" "bedrijf registration XSD"
+else
+  echo "FAIL: no registration message drained from $QUEUE_REG (bedrijf)"
+  mq_delete_queue "$QUEUE_REG"
+  mq_delete_queue "$QUEUE_CO"
+  exit 1
+fi
+
+if mq_drain_one_xml "$QUEUE_CO" > "$TMP_XML" && [[ -s "$TMP_XML" ]]; then
+  echo "  ok  bedrijf company-created message published"
+  assert_contains "$(cat "$TMP_XML")" "<vatNumber>BE0888777666</vatNumber>" "company-created vatNumber"
+  assert_contains "$(cat "$TMP_XML")" "<name>E2E BV</name>" "company-created name"
+  assert_xml_validates_against "$TMP_XML" "xsd/frontend-contract.xsd" "bedrijf company-created XSD"
+else
+  echo "FAIL: no company-created message drained from $QUEUE_CO"
+  mq_delete_queue "$QUEUE_REG"
+  mq_delete_queue "$QUEUE_CO"
+  exit 1
+fi
+
 echo ""
 echo "=== Duplicate email rejected ==="
 curl -s -c "$JAR" -b "$JAR" --max-time 10 -o /dev/null "$BASE/user/logout"
@@ -136,12 +249,15 @@ DUP_RESULT=$(curl -s -c "$JAR" -b "$JAR" --max-time 15 -o /dev/null -w "%{http_c
 assert_eq "$DUP_RESULT" "200" "duplicate email returns form (no redirect)"
 
 echo ""
-echo "=== Cleanup test users ==="
+echo "=== Cleanup test users + queues ==="
 docker exec "$DB" sh -c "mariadb -u drupal -pdrupal_pass drupal -e \"
   DELETE FROM user__roles WHERE entity_id IN ($UID_BZ, $UID_CO);
   DELETE FROM users_data WHERE uid IN ($UID_BZ, $UID_CO);
   DELETE FROM users_field_data WHERE uid IN ($UID_BZ, $UID_CO);
   DELETE FROM users WHERE uid IN ($UID_BZ, $UID_CO);
 \"" 2>&1 | tail -1
+mq_delete_queue "$QUEUE_REG"
+mq_delete_queue "$QUEUE_CO"
+echo "  ok  test queues + users cleaned up"
 echo ""
 echo "✓ All E2E assertions passed."

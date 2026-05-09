@@ -27,6 +27,12 @@ class RegistratieFormTest extends KernelTestBase {
 
   protected function setUp(): void {
     parent::setUp();
+    // Bypass AMQP publish in kernel tests — RabbitMQClient retries 10x5s
+    // on connect failure and submitForm calls publishRegistrationEvents
+    // after user_login_finalize. Keeps the suite fast + isolated from broker.
+    $_ENV['SHIFT_BEZOEKER_DISABLE_AMQP'] = '1';
+    putenv('SHIFT_BEZOEKER_DISABLE_AMQP=1');
+
     $this->installEntitySchema('user');
     $this->installSchema('user', ['users_data']);
     $this->installConfig(['user']);
@@ -106,6 +112,8 @@ class RegistratieFormTest extends KernelTestBase {
       'registratie_type' => 'bedrijf',
       'email' => $email,
       'pass' => 'goodpass123',
+      'firstName' => 'Lars',
+      'lastName' => 'Cowe',
       'companyName' => 'Acme NV',
       'vatNumber' => 'BE0123456789',
       'street' => 'Stationsstraat 1',
@@ -150,6 +158,9 @@ class RegistratieFormTest extends KernelTestBase {
       'registratie_type' => 'bedrijf',
       'email' => $email,
       'pass' => 'goodpass123',
+      'firstName' => 'Lars',
+      'lastName' => 'Cowe',
+      'phone' => '+32470000001',
       'companyName' => 'Acme BV',
       'vatNumber' => 'be0123456789',
       'street' => 'Stationsstraat 1',
@@ -162,6 +173,12 @@ class RegistratieFormTest extends KernelTestBase {
       ->loadByProperties(['mail' => $email]);
     $account = reset($accounts);
     $userData = $this->container->get('user.data');
+    // Persoon-velden moeten ALSO persisted zijn voor bedrijf (was eerder
+    // alleen bezoeker — bug 2026-05-09: bedrijf-Contact kreeg companyName
+    // als firstName).
+    $this->assertSame('Lars', $userData->get('shift_bezoeker', $account->id(), 'first_name'));
+    $this->assertSame('Cowe', $userData->get('shift_bezoeker', $account->id(), 'last_name'));
+    $this->assertSame('+32470000001', $userData->get('shift_bezoeker', $account->id(), 'phone'));
     $this->assertSame('Acme BV', $userData->get('shift_bezoeker', $account->id(), 'company_name'));
     $this->assertSame('BE0123456789', $userData->get('shift_bezoeker', $account->id(), 'vat_number'));
     $this->assertSame('Stationsstraat 1', $userData->get('shift_bezoeker', $account->id(), 'street'));

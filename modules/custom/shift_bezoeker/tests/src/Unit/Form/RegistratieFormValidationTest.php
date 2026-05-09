@@ -109,6 +109,8 @@ class RegistratieFormValidationTest extends UnitTestCase {
       'registratie_type' => 'bedrijf',
       'email' => 'co@example.com',
       'pass' => 'longenough123',
+      'firstName' => 'Lars',
+      'lastName' => 'Cowe',
       'companyName' => '',
       'vatNumber' => 'BE0123456789',
     ]);
@@ -120,6 +122,8 @@ class RegistratieFormValidationTest extends UnitTestCase {
       'registratie_type' => 'bedrijf',
       'email' => 'co@example.com',
       'pass' => 'longenough123',
+      'firstName' => 'Lars',
+      'lastName' => 'Cowe',
       'companyName' => 'Acme NV',
       'vatNumber' => 'NL0123456789',
     ]);
@@ -134,10 +138,28 @@ class RegistratieFormValidationTest extends UnitTestCase {
       'registratie_type' => 'bedrijf',
       'email' => 'co@example.com',
       'pass' => 'longenough123',
+      'firstName' => 'Lars',
+      'lastName' => 'Cowe',
       'companyName' => 'Acme NV',
       'vatNumber' => 'be0123456789',
     ]);
     $this->assertArrayNotHasKey('vatNumber', $errors);
+  }
+
+  public function testBedrijfMissingContactPersonNameReturnsError(): void {
+    /* C1 (Registration) requires firstName + lastName for both bezoeker and
+     * bedrijf — bedrijf-flow needs a contact-persoon, not just companyName. */
+    $errors = $this->validate([
+      'registratie_type' => 'bedrijf',
+      'email' => 'co@example.com',
+      'pass' => 'longenough123',
+      'firstName' => '',
+      'lastName' => '',
+      'companyName' => 'Acme NV',
+      'vatNumber' => 'BE0123456789',
+    ]);
+    $this->assertArrayHasKey('firstName', $errors);
+    $this->assertArrayHasKey('lastName', $errors);
   }
 
   public function testEmailEmptyReturnsError(): void {
