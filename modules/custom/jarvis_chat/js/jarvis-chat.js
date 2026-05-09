@@ -153,15 +153,25 @@
     errorBox.className = 'jarvis-approval-card__error';
     errorBox.hidden = true;
 
-    approveBtn.addEventListener('click', async () => {
+    // Synchronous busy-flag set BEFORE any await. setCardBusy inside
+    // decideAction lands too late — the first await (CSRF token fetch)
+    // gives the user a window to click the other button and fire a second
+    // request for the same action_id.
+    const guardClick = (handler) => async () => {
+      if (card.dataset.busy === '1' || card.classList.contains('is-resolved')) return;
+      card.dataset.busy = '1';
+      try { await handler(); }
+      finally { card.dataset.busy = ''; }
+    };
+    approveBtn.addEventListener('click', guardClick(async () => {
       await decideAction(card, errorBox, '/api/jarvis/chat/approve', { action_id: entry.action_id }, 'Goedgekeurd', convo);
-    });
-    rejectBtn.addEventListener('click', async () => {
+    }));
+    rejectBtn.addEventListener('click', guardClick(async () => {
       const r = reason.value.trim();
       const body = { action_id: entry.action_id };
       if (r !== '') body.reason = r;
       await decideAction(card, errorBox, '/api/jarvis/chat/reject', body, 'Afgewezen', convo);
-    });
+    }));
 
     actions.appendChild(approveBtn);
     actions.appendChild(rejectBtn);
