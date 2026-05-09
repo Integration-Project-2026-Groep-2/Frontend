@@ -60,7 +60,7 @@ class RegistrationChangeMessage implements \Drupal\hello_world\RabbitMQ\Message\
   }
 
   public function getRoutingKey(): string {
-    return 'frontend.user.updated';
+    return 'frontend.registration.updated';
   }
 
   public function getType(): string {
