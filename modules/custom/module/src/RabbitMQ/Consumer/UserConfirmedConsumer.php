@@ -163,6 +163,7 @@ class UserConfirmedConsumer {
     $this->setField($account, 'field_badge_code',   $data['badgeCode']);
     $this->setField($account, 'field_gdpr_consent', $data['gdprConsent']);
 
+    $account->_is_rabbitmq_sync = TRUE;
     $account->save();
   }
 

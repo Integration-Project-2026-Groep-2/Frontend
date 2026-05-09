@@ -180,6 +180,7 @@ class UserDeactivatedConsumer {
 
     $account = reset($accounts);
     $account->set('status', 0);
+    $account->_is_rabbitmq_sync = TRUE;
     $account->save();
 
     \Drupal::logger('rabbitmq')->info(
