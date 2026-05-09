@@ -42,6 +42,8 @@ services:
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_USER=${RABBITMQ_USER}
       - RABBITMQ_PASS=${RABBITMQ_PASS}
+      - MCP_MASTER_URL=${MCP_MASTER_URL:-http://mcp-master:8080}
+      - CHAT_JWT_SECRET=${CHAT_JWT_SECRET:-}
 
   frontend_db:
     image: mariadb:12
