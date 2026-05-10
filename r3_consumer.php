@@ -37,6 +37,7 @@ $autoloader = require DRUPAL_ROOT . '/autoload.php';
 
 use Drupal\Core\DrupalKernel;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
+use PhpAmqpLib\Exception\AMQPTimeoutException;
 use PhpAmqpLib\Message\AMQPMessage;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -105,6 +106,25 @@ $ch->basic_consume('frontend.ai_incidents', '', false, false, false, false, $cal
 
 echo "[r3_consumer] listening on frontend.ai_incidents (event.incident_*)\n";
 
-while ($ch->is_consuming()) {
-  $ch->wait();
+$shutdown = false;
+if (function_exists('pcntl_async_signals')) {
+  pcntl_async_signals(true);
+  $stop = function () use (&$shutdown) { $shutdown = true; };
+  pcntl_signal(SIGTERM, $stop);
+  pcntl_signal(SIGINT, $stop);
+}
+
+try {
+  while (!$shutdown && $ch->is_consuming()) {
+    try {
+      $ch->wait(null, false, 30);
+    }
+    catch (AMQPTimeoutException $e) {
+    }
+  }
+}
+finally {
+  echo "[r3_consumer] shutting down gracefully\n";
+  try { $ch->close(); } catch (\Throwable $e) {}
+  try { $conn->close(); } catch (\Throwable $e) {}
 }
