@@ -390,7 +390,7 @@
   }
 
   function escapeMermaid(s) {
-    return String(s == null ? '' : s).replace(/[\[\]{}|<>"'#:`()\\]/g, '_');
+    return String(s == null ? '' : s).replace(/[\[\]{}|<>"'#:`()\\%;=\n\r]/g, '_');
   }
 
   function serverNodeId(server) {
