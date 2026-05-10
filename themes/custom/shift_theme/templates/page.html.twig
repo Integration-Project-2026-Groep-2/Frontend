@@ -12,6 +12,9 @@
         <li><a href="/">Home</a></li>
         <li><a href="/bezoeker/sessies">Programma</a></li>
         <li><a href="/bedrijven" class="nav-link">Partners</a></li>
+        {% if can_view_ai_dashboard %}
+          <li><a href="/ai/incidents" class="nav-link">AI dashboard</a></li>
+        {% endif %}
       </ul>
     </nav>
 
