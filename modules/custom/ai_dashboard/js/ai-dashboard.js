@@ -243,12 +243,13 @@
     const service = detail.service || inner.service || '—';
     const time = formatClock(new Date(((detail.received_at || 0)) * 1000));
     detailTitleEl.textContent = 'Incident #' + detail.id + ' — ' + service + ' @ ' + time;
+    detailDialog.dataset.severity = (detail.severity || 'info').toLowerCase();
 
     detailMetaEl.replaceChildren();
     detailMetaEl.appendChild(metaItem('Type', humanizeEventType(detail.event_type)));
-    detailMetaEl.appendChild(metaItem('Severity', detail.severity || '—'));
+    detailMetaEl.appendChild(metaPillItem('Severity', makeBadge('severity', detail.severity || 'unknown')));
     if (detail.confidence) {
-      detailMetaEl.appendChild(metaItem('Confidence', detail.confidence));
+      detailMetaEl.appendChild(metaPillItem('Confidence', makeBadge('confidence', detail.confidence)));
     }
     if (detail.correlation_id) {
       detailMetaEl.appendChild(metaItem('Correlation', detail.correlation_id));
@@ -263,8 +264,8 @@
     if (diagnosis) {
       appendTextSection('Root cause', diagnosis.root_cause);
       appendTextSection('Critical failure', diagnosis.critical_failure);
-      appendTextSection('Impact', diagnosis.impact);
-      appendTextSection('Suggested action', diagnosis.suggested_action);
+      appendTextSection('Impact', diagnosis.impact, 'impact');
+      appendTextSection('Suggested action', diagnosis.suggested_action, 'action');
     } else if (inner.reason) {
       appendTextSection('Skip reason', String(inner.reason));
     }
@@ -285,12 +286,23 @@
     return span;
   }
 
-  function appendTextSection(title, body) {
+  function metaPillItem(label, pillEl) {
+    const span = document.createElement('span');
+    const strong = document.createElement('strong');
+    strong.textContent = label + ':';
+    span.appendChild(strong);
+    span.appendChild(document.createTextNode(' '));
+    span.appendChild(pillEl);
+    return span;
+  }
+
+  function appendTextSection(title, body, variant) {
     if (body === undefined || body === null || String(body).trim() === '') {
       return;
     }
     const section = document.createElement('div');
-    section.className = 'ai-dashboard-dialog-section';
+    section.className = 'ai-dashboard-dialog-section'
+      + (variant ? ' ai-dashboard-dialog-section--card ai-dashboard-dialog-section--' + variant : '');
     const h = document.createElement('h4');
     h.className = 'ai-dashboard-dialog-section-title';
     h.textContent = title;

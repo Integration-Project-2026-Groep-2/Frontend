@@ -249,7 +249,8 @@
 .ai-dashboard-dialog-meta {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem 1.1rem;
+  gap: 0.45rem 0.85rem;
+  align-items: center;
   font-size: 0.82rem;
   color: #6b5b8c;
   font-variant-numeric: tabular-nums;
@@ -259,6 +260,16 @@
   color: #311339;
   font-weight: 600;
 }
+
+.ai-dashboard-dialog-meta .ai-dashboard-badge {
+  font-size: 0.7rem;
+  vertical-align: middle;
+}
+
+.ai-dashboard-dialog[data-severity="critical"] { border-top: 4px solid #dc2626; }
+.ai-dashboard-dialog[data-severity="error"]    { border-top: 4px solid #ea580c; }
+.ai-dashboard-dialog[data-severity="warning"]  { border-top: 4px solid #ca8a04; }
+.ai-dashboard-dialog[data-severity="info"]     { border-top: 4px solid #0284c7; }
 
 .ai-dashboard-dialog-body {
   padding: 1.1rem 1.5rem 1.5rem;
@@ -284,6 +295,37 @@
   white-space: pre-wrap;
   font-size: 0.92rem;
   line-height: 1.5;
+}
+
+.ai-dashboard-dialog-section--card {
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: 1px solid;
+}
+
+.ai-dashboard-dialog-section--impact {
+  background: #fffbeb;
+  border-color: #fde68a;
+}
+
+.ai-dashboard-dialog-section--impact .ai-dashboard-dialog-section-title {
+  color: #92400e;
+}
+
+.ai-dashboard-dialog-section--action {
+  background: #ecfdf5;
+  border-color: #a7f3d0;
+}
+
+.ai-dashboard-dialog-section--action .ai-dashboard-dialog-section-title {
+  color: #065f46;
+  font-size: 0.78rem;
+}
+
+.ai-dashboard-dialog-section--action p {
+  font-size: 0.98rem;
+  font-weight: 500;
+  color: #064e3b;
 }
 
 .ai-dashboard-dialog-evidence {
