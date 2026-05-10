@@ -197,8 +197,143 @@
   text-align: right;
 }
 
+.ai-dashboard-dialog {
+  width: min(720px, calc(100vw - 2rem));
+  max-height: calc(100vh - 4rem);
+  padding: 0;
+  border: 1px solid rgba(99, 51, 234, 0.18);
+  border-radius: 18px;
+  background: #ffffff;
+  color: #1d0b25;
+  box-shadow: 0 30px 60px -20px rgba(29, 11, 37, 0.45);
+  overflow: hidden;
+}
+
+.ai-dashboard-dialog::backdrop {
+  background: rgba(29, 11, 37, 0.55);
+  backdrop-filter: blur(4px);
+}
+
+.ai-dashboard-dialog-close {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.85rem;
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #6b5b8c;
+  font-size: 1.45rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.ai-dashboard-dialog-close:hover {
+  background: #f5f0fc;
+  color: #311339;
+}
+
+.ai-dashboard-dialog-header {
+  padding: 1.25rem 1.5rem 0.85rem;
+  border-bottom: 1px solid rgba(99, 51, 234, 0.1);
+}
+
+.ai-dashboard-dialog-title {
+  margin: 0 2.5rem 0.4rem 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #311339;
+}
+
+.ai-dashboard-dialog-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.1rem;
+  font-size: 0.82rem;
+  color: #6b5b8c;
+  font-variant-numeric: tabular-nums;
+}
+
+.ai-dashboard-dialog-meta strong {
+  color: #311339;
+  font-weight: 600;
+}
+
+.ai-dashboard-dialog-body {
+  padding: 1.1rem 1.5rem 1.5rem;
+  overflow-y: auto;
+  max-height: calc(100vh - 11rem);
+}
+
+.ai-dashboard-dialog-section + .ai-dashboard-dialog-section {
+  margin-top: 1rem;
+}
+
+.ai-dashboard-dialog-section-title {
+  margin: 0 0 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #6333ea;
+}
+
+.ai-dashboard-dialog-section p {
+  margin: 0;
+  white-space: pre-wrap;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.ai-dashboard-dialog-evidence {
+  margin: 0;
+  padding: 0.75rem 0.9rem;
+  border-radius: 10px;
+  background: #faf5ff;
+  border: 1px solid rgba(99, 51, 234, 0.1);
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8rem;
+  white-space: pre-wrap;
+  color: #311339;
+  max-height: 220px;
+  overflow: auto;
+}
+
+.ai-dashboard-dialog-flow {
+  padding: 1rem;
+  border-radius: 12px;
+  background: #1d0b25;
+  border: 1px solid rgba(99, 51, 234, 0.3);
+  text-align: center;
+  overflow-x: auto;
+}
+
+.ai-dashboard-dialog-flow svg {
+  max-width: 100%;
+  height: auto;
+}
+
+.ai-dashboard-dialog-flow-empty {
+  color: #8b7aa8;
+  font-style: italic;
+  font-size: 0.85rem;
+}
+
+.ai-dashboard-dialog-error {
+  margin: 0;
+  padding: 0.7rem 0.9rem;
+  border-radius: 8px;
+  background: #fff1f2;
+  color: #991b1b;
+  font-size: 0.85rem;
+}
+
 @media (max-width: 768px) {
   #ai-dashboard-app { padding: 1rem 0.75rem; }
   .ai-dashboard-section { padding: 1rem; }
   .ai-dashboard-summary { max-width: 200px; }
+  .ai-dashboard-dialog { width: calc(100vw - 1rem); border-radius: 14px; }
+  .ai-dashboard-dialog-body { padding: 1rem; }
+  .ai-dashboard-dialog-header { padding: 1rem 1rem 0.7rem; }
 }
