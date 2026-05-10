@@ -22,9 +22,33 @@ until php -r "
 done
 echo "Database bereikbaar."
 
+# ── settings.php aanmaken met database configuratie ──────────────────────────
+SETTINGS_FILE="/opt/drupal/web/sites/default/settings.php"
+
+if [ ! -f "$SETTINGS_FILE" ]; then
+  cp /opt/drupal/web/sites/default/default.settings.php "$SETTINGS_FILE"
+  chmod 644 "$SETTINGS_FILE"
+fi
+
+if ! grep -q "drupal_db_configured" "$SETTINGS_FILE"; then
+  cat >> "$SETTINGS_FILE" << SETTINGS
+// drupal_db_configured
+\$databases['default']['default'] = [
+  'driver'    => 'mysql',
+  'host'      => '${DRUPAL_DB_HOST}',
+  'database'  => '${DRUPAL_DB_NAME}',
+  'username'  => '${DRUPAL_DB_USER}',
+  'password'  => '${DRUPAL_DB_PASS}',
+  'port'      => '3306',
+  'prefix'    => '',
+  'namespace' => 'Drupal\\mysql\\Driver\\Database\\mysql',
+  'autoload'  => 'core/modules/mysql/src/Driver/Database/mysql/',
+];
+SETTINGS
+fi
+
 # ── Drupal installeren of updaten ─────────────────────────────────────────────
 if [ -x "$DRUSH" ]; then
-  # Controleer of Drupal al geinstalleerd is door de users tabel te checken.
   INSTALLED=$(php -r "
     try {
       \$pdo = new PDO('mysql:host=${DRUPAL_DB_HOST};dbname=${DRUPAL_DB_NAME}', '${DRUPAL_DB_USER}', '${DRUPAL_DB_PASS}');
@@ -38,11 +62,6 @@ if [ -x "$DRUSH" ]; then
   if [ "$INSTALLED" = "no" ]; then
     echo "Drupal installeren..."
     "$DRUSH" site:install standard \
-      --db-driver=mysql \
-      --db-host="${DRUPAL_DB_HOST}" \
-      --db-name="${DRUPAL_DB_NAME}" \
-      --db-username="${DRUPAL_DB_USER}" \
-      --db-password="${DRUPAL_DB_PASS}" \
       --site-name="Frontend" \
       --account-name="admin" \
       --account-pass="admin" \
@@ -55,11 +74,9 @@ if [ -x "$DRUSH" ]; then
     echo "Drupal is al geinstalleerd."
   fi
 
-  # Modules inschakelen
   echo "Modules inschakelen..."
   "$DRUSH" en hello_world custom_roles -y || true
 
-  # Cache legen
   "$DRUSH" cr || true
 
   echo "Drupal init voltooid."
