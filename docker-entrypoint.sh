@@ -47,39 +47,29 @@ if ! grep -q "drupal_db_configured" "$SETTINGS_FILE"; then
 SETTINGS
 fi
 
-# ── Drupal installeren of updaten ─────────────────────────────────────────────
+# ── Drupal install (opt-in) + module enable + cache rebuild ──────────────────
+# The install block runs only when ALLOW_AUTO_INSTALL=1 is set in the env.
+# Production must never set it; local dev sets it in .env so a fresh git
+# clone bootstraps without manual drush site:install. Detection uses
+# `drush status --field=bootstrap`: Drush actually boots Drupal and reports
+# "Successful" only when settings.php + DB schema are valid. The previous
+# raw-SQL probe was fail-open and wiped production on edge-case failures.
 if [ -x "$DRUSH" ]; then
-  INSTALLED=$(php -r "
-    try {
-      \$pdo = new PDO('mysql:host=${DRUPAL_DB_HOST};dbname=${DRUPAL_DB_NAME}', '${DRUPAL_DB_USER}', '${DRUPAL_DB_PASS}');
-      \$result = \$pdo->query('SHOW TABLES LIKE \"users\"');
-      echo \$result->rowCount() > 0 ? 'yes' : 'no';
-    } catch (Exception \$e) {
-      echo 'no';
-    }
-  ")
-
-  if [ "$INSTALLED" = "no" ]; then
-    echo "Drupal installeren..."
-    "$DRUSH" site:install standard \
-      --site-name="Frontend" \
-      --account-name="admin" \
-      --account-pass="admin" \
-      --account-mail="admin@example.com" \
-      --locale=en \
-      --yes \
-      2>&1
-    echo "Drupal installatie voltooid."
-  else
-    echo "Drupal is al geinstalleerd."
+  if [ "${ALLOW_AUTO_INSTALL:-0}" = "1" ]; then
+    if ! "$DRUSH" status --field=bootstrap 2>/dev/null | grep -q "Successful"; then
+      echo "ALLOW_AUTO_INSTALL=1 + Drupal not bootstrapped → installing fresh standard..."
+      "$DRUSH" site:install standard \
+        --site-name="Frontend" \
+        --account-name="admin" \
+        --account-pass="admin" \
+        --account-mail="admin@example.com" \
+        --locale=en \
+        --yes
+    fi
   fi
 
-  echo "Modules inschakelen..."
   "$DRUSH" en hello_world custom_roles ai_dashboard -y || true
-
   "$DRUSH" cr || true
-
-  echo "Drupal init voltooid."
 else
   echo "Drush niet gevonden — sla Drupal init over."
 fi
