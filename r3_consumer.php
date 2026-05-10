@@ -49,6 +49,11 @@ ini_set('display_errors', '0');
 
 echo "[r3_consumer] drupal kernel booted\n";
 
+if (!\Drupal::moduleHandler()->moduleExists('ai_dashboard')) {
+  echo "[r3_consumer] ai_dashboard module not enabled, exiting (run: drush en ai_dashboard -y)\n";
+  exit(1);
+}
+
 $host = $_ENV['RABBITMQ_HOST'] ?? 'rabbitmq';
 $port = (int) ($_ENV['RABBITMQ_PORT'] ?? 5672);
 $user = $_ENV['RABBITMQ_USER'] ?? 'guest';
