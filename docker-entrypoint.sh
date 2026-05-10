@@ -54,7 +54,7 @@ if [ -x "$DRUSH" ]; then
 
   # Modules inschakelen
   echo "Modules inschakelen..."
-  "$DRUSH" en hello_world custom_roles -y || true
+  "$DRUSH" en hello_world custom_roles ai_dashboard -y || true
 
   # Cache legen
   "$DRUSH" cr || true
