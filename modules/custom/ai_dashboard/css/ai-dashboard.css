@@ -1,0 +1,19 @@
+#ai-dashboard-app {
+  padding: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  color: #1d0b25;
+}
+
+#ai-dashboard-app h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #311339;
+  margin: 0 0 1.25rem;
+}
+
+.ai-dashboard-placeholder {
+  color: #6b7280;
+  font-style: italic;
+}
