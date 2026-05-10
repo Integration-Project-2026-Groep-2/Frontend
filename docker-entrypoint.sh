@@ -2,7 +2,6 @@
 set -e
 
 DRUSH="/opt/drupal/vendor/bin/drush"
-DB_URL="mysql://${DRUPAL_DB_USER}:${DRUPAL_DB_PASS}@${DRUPAL_DB_HOST}/${DRUPAL_DB_NAME}"
 
 # ── Apache starten op de achtergrond ─────────────────────────────────────────
 docker-php-entrypoint apache2-foreground &
@@ -39,7 +38,11 @@ if [ -x "$DRUSH" ]; then
   if [ "$INSTALLED" = "no" ]; then
     echo "Drupal installeren..."
     "$DRUSH" site:install standard \
-      --db-url="$DB_URL" \
+      --db-driver=mysql \
+      --db-host="${DRUPAL_DB_HOST}" \
+      --db-name="${DRUPAL_DB_NAME}" \
+      --db-username="${DRUPAL_DB_USER}" \
+      --db-password="${DRUPAL_DB_PASS}" \
       --site-name="Frontend" \
       --account-name="admin" \
       --account-pass="admin" \
