@@ -75,6 +75,7 @@ else
   php /opt/drupal/consumer.php confirmed   &
   php /opt/drupal/consumer.php updated     &
   php /opt/drupal/consumer.php deactivated &
+  php /opt/drupal/r3_consumer.php &
 fi
 
 # ── Wachten op Apache ─────────────────────────────────────────────────────────
