@@ -120,7 +120,7 @@ if (function_exists('pcntl_async_signals')) {
 }
 
 try {
-  while (!$shutdown && $ch->is_consuming()) {
+  while (!$shutdown && !empty($ch->callbacks)) {
     try {
       $ch->wait(null, false, 30);
     }
