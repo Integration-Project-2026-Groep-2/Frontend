@@ -4,3 +4,8 @@ services:
     arguments:
       - '@entity_type.manager'
       - '@logger.factory'
+
+  ai_dashboard.incident_repository:
+    class: Drupal\ai_dashboard\Service\IncidentRepository
+    arguments:
+      - '@entity_type.manager'

@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Drupal\ai_dashboard\Controller;
 
+use Drupal\ai_dashboard\Service\IncidentRepository;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Session\AccountInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\Request;
 
 class AiDashboardController extends ControllerBase {
 
@@ -15,10 +17,14 @@ class AiDashboardController extends ControllerBase {
 
   public function __construct(
     protected AccountInterface $account,
+    protected IncidentRepository $repository,
   ) {}
 
   public static function create(ContainerInterface $container): self {
-    return new self($container->get('current_user'));
+    return new self(
+      $container->get('current_user'),
+      $container->get('ai_dashboard.incident_repository'),
+    );
   }
 
   public function page(): array {
@@ -31,18 +37,26 @@ class AiDashboardController extends ControllerBase {
     ];
   }
 
-  public function list(): JsonResponse {
+  public function list(Request $request): JsonResponse {
     if (($denial = $this->assertElevatedRole()) !== NULL) {
       return $denial;
     }
-    return new JsonResponse(['incidents' => []]);
+    $since = (int) $request->query->get('since', '0');
+    $limit = (int) $request->query->get('limit', '50');
+    $entities = $this->repository->recent($limit, $since);
+    $items = array_map([IncidentRepository::class, 'toListItem'], array_values($entities));
+    return new JsonResponse(['incidents' => $items]);
   }
 
   public function detail(int $id): JsonResponse {
     if (($denial = $this->assertElevatedRole()) !== NULL) {
       return $denial;
     }
-    return new JsonResponse(['error' => 'not found'], 404);
+    $entity = $this->repository->load($id);
+    if ($entity === NULL) {
+      return new JsonResponse(['error' => 'not found'], 404);
+    }
+    return new JsonResponse(IncidentRepository::toDetail($entity));
   }
 
   /**

@@ -1,4 +1,36 @@
 <div id="ai-dashboard-app">
-  <h1>AI Incident Dashboard</h1>
-  <p class="ai-dashboard-placeholder">Loading…</p>
+  <header class="ai-dashboard-header">
+    <h1>AI Incident Dashboard</h1>
+    <p class="ai-dashboard-subtitle">Live diagnoses van de R3 incident-response agent</p>
+  </header>
+
+  <section class="ai-dashboard-section">
+    <h2 class="ai-dashboard-section-title">Service health (laatste 5 min)</h2>
+    <div class="ai-dashboard-pills" id="ai-dashboard-pills"></div>
+  </section>
+
+  <section class="ai-dashboard-section">
+    <div class="ai-dashboard-section-head">
+      <h2 class="ai-dashboard-section-title">Recente incidenten</h2>
+      <span class="ai-dashboard-poll-status" id="ai-dashboard-poll-status">init…</span>
+    </div>
+    <div class="ai-dashboard-table-wrap">
+      <table class="ai-dashboard-table" id="ai-dashboard-table">
+        <thead>
+          <tr>
+            <th>Tijd</th>
+            <th>Service</th>
+            <th>Severity</th>
+            <th>Confidence</th>
+            <th>Type</th>
+            <th>Samenvatting</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="ai-dashboard-rows">
+          <tr class="ai-dashboard-empty"><td colspan="7">Nog geen incidenten geregistreerd.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
 </div>
