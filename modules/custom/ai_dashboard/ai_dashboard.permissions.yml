@@ -1,0 +1,4 @@
+'view ai dashboard':
+  title: 'View AI dashboard'
+  description: 'Access to /ai/incidents page and /api/ai/incidents JSON API.'
+  restrict access: true

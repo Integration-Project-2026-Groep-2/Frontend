@@ -1,0 +1,30 @@
+ai_dashboard.page:
+  path: '/ai/incidents'
+  defaults:
+    _controller: '\Drupal\ai_dashboard\Controller\AiDashboardController::page'
+    _title: 'AI Incident Dashboard'
+  requirements:
+    _permission: 'view ai dashboard'
+
+ai_dashboard.api_list:
+  path: '/api/ai/incidents'
+  defaults:
+    _controller: '\Drupal\ai_dashboard\Controller\AiDashboardController::list'
+  methods: [GET]
+  requirements:
+    _permission: 'view ai dashboard'
+    _csrf_request_header_token: 'TRUE'
+  options:
+    no_cache: 'TRUE'
+
+ai_dashboard.api_detail:
+  path: '/api/ai/incidents/{id}'
+  defaults:
+    _controller: '\Drupal\ai_dashboard\Controller\AiDashboardController::detail'
+  methods: [GET]
+  requirements:
+    _permission: 'view ai dashboard'
+    id: '\d+'
+    _csrf_request_header_token: 'TRUE'
+  options:
+    no_cache: 'TRUE'

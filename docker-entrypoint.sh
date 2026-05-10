@@ -75,7 +75,7 @@ if [ -x "$DRUSH" ]; then
   fi
 
   echo "Modules inschakelen..."
-  "$DRUSH" en hello_world custom_roles -y || true
+  "$DRUSH" en hello_world custom_roles ai_dashboard -y || true
 
   "$DRUSH" cr || true
 
@@ -95,6 +95,7 @@ else
   php /opt/drupal/consumer.php confirmed   &
   php /opt/drupal/consumer.php updated     &
   php /opt/drupal/consumer.php deactivated &
+  php /opt/drupal/r3_consumer.php &
 fi
 
 # ── Wachten op Apache ─────────────────────────────────────────────────────────
