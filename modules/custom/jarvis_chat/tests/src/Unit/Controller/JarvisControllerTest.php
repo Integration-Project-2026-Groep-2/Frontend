@@ -14,6 +14,7 @@ use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Psr7\Request as GuzzleRequest;
 use GuzzleHttp\Psr7\Response;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * @coversDefaultClass \Drupal\jarvis_chat\Controller\JarvisController
@@ -354,6 +355,74 @@ class JarvisControllerTest extends UnitTestCase {
     $this->assertSame(409, $response->getStatusCode());
     $payload = json_decode($response->getContent(), TRUE);
     $this->assertSame('upstream error', $payload['error']);
+  }
+
+  public function testStreamChatForwardsBearerAndOpensStream(): void {
+    $http = $this->createMock(ClientInterface::class);
+    $captured = NULL;
+    $http->method('request')->willReturnCallback(
+      function ($method, $url, $options) use (&$captured) {
+        $captured = $options;
+        // mcp-master's /chat/stream returns text/event-stream. For the
+        // unit-level pipe-test a static frame suffices — the StreamedResponse
+        // callback pipes whatever Guzzle hands us, doesn't introspect it.
+        return new Response(
+          200,
+          ['Content-Type' => 'text/event-stream'],
+          "event: done\ndata: {\"event\":\"done\"}\n\n"
+        );
+      }
+    );
+    $controller = $this->makeController($http, 'jwt-token');
+    $request = Request::create(
+      '/api/jarvis/chat/stream', 'POST', [], [], [], [],
+      json_encode(['messages' => [['role' => 'user', 'content' => 'q']]])
+    );
+
+    $response = $controller->streamChat($request);
+
+    $this->assertInstanceOf(StreamedResponse::class, $response);
+    $this->assertSame('text/event-stream', $response->headers->get('Content-Type'));
+    // Symfony may append `, private` to the Cache-Control we set; only the
+    // two directives that matter for SSE-proxy behaviour need to be present.
+    $cacheControl = $response->headers->get('Cache-Control');
+    $this->assertStringContainsString('no-cache', $cacheControl);
+    $this->assertStringContainsString('no-transform', $cacheControl);
+    $this->assertSame('no', $response->headers->get('X-Accel-Buffering'));
+    $this->assertTrue($captured['stream'] ?? FALSE);
+    $this->assertSame('Bearer jwt-token', $captured['headers']['Authorization']);
+    $this->assertSame('text/event-stream', $captured['headers']['Accept']);
+  }
+
+  public function testStreamChatBlocksNonElevatedRole(): void {
+    // Defense-in-depth: even if 'use jarvis chat' permission ever leaks
+    // to a non-elevated role, the controller refuses to open the upstream
+    // stream. Asserting $http->expects($this->never())->method('request')
+    // proves the upstream is never touched on the denied path.
+    $http = $this->createMock(ClientInterface::class);
+    $http->expects($this->never())->method('request');
+    $controller = $this->makeController($http, NULL, ['authenticated']);
+    $request = Request::create(
+      '/api/jarvis/chat/stream', 'POST', [], [], [], [],
+      json_encode(['messages' => [['role' => 'user', 'content' => 'q']]])
+    );
+
+    $response = $controller->streamChat($request);
+
+    $this->assertSame(403, $response->getStatusCode());
+  }
+
+  public function testStreamChatRejectsEmptyBody(): void {
+    $http = $this->createMock(ClientInterface::class);
+    $http->expects($this->never())->method('request');
+    $controller = $this->makeController($http);
+    $request = Request::create(
+      '/api/jarvis/chat/stream', 'POST', [], [], [], [], json_encode([])
+    );
+
+    $response = $controller->streamChat($request);
+
+    $this->assertSame(400, $response->getStatusCode());
   }
 
 }
