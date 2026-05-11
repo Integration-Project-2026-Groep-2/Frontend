@@ -19,11 +19,14 @@ class JarvisController extends ControllerBase {
 
   private const DEFAULT_BACKEND_URL = 'http://mcp-master:8080';
   private const REQUEST_TIMEOUT_SECONDS = 240;
-  // mcp-master caps /chat/stream at 600s server-side; we hold the
-  // upstream connection slightly longer so the backend's terminal
-  // `error` event with correlation_id reaches the client before our
-  // own timeout fires.
+
+  /**
+   * Wall-clock cap for /chat/stream. Mcp-master enforces 600s; we hold
+   * the upstream connection +10s so the backend's terminal error event
+   * with correlation_id reaches the client before our own timeout fires.
+   */
   private const STREAM_TIMEOUT_SECONDS = 610;
+
   private const ELEVATED_ROLES = ['administrator', 'event_manager'];
 
   /**

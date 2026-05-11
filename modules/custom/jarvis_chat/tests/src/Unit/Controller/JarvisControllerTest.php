@@ -357,6 +357,12 @@ class JarvisControllerTest extends UnitTestCase {
     $this->assertSame('upstream error', $payload['error']);
   }
 
+  /**
+   * Happy path: Guzzle receives stream=true + JWT bearer + Accept
+   * text/event-stream, and the controller returns a StreamedResponse
+   * with the SSE-friendly headers (Content-Type, Cache-Control,
+   * X-Accel-Buffering).
+   */
   public function testStreamChatForwardsBearerAndOpensStream(): void {
     $http = $this->createMock(ClientInterface::class);
     $captured = NULL;
@@ -394,11 +400,13 @@ class JarvisControllerTest extends UnitTestCase {
     $this->assertSame('text/event-stream', $captured['headers']['Accept']);
   }
 
+  /**
+   * Defense-in-depth: even if 'use jarvis chat' permission ever leaks
+   * to a non-elevated role, the controller refuses to open the upstream
+   * stream. The expects($this->never())->method('request') assertion
+   * proves the upstream is never touched on the denied path.
+   */
   public function testStreamChatBlocksNonElevatedRole(): void {
-    // Defense-in-depth: even if 'use jarvis chat' permission ever leaks
-    // to a non-elevated role, the controller refuses to open the upstream
-    // stream. Asserting $http->expects($this->never())->method('request')
-    // proves the upstream is never touched on the denied path.
     $http = $this->createMock(ClientInterface::class);
     $http->expects($this->never())->method('request');
     $controller = $this->makeController($http, NULL, ['authenticated']);
@@ -412,6 +420,10 @@ class JarvisControllerTest extends UnitTestCase {
     $this->assertSame(403, $response->getStatusCode());
   }
 
+  /**
+   * Empty body returns 400 and the upstream client is never invoked,
+   * matching the chat() rejection contract.
+   */
   public function testStreamChatRejectsEmptyBody(): void {
     $http = $this->createMock(ClientInterface::class);
     $http->expects($this->never())->method('request');
