@@ -89,14 +89,17 @@ $ch->basic_qos(null, 1, null);
 $ingester = \Drupal::service('ai_dashboard.incident_ingester');
 $logger = \Drupal::logger('ai_dashboard');
 
-$callback = function (AMQPMessage $msg) use ($ingester, $logger): void {
+$callback = function (AMQPMessage $msg) use ($ch, $ingester, $logger): void {
+  $tag = $msg->delivery_info['delivery_tag'] ?? NULL;
   try {
     $envelope = json_decode($msg->getBody(), true, 512, JSON_THROW_ON_ERROR);
     if (!is_array($envelope)) {
       throw new \InvalidArgumentException('envelope decoded to non-array');
     }
     $ingester->save($envelope);
-    $msg->ack();
+    if ($tag !== NULL) {
+      $ch->basic_ack($tag);
+    }
   }
   catch (\Throwable $e) {
     $rk = is_array($msg->delivery_info ?? NULL)
@@ -106,7 +109,9 @@ $callback = function (AMQPMessage $msg) use ($ingester, $logger): void {
       '@msg' => $e->getMessage(),
       '@rk' => $rk,
     ]);
-    $msg->nack(false, false);
+    if ($tag !== NULL) {
+      $ch->basic_nack($tag, false, false);
+    }
   }
 };
 
