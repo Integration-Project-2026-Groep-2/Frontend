@@ -47,34 +47,7 @@
           }
 
           try {
-            const res = await jarvisFetch('/api/jarvis/chat', {
-              messages: [...history, userTurn],
-            });
-            const data = await res.json();
-            if (res.ok) {
-              // Mutate history only on success — a failed turn must not
-              // pollute the conversation context for the retry.
-              history.push(userTurn);
-              // Strip the SETUP_PROMPT triple-backtick fence before storing —
-              // Anthropic re-reading its own fenced turn treats it as a code
-              // snippet and re-attempts prior tool-calls thinking the question
-              // wasn't really answered.
-              history.push({
-                role: 'assistant',
-                content: stripOuterCodeFence(data.answer || ''),
-              });
-              if (history.length > MAX_HISTORY_TURNS) {
-                history.splice(0, history.length - MAX_HISTORY_TURNS);
-              }
-              renderMarkdown(loading, data.answer || '');
-              if (Array.isArray(data.tool_trace) && data.tool_trace.length > 0) {
-                appendApprovalCards(loading, data.tool_trace, convo);
-                appendToolFlow(loading, data.tool_trace);
-              }
-            } else {
-              loading.classList.remove('jarvis-typing');
-              loading.textContent = `Fout: ${data.error || res.statusText}`;
-            }
+            await streamPrompt({ userTurn, history, loading, convo });
           } catch (err) {
             loading.classList.remove('jarvis-typing');
             loading.textContent = `Fout: ${err.message}`;
@@ -100,6 +73,215 @@
       },
       body: JSON.stringify(body),
     });
+  }
+
+  // POST to /api/jarvis/chat/stream and parse the resulting SSE feed into
+  // live updates on the loading bubble. Backwards-compat with the JSON
+  // /chat path: same history-mutation semantics (push only on `done`),
+  // same approval-card / tool-flow rendering at end (synthetic tool_trace
+  // assembled from tool_call_started + tool_call_completed events).
+  async function streamPrompt({ userTurn, history, loading, convo }) {
+    const csrf = await fetch('/session/token').then((r) => r.text());
+    const res = await fetch('/api/jarvis/chat/stream', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'text/event-stream',
+        'X-CSRF-Token': csrf,
+      },
+      body: JSON.stringify({ messages: [...history, userTurn] }),
+    });
+
+    if (!res.ok) {
+      // Pre-stream failure (4xx/502 from JarvisController). Body is JSON
+      // with {error: "..."} mirroring /chat.
+      let errorMsg = res.statusText;
+      try {
+        const data = await res.json();
+        if (data && typeof data.error === 'string') errorMsg = data.error;
+      } catch (_) { /* leave statusText */ }
+      loading.classList.remove('jarvis-typing');
+      loading.textContent = `Fout: ${errorMsg}`;
+      return;
+    }
+
+    const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
+    const parser = new SseEventParser();
+    const accum = new TextAccumulator(loading);
+    const syntheticTrace = [];
+    let assistantText = '';
+    let receivedTerminal = false;
+    let errored = false;
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      for (const ev of parser.feed(value)) {
+        switch (ev.event) {
+          case 'thinking':
+            // No UI surface yet — surface as live status line in v2.
+            break;
+          case 'text_chunk':
+            if (typeof ev.text === 'string') accum.append(ev.text);
+            break;
+          case 'tool_call_started':
+            syntheticTrace.push({
+              tool: ev.name,
+              server: ev.server || '',
+              ms: 0,
+            });
+            break;
+          case 'tool_call_completed': {
+            // Match newest started entry without 'ok' set — handles parallel
+            // dispatch where multiple identical-tool calls overlap (LLM does
+            // this for count_contacts + count_registrations together).
+            for (let i = syntheticTrace.length - 1; i >= 0; i -= 1) {
+              const t = syntheticTrace[i];
+              if (t.tool === ev.name && !('ok' in t)) {
+                t.ok = !!ev.ok;
+                t.ms = ev.ms || 0;
+                if (ev.status) t.status = ev.status;
+                if (ev.action_id) t.action_id = ev.action_id;
+                break;
+              }
+            }
+            break;
+          }
+          case 'approval_pending':
+            // tool_call_completed already carried status='pending' + action_id,
+            // so appendApprovalCards picks it up from syntheticTrace on done.
+            break;
+          case 'done':
+            accum.finalize();
+            assistantText = accum.text;
+            receivedTerminal = true;
+            break;
+          case 'error':
+            errored = true;
+            receivedTerminal = true;
+            loading.classList.remove('jarvis-typing');
+            loading.textContent = ev.correlation_id
+              ? `Fout: ${ev.message || 'internal error'} (ref: ${ev.correlation_id})`
+              : `Fout: ${ev.message || 'internal error'}`;
+            break;
+          default:
+            // Unknown event type — ignore, forward-compat safe.
+            break;
+        }
+        if (receivedTerminal) break;
+      }
+      if (receivedTerminal) break;
+    }
+
+    if (errored) {
+      // History intentionally NOT mutated — user can retry without polluting
+      // context. Same contract as the JSON /chat path on res.ok=false.
+      return;
+    }
+    if (!receivedTerminal) {
+      // Stream closed without `done` or `error`. Treat as transport failure.
+      loading.classList.remove('jarvis-typing');
+      loading.textContent = 'Fout: verbinding onverwacht afgebroken.';
+      return;
+    }
+
+    history.push(userTurn);
+    history.push({
+      role: 'assistant',
+      content: stripOuterCodeFence(assistantText),
+    });
+    if (history.length > MAX_HISTORY_TURNS) {
+      history.splice(0, history.length - MAX_HISTORY_TURNS);
+    }
+    if (syntheticTrace.length > 0) {
+      // appendApprovalCards reads entry.status === 'pending' + action_id;
+      // appendToolFlow renders the Mermaid drill-down. Both work 1:1 with
+      // the synthetic shape because we filled status/action_id from the
+      // ProgressEvent.tool_call_completed payload.
+      appendApprovalCards(loading, syntheticTrace, convo);
+      appendToolFlow(loading, syntheticTrace);
+    }
+  }
+
+  // Buffers SSE frames across fetch-reader chunk boundaries. Each `\n\n`
+  // terminates a frame; everything before is `event:` + `data:` lines per
+  // the SSE spec. Yields the parsed JSON payload of each frame.
+  class SseEventParser {
+    constructor() {
+      this.buffer = '';
+    }
+    *feed(chunk) {
+      this.buffer += chunk;
+      let idx;
+      while ((idx = this.buffer.indexOf('\n\n')) !== -1) {
+        const block = this.buffer.slice(0, idx);
+        this.buffer = this.buffer.slice(idx + 2);
+        const parsed = SseEventParser.parseBlock(block);
+        if (parsed !== null) yield parsed;
+      }
+    }
+    static parseBlock(block) {
+      let eventName = 'message';
+      const dataLines = [];
+      for (const line of block.split('\n')) {
+        if (line.startsWith('event:')) eventName = line.slice(6).trim();
+        else if (line.startsWith('data:')) dataLines.push(line.slice(5).trimStart());
+      }
+      if (dataLines.length === 0) return null;
+      try {
+        return JSON.parse(dataLines.join('\n'));
+      } catch (_) {
+        return { event: eventName, _raw: dataLines.join('\n') };
+      }
+    }
+  }
+
+  // Accumulates text_chunk content and renders live. Strips the opening
+  // ```fence (mcp-master's SETUP_PROMPT wraps every answer in a triple-
+  // backtick block per Teams convention) WITHOUT waiting for the closing
+  // fence — otherwise the live render shows ``` as the first visible
+  // characters before stripOuterCodeFence catches up on the finalize.
+  class TextAccumulator {
+    constructor(target) {
+      this.target = target;
+      this.text = '';
+      this.fenceStripped = false;
+      this.preFenceBuf = '';
+    }
+    append(chunk) {
+      if (!this.fenceStripped) {
+        this.preFenceBuf += chunk;
+        const match = this.preFenceBuf.match(/^```(?:\w+)?\n/);
+        if (match) {
+          this.fenceStripped = true;
+          this.text = this.preFenceBuf.slice(match[0].length);
+          this.preFenceBuf = '';
+        } else if (this.preFenceBuf.length > 16) {
+          // No opening fence after 16 bytes — accept the buffer as plain
+          // markdown. 16 leaves room for a long language hint after ```.
+          this.fenceStripped = true;
+          this.text = this.preFenceBuf;
+          this.preFenceBuf = '';
+        } else {
+          return; // wait for more bytes before deciding
+        }
+      } else {
+        this.text += chunk;
+      }
+      renderMarkdown(this.target, this.text);
+    }
+    finalize() {
+      // If we were still waiting for the fence-decision, flush whatever
+      // arrived so the final answer isn't lost.
+      if (!this.fenceStripped) {
+        this.text = this.preFenceBuf;
+        this.preFenceBuf = '';
+        this.fenceStripped = true;
+      }
+      // Trim trailing ``` paired with the opening fence-strip.
+      this.text = this.text.replace(/\n?```\s*$/, '');
+      renderMarkdown(this.target, this.text);
+    }
   }
 
   // Iterate the trace, render one approval-card per status='pending' entry.
