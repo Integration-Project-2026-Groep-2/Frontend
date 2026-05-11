@@ -3,7 +3,6 @@
 declare(strict_types=1);
 
 function shift_theme_preprocess_page(array &$variables): void {
-  $roles = \Drupal::currentUser()->getRoles();
-  $variables['can_view_ai_dashboard'] = !empty(array_intersect($roles, ['administrator', 'event_manager']));
-  $variables['#cache']['contexts'][] = 'user.roles';
+  $variables['can_view_ai_dashboard'] = \Drupal::currentUser()->hasPermission('view ai dashboard');
+  $variables['#cache']['contexts'][] = 'user.permissions';
 }
