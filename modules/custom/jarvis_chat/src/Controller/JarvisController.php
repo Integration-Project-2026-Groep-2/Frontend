@@ -12,11 +12,18 @@ use GuzzleHttp\Exception\RequestException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class JarvisController extends ControllerBase {
 
   private const DEFAULT_BACKEND_URL = 'http://mcp-master:8080';
   private const REQUEST_TIMEOUT_SECONDS = 240;
+  // mcp-master caps /chat/stream at 600s server-side; we hold the
+  // upstream connection slightly longer so the backend's terminal
+  // `error` event with correlation_id reaches the client before our
+  // own timeout fires.
+  private const STREAM_TIMEOUT_SECONDS = 610;
   private const ELEVATED_ROLES = ['administrator', 'event_manager'];
 
   /**
@@ -109,6 +116,34 @@ class JarvisController extends ControllerBase {
       $payload['reason'] = trim($body['reason']);
     }
     return $this->forwardToMaster('/chat/reject', $payload, TRUE);
+  }
+
+  /**
+   * Streaming counterpart of `chat()`. Returns text/event-stream that
+   * pipes mcp-master's /chat/stream ProgressEvent feed verbatim to the
+   * browser. Body validation + role-gate identical to `chat()`. The
+   * full streaming pipe is wired in the follow-up commit; this stub
+   * registers the route shape so the JS-side can be developed in
+   * parallel.
+   */
+  public function streamChat(Request $request): Response {
+    if (($denial = $this->assertElevatedRole()) !== NULL) {
+      return $denial;
+    }
+
+    $body = json_decode($request->getContent(), TRUE);
+    if (!is_array($body)) {
+      return new JsonResponse(['error' => 'invalid JSON body'], 400);
+    }
+    $hasPrompt = isset($body['prompt']) && trim((string) $body['prompt']) !== '';
+    $hasMessages = isset($body['messages'])
+      && is_array($body['messages'])
+      && !empty($body['messages']);
+    if (!$hasPrompt && !$hasMessages) {
+      return new JsonResponse(['error' => 'prompt or messages required'], 400);
+    }
+
+    return new JsonResponse(['error' => 'streaming not yet implemented'], 501);
   }
 
   /**
