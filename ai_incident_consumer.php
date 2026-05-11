@@ -16,17 +16,17 @@ while ($waited < $maxWait) {
       $_ENV['DRUPAL_DB_PASS'] ?? 'drupal'
     );
     unset($pdo);
-    echo "[r3_consumer] database reachable\n";
+    echo "[ai_incident_consumer] database reachable\n";
     break;
   }
   catch (\PDOException $e) {
-    echo "[r3_consumer] db not ready, waiting 5s ({$waited}s/{$maxWait}s)\n";
+    echo "[ai_incident_consumer] db not ready, waiting 5s ({$waited}s/{$maxWait}s)\n";
     sleep(5);
     $waited += 5;
   }
 }
 if ($waited >= $maxWait) {
-  echo "[r3_consumer] database unreachable after {$maxWait}s, exiting\n";
+  echo "[ai_incident_consumer] database unreachable after {$maxWait}s, exiting\n";
   exit(1);
 }
 
@@ -47,10 +47,10 @@ $kernel->boot();
 $kernel->preHandle($request);
 ini_set('display_errors', '0');
 
-echo "[r3_consumer] drupal kernel booted\n";
+echo "[ai_incident_consumer] drupal kernel booted\n";
 
 if (!\Drupal::moduleHandler()->moduleExists('ai_dashboard')) {
-  echo "[r3_consumer] ai_dashboard module not enabled, exiting (run: drush en ai_dashboard -y)\n";
+  echo "[ai_incident_consumer] ai_dashboard module not enabled, exiting (run: drush en ai_dashboard -y)\n";
   exit(1);
 }
 
@@ -70,10 +70,10 @@ while ($attempt < $maxRetries) {
   catch (\Exception $e) {
     $attempt++;
     if ($attempt >= $maxRetries) {
-      echo "[r3_consumer] rabbitmq unreachable after {$maxRetries} retries: {$e->getMessage()}\n";
+      echo "[ai_incident_consumer] rabbitmq unreachable after {$maxRetries} retries: {$e->getMessage()}\n";
       exit(1);
     }
-    echo "[r3_consumer] rabbitmq not ready (attempt {$attempt}/{$maxRetries}), retrying in 5s\n";
+    echo "[ai_incident_consumer] rabbitmq not ready (attempt {$attempt}/{$maxRetries}), retrying in 5s\n";
     sleep(5);
   }
 }
@@ -106,7 +106,7 @@ $callback = function (AMQPMessage $msg) use ($ch, $ingester, $logger): void {
       ? ($msg->delivery_info['routing_key'] ?? 'unknown')
       : 'unknown';
     $body = substr($msg->getBody(), 0, 500);
-    $logger->warning('r3_consumer ingest failed: @msg (routing_key=@rk) body=@body', [
+    $logger->warning('ai_incident_consumer ingest failed: @msg (routing_key=@rk) body=@body', [
       '@msg' => $e->getMessage(),
       '@rk' => $rk,
       '@body' => $body,
@@ -119,7 +119,7 @@ $callback = function (AMQPMessage $msg) use ($ch, $ingester, $logger): void {
 
 $ch->basic_consume('frontend.ai_incidents', '', false, false, false, false, $callback);
 
-echo "[r3_consumer] listening on frontend.ai_incidents (event.incident_*)\n";
+echo "[ai_incident_consumer] listening on frontend.ai_incidents (event.incident_*)\n";
 
 $shutdown = false;
 if (function_exists('pcntl_async_signals')) {
@@ -139,7 +139,7 @@ try {
   }
 }
 finally {
-  echo "[r3_consumer] shutting down gracefully\n";
+  echo "[ai_incident_consumer] shutting down gracefully\n";
   try { $ch->close(); } catch (\Throwable $e) {}
   try { $conn->close(); } catch (\Throwable $e) {}
 }
