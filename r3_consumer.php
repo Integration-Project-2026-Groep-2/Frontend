@@ -105,9 +105,11 @@ $callback = function (AMQPMessage $msg) use ($ch, $ingester, $logger): void {
     $rk = is_array($msg->delivery_info ?? NULL)
       ? ($msg->delivery_info['routing_key'] ?? 'unknown')
       : 'unknown';
-    $logger->warning('r3_consumer ingest failed: @msg (routing_key=@rk)', [
+    $body = substr($msg->getBody(), 0, 500);
+    $logger->warning('r3_consumer ingest failed: @msg (routing_key=@rk) body=@body', [
       '@msg' => $e->getMessage(),
       '@rk' => $rk,
+      '@body' => $body,
     ]);
     if ($tag !== NULL) {
       $ch->basic_nack($tag, false, false);
