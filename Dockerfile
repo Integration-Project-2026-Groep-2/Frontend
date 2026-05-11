@@ -22,19 +22,19 @@ COPY ./rabbitMQ/heartbeat.php   /opt/drupal/heartbeat.php
 COPY ./rabbitMQ/consumer.php    /opt/drupal/consumer.php
 COPY ./rabbitMQ/setup.php       /opt/drupal/setup.php
 COPY ./rabbitMQ/init_fields.php /opt/drupal/init_fields.php
-COPY ./r3_consumer.php         /opt/drupal/r3_consumer.php
+COPY ./ai_incident_consumer.php         /opt/drupal/ai_incident_consumer.php
 
 RUN chown -R www-data:www-data /opt/drupal/web/modules/custom \
     && chown www-data:www-data /opt/drupal/heartbeat.php \
     && chown www-data:www-data /opt/drupal/consumer.php \
     && chown www-data:www-data /opt/drupal/setup.php \
     && chown www-data:www-data /opt/drupal/init_fields.php \
-    && chown www-data:www-data /opt/drupal/r3_consumer.php \
+    && chown www-data:www-data /opt/drupal/ai_incident_consumer.php \
     && chmod 750 /opt/drupal/heartbeat.php \
     && chmod 750 /opt/drupal/consumer.php \
     && chmod 750 /opt/drupal/setup.php \
     && chmod 750 /opt/drupal/init_fields.php \
-    && chmod 750 /opt/drupal/r3_consumer.php
+    && chmod 750 /opt/drupal/ai_incident_consumer.php
 
 COPY ./docker-entrypoint.sh /docker-entrypoint-custom.sh
 RUN sed -i 's/\r//' /docker-entrypoint-custom.sh \

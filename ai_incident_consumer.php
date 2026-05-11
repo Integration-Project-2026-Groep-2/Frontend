@@ -16,17 +16,17 @@ while ($waited < $maxWait) {
       $_ENV['DRUPAL_DB_PASS'] ?? 'drupal'
     );
     unset($pdo);
-    echo "[r3_consumer] database reachable\n";
+    echo "[ai_incident_consumer] database reachable\n";
     break;
   }
   catch (\PDOException $e) {
-    echo "[r3_consumer] db not ready, waiting 5s ({$waited}s/{$maxWait}s)\n";
+    echo "[ai_incident_consumer] db not ready, waiting 5s ({$waited}s/{$maxWait}s)\n";
     sleep(5);
     $waited += 5;
   }
 }
 if ($waited >= $maxWait) {
-  echo "[r3_consumer] database unreachable after {$maxWait}s, exiting\n";
+  echo "[ai_incident_consumer] database unreachable after {$maxWait}s, exiting\n";
   exit(1);
 }
 
@@ -47,10 +47,10 @@ $kernel->boot();
 $kernel->preHandle($request);
 ini_set('display_errors', '0');
 
-echo "[r3_consumer] drupal kernel booted\n";
+echo "[ai_incident_consumer] drupal kernel booted\n";
 
 if (!\Drupal::moduleHandler()->moduleExists('ai_dashboard')) {
-  echo "[r3_consumer] ai_dashboard module not enabled, exiting (run: drush en ai_dashboard -y)\n";
+  echo "[ai_incident_consumer] ai_dashboard module not enabled, exiting (run: drush en ai_dashboard -y)\n";
   exit(1);
 }
 
@@ -70,10 +70,10 @@ while ($attempt < $maxRetries) {
   catch (\Exception $e) {
     $attempt++;
     if ($attempt >= $maxRetries) {
-      echo "[r3_consumer] rabbitmq unreachable after {$maxRetries} retries: {$e->getMessage()}\n";
+      echo "[ai_incident_consumer] rabbitmq unreachable after {$maxRetries} retries: {$e->getMessage()}\n";
       exit(1);
     }
-    echo "[r3_consumer] rabbitmq not ready (attempt {$attempt}/{$maxRetries}), retrying in 5s\n";
+    echo "[ai_incident_consumer] rabbitmq not ready (attempt {$attempt}/{$maxRetries}), retrying in 5s\n";
     sleep(5);
   }
 }
@@ -89,27 +89,37 @@ $ch->basic_qos(null, 1, null);
 $ingester = \Drupal::service('ai_dashboard.incident_ingester');
 $logger = \Drupal::logger('ai_dashboard');
 
-$callback = function (AMQPMessage $msg) use ($ingester, $logger): void {
+$callback = function (AMQPMessage $msg) use ($ch, $ingester, $logger): void {
+  $tag = $msg->delivery_info['delivery_tag'] ?? NULL;
   try {
     $envelope = json_decode($msg->getBody(), true, 512, JSON_THROW_ON_ERROR);
     if (!is_array($envelope)) {
       throw new \InvalidArgumentException('envelope decoded to non-array');
     }
     $ingester->save($envelope);
-    $msg->ack();
+    if ($tag !== NULL) {
+      $ch->basic_ack($tag);
+    }
   }
   catch (\Throwable $e) {
-    $logger->warning('r3_consumer ingest failed: @msg (routing_key=@rk)', [
+    $rk = is_array($msg->delivery_info ?? NULL)
+      ? ($msg->delivery_info['routing_key'] ?? 'unknown')
+      : 'unknown';
+    $body = substr($msg->getBody(), 0, 500);
+    $logger->warning('ai_incident_consumer ingest failed: @msg (routing_key=@rk) body=@body', [
       '@msg' => $e->getMessage(),
-      '@rk' => $msg->getRoutingKey(),
+      '@rk' => $rk,
+      '@body' => $body,
     ]);
-    $msg->nack(false, false);
+    if ($tag !== NULL) {
+      $ch->basic_nack($tag, false, false);
+    }
   }
 };
 
 $ch->basic_consume('frontend.ai_incidents', '', false, false, false, false, $callback);
 
-echo "[r3_consumer] listening on frontend.ai_incidents (event.incident_*)\n";
+echo "[ai_incident_consumer] listening on frontend.ai_incidents (event.incident_*)\n";
 
 $shutdown = false;
 if (function_exists('pcntl_async_signals')) {
@@ -129,7 +139,7 @@ try {
   }
 }
 finally {
-  echo "[r3_consumer] shutting down gracefully\n";
+  echo "[ai_incident_consumer] shutting down gracefully\n";
   try { $ch->close(); } catch (\Throwable $e) {}
   try { $conn->close(); } catch (\Throwable $e) {}
 }
