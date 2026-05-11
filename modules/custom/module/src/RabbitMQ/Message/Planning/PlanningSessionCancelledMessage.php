@@ -2,28 +2,27 @@
 
 namespace Drupal\hello_world\RabbitMQ\Message\Planning;
 
-use DateTimeImmutable;
 use SimpleXMLElement;
 
+/**
+ * Contract: planning.session.cancelled
+ * Routing:  frontend.session.cancelled
+ * Element:  FrontendSessionCancelled
+ */
 final class PlanningSessionCancelledMessage extends Planning {
 
   public function __construct(
-    string $sessionId,
-    private readonly ?string $reason,
-    DateTimeImmutable $timestamp,
-  ) {
-    parent::__construct($sessionId, $timestamp);
-  }
+    private readonly string  $sessionId,
+    private readonly ?string $reason = NULL,
+  ) {}
 
   public function toXml(): string {
-    $xml = new SimpleXMLElement('<SessionCancelled/>');
+    $xml = new SimpleXMLElement('<FrontendSessionCancelled/>');
     $xml->addChild('sessionId', $this->sessionId);
 
     if ($this->reason !== NULL) {
       $xml->addChild('reason', htmlspecialchars($this->reason));
     }
-
-    $xml->addChild('timestamp', $this->timestamp->format(DateTimeImmutable::ATOM));
 
     return $xml->asXML();
   }
@@ -33,7 +32,6 @@ final class PlanningSessionCancelledMessage extends Planning {
   }
 
   public function getType(): string {
-    return 'planning.session.cancelled';
+    return 'planning_session_cancelled';
   }
-
 }

@@ -1,0 +1,15 @@
+<?php
+
+declare(strict_types=1);
+
+/**
+ * Implements hook_theme().
+ */
+function ai_dashboard_theme(): array {
+  return [
+    'ai_dashboard' => [
+      'variables' => [],
+      'template' => 'ai-dashboard',
+    ],
+  ];
+}

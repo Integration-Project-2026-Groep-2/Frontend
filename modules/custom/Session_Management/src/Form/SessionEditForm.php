@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Drupal\session_management\Form;
 
 use Drupal\Core\Form\FormBase;

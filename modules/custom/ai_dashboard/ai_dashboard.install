@@ -1,0 +1,18 @@
+<?php
+
+declare(strict_types=1);
+
+use Drupal\user\Entity\Role;
+
+/**
+ * Implements hook_install().
+ */
+function ai_dashboard_install(): void {
+  foreach (['administrator', 'event_manager'] as $rid) {
+    $role = Role::load($rid);
+    if ($role !== NULL && !$role->hasPermission('view ai dashboard')) {
+      $role->grantPermission('view ai dashboard');
+      $role->save();
+    }
+  }
+}
