@@ -121,10 +121,19 @@ class JarvisController extends ControllerBase {
   /**
    * Streaming counterpart of `chat()`. Returns text/event-stream that
    * pipes mcp-master's /chat/stream ProgressEvent feed verbatim to the
-   * browser. Body validation + role-gate identical to `chat()`. The
-   * full streaming pipe is wired in the follow-up commit; this stub
-   * registers the route shape so the JS-side can be developed in
-   * parallel.
+   * browser. Body validation + role-gate identical to `chat()`.
+   *
+   * Guzzle's `stream: true` keeps the upstream connection open and
+   * returns a PSR-7 response whose body is a streamable resource. The
+   * StreamedResponse callback drains it chunk-per-chunk with
+   * `flush()` after each write — without that, Drupal + PHP-FPM
+   * would buffer the entire response body and defeat the streaming
+   * UX. `X-Accel-Buffering: no` signals nginx/Cloudflare to bypass
+   * their own buffering on this response.
+   *
+   * Pre-stream failures (Guzzle exception before bytes flow) return
+   * JSON 4xx/502 — same shape as `chat()` so the JS error-handler
+   * stays single-codepath.
    */
   public function streamChat(Request $request): Response {
     if (($denial = $this->assertElevatedRole()) !== NULL) {
@@ -143,7 +152,66 @@ class JarvisController extends ControllerBase {
       return new JsonResponse(['error' => 'prompt or messages required'], 400);
     }
 
-    return new JsonResponse(['error' => 'streaming not yet implemented'], 501);
+    $headers = ['Accept' => 'text/event-stream'];
+    if (($auth = $this->buildAuthorizationHeader()) !== NULL) {
+      $headers['Authorization'] = $auth;
+    }
+
+    try {
+      $upstream = $this->httpClient->request(
+        'POST',
+        $this->backendBaseUrl() . '/chat/stream',
+        [
+          'json' => $body,
+          'headers' => $headers,
+          'stream' => TRUE,
+          'timeout' => self::STREAM_TIMEOUT_SECONDS,
+          'read_timeout' => self::STREAM_TIMEOUT_SECONDS,
+        ],
+      );
+    }
+    catch (RequestException $e) {
+      $upstreamResp = $e->getResponse();
+      if ($upstreamResp !== NULL) {
+        $status = $upstreamResp->getStatusCode();
+        if ($status >= 400 && $status < 500) {
+          $errBody = json_decode((string) $upstreamResp->getBody(), TRUE);
+          return new JsonResponse(['error' => self::safeUpstreamError($errBody)], $status);
+        }
+      }
+      $this->logChannelFactory->get('jarvis_chat')
+        ->error('mcp-master /chat/stream failed: @msg', ['@msg' => $e->getMessage()]);
+      return new JsonResponse(['error' => 'upstream error'], 502);
+    }
+    catch (GuzzleException $e) {
+      $this->logChannelFactory->get('jarvis_chat')
+        ->error('mcp-master /chat/stream failed: @msg', ['@msg' => $e->getMessage()]);
+      return new JsonResponse(['error' => 'upstream error'], 502);
+    }
+
+    $response = new StreamedResponse(function () use ($upstream): void {
+      // Force every echo to flush immediately. Drupal + PHP-FPM otherwise
+      // buffer the response until the script ends, defeating SSE.
+      @ob_implicit_flush(TRUE);
+      while (ob_get_level() > 0) {
+        @ob_end_flush();
+      }
+      $bodyStream = $upstream->getBody();
+      while (!$bodyStream->eof()) {
+        $chunk = $bodyStream->read(8192);
+        if ($chunk !== '') {
+          echo $chunk;
+          flush();
+        }
+      }
+    });
+
+    $response->headers->set('Content-Type', 'text/event-stream');
+    $response->headers->set('Cache-Control', 'no-cache, no-transform');
+    // Tells nginx/Cloudflare not to buffer this response — `text/event-stream`
+    // already hints it but the explicit header is honoured by more proxies.
+    $response->headers->set('X-Accel-Buffering', 'no');
+    return $response;
   }
 
   /**
