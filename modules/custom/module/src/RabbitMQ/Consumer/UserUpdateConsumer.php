@@ -2,7 +2,6 @@
 
 namespace Drupal\hello_world\RabbitMQ\Consumer;
 
-use Drupal\hello_world\RabbitMQ\RabbitMQClient;
 use Drupal\hello_world\RabbitMQ\Validation\XsdRegistry;
 use Drupal\hello_world\RabbitMQ\Validation\XsdValidator;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
@@ -10,6 +9,10 @@ use PhpAmqpLib\Message\AMQPMessage;
 
 /**
  * Verwerkt inkomende <UserUpdated>-berichten (Contract 18 / Contract 25).
+ *
+ * Queue  : frontend.user.updated
+ * Exchange: contact.topic
+ * Routing key (inbound): crm.user.updated
  */
 class UserUpdateConsumer {
 
@@ -21,7 +24,7 @@ class UserUpdateConsumer {
     $this->validator = $validator ?? new XsdValidator(new XsdRegistry());
   }
 
-  public function listen(string $queueName = 'crm.user.updated'): void {
+  public function listen(string $queueName = 'frontend.user.updated'): void {
     echo "UserUpdateConsumer luistert op '{$queueName}'...\n";
 
     $this->connection = new AMQPStreamConnection(
@@ -46,11 +49,10 @@ class UserUpdateConsumer {
     // Exchange declareren
     $this->channel->exchange_declare('contact.topic', 'topic', false, true, false);
 
-    // Queue declareren
+    // Queue declareren (duurzaam)
     $this->channel->queue_declare($queueName, false, true, false, false);
 
-    // Queue binden aan exchange met de juiste routing keys
-    $this->channel->queue_bind($queueName, 'contact.topic', 'facturatie.user.updated');
+    // Queue binden aan exchange — alleen CRM routing key
     $this->channel->queue_bind($queueName, 'contact.topic', 'crm.user.updated');
 
     $this->channel->basic_qos(null, 1, null);
@@ -59,7 +61,7 @@ class UserUpdateConsumer {
       function (AMQPMessage $msg) {
         try {
           $this->handleMessage($msg);
-          $msg->ack();
+          $this->channel->basic_ack($msg->delivery_info['delivery_tag']);
         }
         catch (\Throwable $e) {
           $this->channel->basic_nack($msg->delivery_info['delivery_tag'], false, false);
@@ -71,17 +73,28 @@ class UserUpdateConsumer {
     while (count($this->channel->callbacks)) {
       try {
         $this->channel->wait(null, false, 60);
-        echo "[" . date('H:i:s') . "] Wachten op berichten...\n";
       }
       catch (\PhpAmqpLib\Exception\AMQPTimeoutException $e) {
         // Normaal — geen berichten binnen 60s, gewoon verder wachten.
-        echo "[" . date('H:i:s') . "] Wachten op berichten...\n";
       }
     }
   }
 
   private function handleMessage(AMQPMessage $msg): void {
-    $xml  = $msg->getBody();
+    $xml = $msg->getBody();
+
+    // XSD-validatie — gooit een RuntimeException bij fouten.
+    try {
+      $this->validator->validate($xml, 'user_updated');
+    }
+    catch (\RuntimeException $e) {
+      \Drupal::logger('rabbitmq')->error(
+        'UserUpdated XSD-validatie mislukt: @msg',
+        ['@msg' => $e->getMessage()]
+      );
+      throw $e;
+    }
+
     $data = $this->parse($xml);
     $this->upsertDrupalUser($data);
 
@@ -94,7 +107,7 @@ class UserUpdateConsumer {
   private function parse(string $xml): array {
     $el = new \SimpleXMLElement($xml);
     return [
-      'id'          => (string) $el->id,
+      'crmId'       => (string) $el->id,          // CRM Master UUID → field_crm_id
       'email'       => (string) $el->email,
       'firstName'   => (string) $el->firstName,
       'lastName'    => (string) $el->lastName,
@@ -117,24 +130,39 @@ class UserUpdateConsumer {
 
   private function upsertDrupalUser(array $data): void {
     /** @var \Drupal\user\UserStorageInterface $storage */
-    $storage  = \Drupal::entityTypeManager()->getStorage('user');
-    $accounts = $storage->loadByProperties(['mail' => $data['email']]);
-    $account  = $accounts ? reset($accounts) : null;
+    $storage = \Drupal::entityTypeManager()->getStorage('user');
 
+    // Controleer of field_crm_id bestaat voordat we er op zoeken.
+    $accounts = [];
+    $fields   = \Drupal::service('entity_field.manager')
+      ->getFieldDefinitions('user', 'user');
+    if (isset($fields['field_crm_id'])) {
+      $accounts = $storage->loadByProperties(['field_crm_id' => $data['crmId']]);
+    }
+    $account = $accounts ? reset($accounts) : null;
+
+    $username = trim($data['firstName'] . ' ' . $data['lastName']);
     if ($account === null) {
       $account = $storage->create([
-        'name'   => $data['email'],
+        'name'   => $username,
         'mail'   => $data['email'],
         'status' => $data['isActive'] ? 1 : 0,
       ]);
       $account->addRole('visitor');
     }
     else {
+      $account->set('name', $username);
       $account->set('status', $data['isActive'] ? 1 : 0);
+      // E-mail bijwerken als die gewijzigd is.
+      if ($account->getEmail() !== $data['email']) {
+        $account->set('mail', $data['email']);
+      }
     }
 
+    // field_crm_id slaat de CRM Master UUID op.
+    $this->setField($account, 'field_crm_id',       $data['crmId']);
     $this->setField($account, 'field_first_name',   $data['firstName']);
-    $this->setField($account, 'field_last_name',    $data['lastName']);
+    $this->setField($account, 'field_surname',      $data['lastName']);
     $this->setField($account, 'field_phone',        $data['phone']);
     $this->setField($account, 'field_street',       $data['street']);
     $this->setField($account, 'field_house_number', $data['houseNumber']);
@@ -150,6 +178,7 @@ class UserUpdateConsumer {
       $this->setField($account, 'field_gdpr_consent', $data['gdprConsent']);
     }
 
+    $account->_is_rabbitmq_sync = TRUE;
     $account->save();
   }
 

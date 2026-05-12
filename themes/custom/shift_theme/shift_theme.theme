@@ -1,0 +1,8 @@
+<?php
+
+declare(strict_types=1);
+
+function shift_theme_preprocess_page(array &$variables): void {
+  $variables['can_view_ai_dashboard'] = \Drupal::currentUser()->hasPermission('view ai dashboard');
+  $variables['#cache']['contexts'][] = 'user.permissions';
+}

@@ -51,6 +51,18 @@ function _custom_roles_ensure_roles_and_permissions(): void {
         'access kassa area',
       ],
     ],
+    'event_manager' => [
+      'label' => 'Event Manager',
+      'permissions' => [
+        'access content',
+      ],
+    ],
+    'bar_staff' => [
+      'label' => 'Bar Staff',
+      'permissions' => [
+        'access content',
+      ],
+    ],
   ];
 
   foreach ($role_map as $machine_name => $config) {

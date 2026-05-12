@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\hello_world\RabbitMQ\Message;
+namespace Drupal\hello_world\RabbitMQ\Message\Registration;
 
 /**
  * Bouwt de XML-payload voor Contract 1: Frontend → CRM (nieuwe inschrijving).
@@ -12,7 +12,7 @@ namespace Drupal\hello_world\RabbitMQ\Message;
  *  - sessionId wordt NIET meer meegestuurd
  *  - XML heeft een targetNamespace: urn:frontend:crm:contract
  */
-class RegistrationMessage implements MessageInterface {
+class RegistrationMessage implements \Drupal\hello_world\RabbitMQ\Message\MessageInterface {
 
   private string $registrationId;
 

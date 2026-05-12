@@ -1,0 +1,4 @@
+'use jarvis chat':
+  title: 'Use Jarvis chatbot'
+  description: 'Access to /jarvis page and /api/jarvis/chat proxy endpoint.'
+  restrict access: true
