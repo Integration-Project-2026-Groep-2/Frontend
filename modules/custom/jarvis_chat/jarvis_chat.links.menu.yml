@@ -1,0 +1,7 @@
+jarvis_chat.dahboard:
+  title: 'Javis'
+  description: 'Jarvis in admin dashboard'
+  route_name: jarvis_chat.page
+  menu_name: admin
+  parent: system.admin
+  weight: 10
