@@ -67,6 +67,24 @@ class IncidentRepositoryShapersTest extends UnitTestCase {
     $this->assertSame('skipped: debounced within 60s window', $item['root_cause_preview']);
   }
 
+  public function testToListItemPrefixesResolvedWithOriginalSummary(): void {
+    $entity = $this->fakeEntity([
+      'event_type' => 'incident_resolved',
+      'correlation_id' => 'cid-r1',
+      'service' => 'kassa',
+      'severity' => 'info',
+      'confidence' => NULL,
+      'received_at' => 1747000020,
+      'payload_json' => json_encode([
+        'payload' => ['original_summary' => 'KASSA heartbeat is back online'],
+      ]),
+    ], 7);
+
+    $item = IncidentRepository::toListItem($entity);
+
+    $this->assertSame('resolved: KASSA heartbeat is back online', $item['root_cause_preview']);
+  }
+
   public function testToListItemTruncatesPreviewAt200Chars(): void {
     $longRootCause = str_repeat('x', 350);
     $entity = $this->fakeEntity([

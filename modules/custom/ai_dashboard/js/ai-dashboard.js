@@ -83,6 +83,9 @@
         if (inc.event_type === 'incident_diagnosed' && inc.service) {
           downSince.set(inc.service, Date.now());
         }
+        if (inc.event_type === 'incident_resolved' && inc.service) {
+          downSince.delete(inc.service);
+        }
       }
       renderPills();
       setStatus('updated ' + formatClock(new Date()));
@@ -176,9 +179,10 @@
 
   function makeTypeBadge(eventType) {
     const map = {
-      incident_diagnosed: ['diagnosed', 'diagnosed'],
-      incident_skipped: ['skipped', 'skipped'],
-      incident_circuit_open: ['circuit_open', 'circuit'],
+      incident_diagnosed: ['diagnosed', 'Diagnose'],
+      incident_skipped: ['skipped', 'Overgeslagen'],
+      incident_circuit_open: ['circuit_open', 'Circuit open'],
+      incident_resolved: ['resolved', 'Opgelost'],
     };
     const entry = map[eventType] || ['diagnosed', eventType || '—'];
     const span = document.createElement('span');
@@ -418,9 +422,10 @@
 
   function humanizeEventType(t) {
     const map = {
-      incident_diagnosed: 'Diagnosed',
-      incident_skipped: 'Skipped',
+      incident_diagnosed: 'Diagnose',
+      incident_skipped: 'Overgeslagen',
       incident_circuit_open: 'Circuit open',
+      incident_resolved: 'Opgelost',
     };
     return map[t] || t || '—';
   }

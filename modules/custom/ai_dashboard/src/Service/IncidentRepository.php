@@ -41,6 +41,9 @@ class IncidentRepository {
     elseif (is_array($payload) && isset($payload['payload']['reason'])) {
       $rootCause = 'skipped: ' . (string) $payload['payload']['reason'];
     }
+    elseif (is_array($payload) && isset($payload['payload']['original_summary'])) {
+      $rootCause = 'resolved: ' . (string) $payload['payload']['original_summary'];
+    }
 
     return [
       'id' => (int) $entity->id(),
