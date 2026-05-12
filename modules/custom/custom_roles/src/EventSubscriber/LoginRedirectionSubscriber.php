@@ -48,7 +48,7 @@ class LoginRedirectionSubscriber implements EventSubscriberInterface {
       }
       else {
       $url = Url::fromUri('internal:/')->setAbsolute()->toString();
-    }
+      }
 
       $event->setResponse(new RedirectResponse($url));
     }
