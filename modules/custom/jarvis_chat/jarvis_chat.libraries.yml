@@ -1,5 +1,5 @@
 widget:
-  version: 1.x
+  version: VERSION
   css:
     component:
       css/jarvis-chat.css: {}
@@ -11,7 +11,7 @@ widget:
     - core/once
 
 fab:
-  version: 1.x
+  version: VERSION
   css:
     component:
       css/jarvis-fab.css: {}
