@@ -1,7 +1,7 @@
 /* global.css */
 
 body {
-  background-color: #faf5ff !important;
+  background-color: #0d121f !important;
   margin: 0;
   padding: 0;
   font-family: 'Poppins', sans-serif;
@@ -34,4 +34,10 @@ main,
 
 ::-webkit-scrollbar-thumb:hover {
   background: #6333ea;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
 }
