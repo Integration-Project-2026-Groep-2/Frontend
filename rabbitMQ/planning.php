@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . "/vendor/autoload.php";
+require_once __DIR__ . '/logger.php';
 
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
@@ -48,6 +49,7 @@ while (true) {
             break;
         } catch (\Exception $e) {
             echo "RabbitMQ not ready, retrying in 5s...\n";
+            ControlRoomLogger::warn('frontend-planning', 'RabbitMQ not ready, retrying in 5s...');
             $retry++;
             sleep(5);
         }

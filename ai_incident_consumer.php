@@ -2,6 +2,8 @@
 
 error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
 
+require_once __DIR__ . '/rabbitMQ/logger.php';
+
 $maxWait = 60;
 $waited = 0;
 while ($waited < $maxWait) {
@@ -17,16 +19,19 @@ while ($waited < $maxWait) {
     );
     unset($pdo);
     echo "[ai_incident_consumer] database reachable\n";
+    ControlRoomLogger::info('ai-incident-consumer', 'database reachable');
     break;
   }
   catch (\PDOException $e) {
     echo "[ai_incident_consumer] db not ready, waiting 5s ({$waited}s/{$maxWait}s)\n";
+    ControlRoomLogger::warn('ai-incident-consumer', "db not ready, waiting 5s ({$waited}s/{$maxWait}s)");
     sleep(5);
     $waited += 5;
   }
 }
 if ($waited >= $maxWait) {
   echo "[ai_incident_consumer] database unreachable after {$maxWait}s, exiting\n";
+  ControlRoomLogger::fatal('ai-incident-consumer', "database unreachable after {$maxWait}s, exiting");
   exit(1);
 }
 
@@ -48,9 +53,11 @@ $kernel->preHandle($request);
 ini_set('display_errors', '0');
 
 echo "[ai_incident_consumer] drupal kernel booted\n";
+ControlRoomLogger::info('ai-incident-consumer', 'drupal kernel booted');
 
 if (!\Drupal::moduleHandler()->moduleExists('ai_dashboard')) {
   echo "[ai_incident_consumer] ai_dashboard module not enabled, exiting (run: drush en ai_dashboard -y)\n";
+  ControlRoomLogger::error('ai-incident-consumer', 'ai_dashboard module not enabled, exiting (run: drush en ai_dashboard -y)');
   exit(1);
 }
 
@@ -71,9 +78,11 @@ while ($attempt < $maxRetries) {
     $attempt++;
     if ($attempt >= $maxRetries) {
       echo "[ai_incident_consumer] rabbitmq unreachable after {$maxRetries} retries: {$e->getMessage()}\n";
+      ControlRoomLogger::fatal('ai-incident-consumer', "rabbitmq unreachable after {$maxRetries} retries: {$e->getMessage()}");
       exit(1);
     }
     echo "[ai_incident_consumer] rabbitmq not ready (attempt {$attempt}/{$maxRetries}), retrying in 5s\n";
+    ControlRoomLogger::warn('ai-incident-consumer', "rabbitmq not ready (attempt {$attempt}/{$maxRetries}), retrying in 5s");
     sleep(5);
   }
 }
@@ -120,6 +129,7 @@ $callback = function (AMQPMessage $msg) use ($ch, $ingester, $logger): void {
 $ch->basic_consume('frontend.ai_incidents', '', false, false, false, false, $callback);
 
 echo "[ai_incident_consumer] listening on frontend.ai_incidents (event.incident_*)\n";
+ControlRoomLogger::info('ai-incident-consumer', 'listening on frontend.ai_incidents (event.incident_*)');
 
 $shutdown = false;
 if (function_exists('pcntl_async_signals')) {
@@ -140,6 +150,7 @@ try {
 }
 finally {
   echo "[ai_incident_consumer] shutting down gracefully\n";
+  ControlRoomLogger::info('ai-incident-consumer', 'shutting down gracefully');
   try { $ch->close(); } catch (\Throwable $e) {}
   try { $conn->close(); } catch (\Throwable $e) {}
 }

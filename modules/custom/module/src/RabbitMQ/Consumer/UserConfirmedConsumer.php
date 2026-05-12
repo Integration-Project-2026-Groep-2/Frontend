@@ -26,6 +26,7 @@ class UserConfirmedConsumer {
 
   public function listen(string $queueName = 'frontend.user.confirmed'): void {
     echo "UserConfirmedConsumer luistert op '{$queueName}'...\n";
+    \ControlRoomLogger::info('frontend-user-confirmed', "UserConfirmedConsumer luistert op '{$queueName}'...");
 
     $this->connection = new AMQPStreamConnection(
       $_ENV['RABBITMQ_HOST'] ?? 'rabbitmq',
@@ -65,6 +66,7 @@ class UserConfirmedConsumer {
         catch (\Throwable $e) {
           $this->channel->basic_nack($msg->delivery_info['delivery_tag'], false, false);
           echo "Fout: " . $e->getMessage() . "\n";
+          \ControlRoomLogger::error('frontend-user-confirmed', 'Fout: ' . $e->getMessage());
         }
       }
     );
@@ -97,10 +99,11 @@ class UserConfirmedConsumer {
     $data = $this->parse($xml);
     $this->upsertDrupalUser($data);
 
-    echo sprintf(
-      "[%s] User bevestigd: %s %s <%s>\n",
-      date('H:i:s'), $data['firstName'], $data['lastName'], $data['email']
-    );
+    echo sprintf("[%s] User bevestigd: %s %s <%s>\n",
+      date('H:i:s'), $data['firstName'], $data['lastName'], $data['email']);
+    \ControlRoomLogger::info('frontend-user-confirmed', sprintf(
+      'User bevestigd: %s %s <%s>', $data['firstName'], $data['lastName'], $data['email']
+    ));
   }
 
   private function parse(string $xml): array {

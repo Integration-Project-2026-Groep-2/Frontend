@@ -1,5 +1,8 @@
 <?php
 error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+
+require_once __DIR__ . '/logger.php';
+
 define('DRUPAL_ROOT', '/opt/drupal/web');
 chdir(DRUPAL_ROOT);
 
@@ -25,6 +28,7 @@ function ensure_field(string $entity_type, string $bundle, string $field_name, s
       'cardinality' => 1,
     ])->save();
     echo "Storage voor '$field_name' aangemaakt.\n";
+    ControlRoomLogger::info('frontend-init-fields', "Storage voor '$field_name' aangemaakt.");
   }
 
   $field = FieldConfig::loadByName($entity_type, $bundle, $field_name);
@@ -36,6 +40,7 @@ function ensure_field(string $entity_type, string $bundle, string $field_name, s
       'label'       => $label,
     ])->save();
     echo "Veld '$field_name' toegevoegd aan '$bundle'.\n";
+    ControlRoomLogger::info('frontend-init-fields', "Veld '$field_name' toegevoegd aan '$bundle'.");
   }
 }
 
@@ -49,3 +54,4 @@ ensure_field('user', 'user', 'field_badge_code',   'string',  'Badge Code');
 ensure_field('user', 'user', 'field_gdpr_consent', 'boolean', 'GDPR Consent');
 
 echo "Alle benodigde user velden gecontroleerd en aangemaakt indien nodig.\n";
+ControlRoomLogger::info('frontend-init-fields', 'Alle benodigde user velden gecontroleerd en aangemaakt indien nodig.');

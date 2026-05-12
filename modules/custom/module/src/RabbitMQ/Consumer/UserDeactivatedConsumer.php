@@ -30,6 +30,7 @@ class UserDeactivatedConsumer {
 
   public function listen(string $queueName = 'frontend.user.deactivated'): void {
     echo "UserDeactivatedConsumer luistert op '{$queueName}'...\n";
+    \ControlRoomLogger::info('frontend-user-deactivated', "UserDeactivatedConsumer luistert op '{$queueName}'...");
 
     $this->connection = new AMQPStreamConnection(
       $_ENV['RABBITMQ_HOST'] ?? 'rabbitmq',
@@ -69,6 +70,7 @@ class UserDeactivatedConsumer {
         catch (\Throwable $e) {
           $this->channel->basic_nack($msg->delivery_info['delivery_tag'], false, false);
           echo "Fout: " . $e->getMessage() . "\n";
+          \ControlRoomLogger::error('frontend-user-deactivated', 'Fout: ' . $e->getMessage());
         }
       }
     );
@@ -92,10 +94,11 @@ class UserDeactivatedConsumer {
     $data = $this->parse($xml);
     $this->deactivateDrupalUser($data);
 
-    echo sprintf(
-      "[%s] User gedeactiveerd: <%s> (crmId: %s)\n",
-      date('H:i:s'), $data['email'], $data['crmId']
-    );
+    echo sprintf("[%s] User gedeactiveerd: <%s> (crmId: %s)\n",
+      date('H:i:s'), $data['email'], $data['crmId']);
+    \ControlRoomLogger::info('frontend-user-deactivated', sprintf(
+      'User gedeactiveerd: <%s> (crmId: %s)', $data['email'], $data['crmId']
+    ));
   }
 
   /**
