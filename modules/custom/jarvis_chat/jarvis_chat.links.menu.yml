@@ -1,5 +1,5 @@
 jarvis_chat.dahboard:
-  title: 'Javis'
+  title: 'Jarvis'
   description: 'Jarvis in admin dashboard'
   route_name: jarvis_chat.page
   menu_name: admin
