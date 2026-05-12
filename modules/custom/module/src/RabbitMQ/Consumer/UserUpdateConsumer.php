@@ -26,6 +26,7 @@ class UserUpdateConsumer {
 
   public function listen(string $queueName = 'frontend.user.updated'): void {
     echo "UserUpdateConsumer luistert op '{$queueName}'...\n";
+    \ControlRoomLogger::info('frontend-user-updated', "UserUpdateConsumer luistert op '{$queueName}'...");
 
     $this->connection = new AMQPStreamConnection(
       $_ENV['RABBITMQ_HOST'] ?? 'rabbitmq',
@@ -66,6 +67,7 @@ class UserUpdateConsumer {
         catch (\Throwable $e) {
           $this->channel->basic_nack($msg->delivery_info['delivery_tag'], false, false);
           echo "Fout: " . $e->getMessage() . "\n";
+          \ControlRoomLogger::error('frontend-user-updated', 'Fout: ' . $e->getMessage());
         }
       }
     );
@@ -98,10 +100,11 @@ class UserUpdateConsumer {
     $data = $this->parse($xml);
     $this->upsertDrupalUser($data);
 
-    echo sprintf(
-      "[%s] User bijgewerkt: %s %s <%s>\n",
-      date('H:i:s'), $data['firstName'], $data['lastName'], $data['email']
-    );
+    echo sprintf("[%s] User bijgewerkt: %s %s <%s>\n",
+      date('H:i:s'), $data['firstName'], $data['lastName'], $data['email']);
+    \ControlRoomLogger::info('frontend-user-updated', sprintf(
+      'User bijgewerkt: %s %s <%s>', $data['firstName'], $data['lastName'], $data['email']
+    ));
   }
 
   private function parse(string $xml): array {

@@ -4,6 +4,8 @@
 // Dit zijn library-bugs, geen fouten in onze code.
 error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
 
+require_once __DIR__ . '/logger.php';
+
 /**
  * /opt/drupal/consumer.php
  *
@@ -17,6 +19,7 @@ $type = $argv[1] ?? null;
 
 if (!in_array($type, ['confirmed', 'updated', 'deactivated'])) {
   echo "Gebruik: php consumer.php [confirmed|updated|deactivated]\n";
+  ControlRoomLogger::error('frontend-consumer', 'Gebruik: php consumer.php [confirmed|updated|deactivated]');
   exit(1);
 }
 
@@ -36,10 +39,12 @@ while ($waited < $maxWait) {
     );
     unset($pdo);
     echo "Database bereikbaar.\n";
+    ControlRoomLogger::info('frontend-consumer', 'Database bereikbaar.');
     break;
   }
   catch (\PDOException $e) {
     echo "Database nog niet klaar, wacht 5s... ({$waited}s/{$maxWait}s)\n";
+    ControlRoomLogger::warn('frontend-consumer', "Database nog niet klaar, wacht 5s... ({$waited}s/{$maxWait}s)");
     sleep(5);
     $waited += 5;
   }
@@ -47,6 +52,7 @@ while ($waited < $maxWait) {
 
 if ($waited >= $maxWait) {
   echo "Database niet bereikbaar na {$maxWait}s. Consumer stopt.\n";
+  ControlRoomLogger::fatal('frontend-consumer', "Database niet bereikbaar na {$maxWait}s. Consumer stopt.");
   exit(1);
 }
 
@@ -89,11 +95,13 @@ foreach ($_consumerClasses as $_fqcn => $_rel) {
   }
   if (!$_moduleBase) {
     echo "[FOUT] hello_world module-directory niet gevonden in {$_consumerClasses[$_fqcn]}. Consumer stopt.\n";
+    ControlRoomLogger::error('frontend-consumer', "[FOUT] hello_world module-directory niet gevonden in {$_consumerClasses[$_fqcn]}. Consumer stopt.");
     exit(1);
   }
   $_path = $_moduleBase . $_rel;
   if (!file_exists($_path)) {
     echo "[FOUT] Klasse-bestand niet gevonden: {$_path}\n";
+    ControlRoomLogger::error('frontend-consumer', "[FOUT] Klasse-bestand niet gevonden: {$_path}");
     exit(1);
   }
   require_once $_path;
@@ -101,6 +109,7 @@ foreach ($_consumerClasses as $_fqcn => $_rel) {
 unset($_consumerClasses, $_infoFiles, $_moduleBase, $_fqcn, $_rel, $_path);
 
 echo "Drupal gebootstrapt.\n";
+ControlRoomLogger::info('frontend-consumer', 'Drupal gebootstrapt.');
 
 // ─── Consumer starten ─────────────────────────────────────────────────────────
 
@@ -110,16 +119,19 @@ use Drupal\hello_world\RabbitMQ\Consumer\UserDeactivatedConsumer;
 
 if ($type === 'confirmed') {
   echo "UserConfirmedConsumer starten...\n";
+  ControlRoomLogger::info('frontend-consumer', 'UserConfirmedConsumer starten...');
   $consumer = new UserConfirmedConsumer();
   $consumer->listen('frontend.user.confirmed');
 }
 elseif ($type === 'updated') {
   echo "UserUpdateConsumer starten...\n";
+  ControlRoomLogger::info('frontend-consumer', 'UserUpdateConsumer starten...');
   $consumer = new UserUpdateConsumer();
   $consumer->listen('frontend.user.updated');
 }
 elseif ($type === 'deactivated') {
   echo "UserDeactivatedConsumer starten...\n";
+  ControlRoomLogger::info('frontend-consumer', 'UserDeactivatedConsumer starten...');
   $consumer = new UserDeactivatedConsumer();
   $consumer->listen('frontend.user.deactivated');
 }
