@@ -4,6 +4,8 @@
 error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
 ini_set('display_errors', '0');
 
+require_once __DIR__ . '/logger.php';
+
 /**
  * /opt/drupal/setup.php
  *
@@ -27,21 +29,25 @@ $maxWait = 60;
 $waited  = 0;
 
 echo "Wachten op RabbitMQ ({$host}:{$port})...\n";
+ControlRoomLogger::info('frontend-setup', "Wachten op RabbitMQ ({$host}:{$port})...");
 
 while ($waited < $maxWait) {
   $sock = @fsockopen($host, $port, $errno, $errstr, 3);
   if ($sock) {
     fclose($sock);
     echo "RabbitMQ bereikbaar.\n";
+    ControlRoomLogger::info('frontend-setup', 'RabbitMQ bereikbaar.');
     break;
   }
   echo "RabbitMQ nog niet klaar ({$waited}s/{$maxWait}s): {$errstr}\n";
+  ControlRoomLogger::warn('frontend-setup', "RabbitMQ nog niet klaar ({$waited}s/{$maxWait}s): {$errstr}");
   sleep(3);
   $waited += 3;
 }
 
 if ($waited >= $maxWait) {
   echo "RabbitMQ niet bereikbaar na {$maxWait}s. Setup mislukt.\n";
+  ControlRoomLogger::fatal('frontend-setup', "RabbitMQ niet bereikbaar na {$maxWait}s. Setup mislukt.");
   exit(1);
 }
 
@@ -62,6 +68,7 @@ foreach ($autoloadPaths as $path) {
 
 if (!$autoloaded) {
   echo "Composer autoloader niet gevonden. Setup mislukt.\n";
+  ControlRoomLogger::fatal('frontend-setup', 'Composer autoloader niet gevonden. Setup mislukt.');
   exit(1);
 }
 
@@ -85,6 +92,7 @@ try {
   $channel = $connection->channel();
 } catch (\Exception $e) {
   echo "Verbinding met RabbitMQ mislukt: " . $e->getMessage() . "\n";
+  ControlRoomLogger::error('frontend-setup', 'Verbinding met RabbitMQ mislukt: ' . $e->getMessage());
   exit(1);
 }
 
@@ -94,6 +102,7 @@ try {
 // durable = true:  overleeft broker-herstart.
 $channel->exchange_declare('contact.topic', 'topic', false, true, false);
 echo "Exchange 'contact.topic' gedeclareerd.\n";
+ControlRoomLogger::info('frontend-setup', "Exchange 'contact.topic' gedeclareerd.");
 
 // ─── Queues declareren en binden ──────────────────────────────────────────────
 
@@ -123,6 +132,7 @@ foreach ($bindings as $binding) {
   $channel->queue_bind($queue, 'contact.topic', $routingKey);
 
   echo "Queue '{$queue}' gedeclareerd en gebonden aan 'contact.topic' met routing key '{$routingKey}'.\n";
+  ControlRoomLogger::info('frontend-setup', "Queue '{$queue}' gedeclareerd en gebonden aan 'contact.topic' met routing key '{$routingKey}'.");
 }
 
 // ─── Afsluiten ────────────────────────────────────────────────────────────────
@@ -130,3 +140,4 @@ $channel->close();
 $connection->close();
 
 echo "RabbitMQ setup voltooid.\n";
+ControlRoomLogger::info('frontend-setup', 'RabbitMQ setup voltooid.');

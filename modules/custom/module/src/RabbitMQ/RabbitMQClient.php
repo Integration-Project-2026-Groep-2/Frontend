@@ -89,6 +89,8 @@ class RabbitMQClient {
         }
         echo sprintf("RabbitMQ not ready (attempt %d/%d), retrying in %ds…\n",
           $attempt, $this->maxRetries, $this->retryDelay);
+        \ControlRoomLogger::warn('frontend-rabbitmq', sprintf('RabbitMQ not ready (attempt %d/%d), retrying in %ds...',
+          $attempt, $this->maxRetries, $this->retryDelay));
         sleep($this->retryDelay);
       }
     }
