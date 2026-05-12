@@ -5,6 +5,12 @@
   const POLL_MS = 30000;
   const DOWN_WINDOW_MS = 5 * 60 * 1000;
 
+  const KIBANA_BASE_URL = 'https://control-room.integration-project-2026-groep-2.my.be';
+  const KIBANA_INDEX_PATTERN = 'controlroom-logs*';
+  const KIBANA_SERVICE_FIELD = 'service.keyword';
+  const KIBANA_WINDOW_PRE_SEC = 5 * 60;
+  const KIBANA_WINDOW_POST_SEC = 60;
+
   const downSince = new Map();
 
   let csrfToken = null;
@@ -275,6 +281,8 @@
     if (diagnosis && diagnosis.evidence_summary) {
       appendEvidenceSection(diagnosis.evidence_summary);
     }
+
+    appendKibanaLink(detail, inner);
   }
 
   function metaItem(label, value) {
@@ -294,6 +302,34 @@
     span.appendChild(document.createTextNode(' '));
     span.appendChild(pillEl);
     return span;
+  }
+
+  function appendKibanaLink(detail, inner) {
+    const service = detail.service || (inner && inner.service);
+    const receivedAt = Number(detail.received_at);
+    if (!service || !Number.isFinite(receivedAt) || receivedAt <= 0) {
+      return;
+    }
+    const safeService = String(service).replace(/[^A-Za-z0-9._-]/g, '');
+    if (!safeService) {
+      return;
+    }
+    const fromIso = new Date((receivedAt - KIBANA_WINDOW_PRE_SEC) * 1000).toISOString();
+    const toIso = new Date((receivedAt + KIBANA_WINDOW_POST_SEC) * 1000).toISOString();
+    const g = "(time:(from:'" + fromIso + "',to:'" + toIso + "'))";
+    const a = "(index:'" + KIBANA_INDEX_PATTERN + "',query:(language:kuery,query:'" + KIBANA_SERVICE_FIELD + ':"' + safeService + "\"'))";
+    const url = KIBANA_BASE_URL + '/app/discover#/?_g=' + encodeURI(g) + '&_a=' + encodeURI(a);
+
+    const section = document.createElement('div');
+    section.className = 'ai-dashboard-dialog-section ai-dashboard-dialog-kibana';
+    const link = document.createElement('a');
+    link.className = 'ai-dashboard-kibana-link';
+    link.href = url;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.textContent = 'Bekijk logs in Kibana ↗';
+    section.appendChild(link);
+    detailBodyEl.appendChild(section);
   }
 
   function appendTextSection(title, body, variant) {
