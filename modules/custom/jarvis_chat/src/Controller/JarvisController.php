@@ -187,7 +187,8 @@ class JarvisController extends ControllerBase {
       return new JsonResponse(['error' => 'upstream error'], 502);
     }
 
-    $response = new StreamedResponse(function () use ($upstream): void {
+    $logger = $this->logChannelFactory->get('jarvis_chat');
+    $response = new StreamedResponse(function () use ($upstream, $logger): void {
       // Hard-disable transparent gzip compression on this response. If
       // php.ini ever flips `zlib.output_compression = On` (a one-line
       // Infra-side change), the per-chunk flush would emit a partial
@@ -196,6 +197,10 @@ class JarvisController extends ControllerBase {
       // config drift.
       @ini_set('zlib.output_compression', '0');
       @ini_set('output_buffering', '0');
+      // Honour client-abort so a tab-close releases the PHP-FPM worker
+      // instead of pinning it for up to STREAM_TIMEOUT_SECONDS while
+      // mcp-master keeps streaming into a discarded output buffer.
+      ignore_user_abort(FALSE);
       // Force every echo to flush immediately. Drupal + PHP-FPM otherwise
       // buffer the response until the script ends, defeating SSE.
       @ob_implicit_flush(TRUE);
@@ -203,12 +208,35 @@ class JarvisController extends ControllerBase {
         @ob_end_flush();
       }
       $bodyStream = $upstream->getBody();
-      while (!$bodyStream->eof()) {
-        $chunk = $bodyStream->read(8192);
-        if ($chunk !== '') {
-          echo $chunk;
-          flush();
+      try {
+        while (!$bodyStream->eof()) {
+          $chunk = $bodyStream->read(8192);
+          if ($chunk !== '') {
+            echo $chunk;
+            flush();
+          }
+          // Client tab closed / refresh / network drop — connection_aborted
+          // is TRUE only after a write attempt notices the broken pipe.
+          // The flush() above is that write, so checking right after it
+          // means we exit within one chunk of disconnect.
+          if (connection_aborted()) {
+            break;
+          }
         }
+      }
+      catch (\Throwable $e) {
+        // Mid-stream Guzzle exception (upstream RST, read-timeout): log
+        // server-side and let the body close in finally. Without the
+        // catch, the throw escapes Symfony's sendContent and PHP-FPM
+        // logs a fatal — the upstream Guzzle handle leaks until the
+        // worker recycles.
+        $logger->warning('mcp-master /chat/stream mid-stream error: @msg', ['@msg' => $e->getMessage()]);
+      }
+      finally {
+        // Always close the upstream so the Guzzle/cURL handle is freed
+        // immediately — otherwise the connection lingers until PHP's
+        // request shutdown, which on a long stream is too late to matter.
+        $bodyStream->close();
       }
     });
 
