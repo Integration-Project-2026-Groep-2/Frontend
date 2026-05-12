@@ -232,7 +232,16 @@
       }
       if (dataLines.length === 0) return null;
       try {
-        return JSON.parse(dataLines.join('\n'));
+        const parsed = JSON.parse(dataLines.join('\n'));
+        // Fall back to the SSE event-line name when the JSON payload does
+        // not carry its own `event` field. mcp-master currently echoes the
+        // event-name in the JSON body, but the SSE spec treats the
+        // `event:` line as canonical — this keeps the parser forward-
+        // compatible with a backend that ever drops the redundancy.
+        if (parsed && typeof parsed === 'object' && !('event' in parsed)) {
+          parsed.event = eventName;
+        }
+        return parsed;
       } catch (_) {
         return { event: eventName, _raw: dataLines.join('\n') };
       }
