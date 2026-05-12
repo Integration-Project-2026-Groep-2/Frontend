@@ -101,7 +101,7 @@
         if (data && typeof data.error === 'string') errorMsg = data.error;
       } catch (_) { /* leave statusText */ }
       loading.classList.remove('jarvis-typing');
-      loading.textContent = `Fout: ${errorMsg}`;
+      loading.textContent = `Fout: ${String(errorMsg ?? 'upstream error').slice(0, 500)}`;
       return;
     }
 
@@ -159,14 +159,20 @@
             assistantText = accum.text;
             receivedTerminal = true;
             break;
-          case 'error':
+          case 'error': {
             errored = true;
             receivedTerminal = true;
             loading.classList.remove('jarvis-typing');
-            loading.textContent = ev.correlation_id
-              ? `Fout: ${ev.message || 'internal error'} (ref: ${ev.correlation_id})`
-              : `Fout: ${ev.message || 'internal error'}`;
+            // Defense-in-depth: backend ProgressEvent::Error is opaque per
+            // v1.1 hardening, but coerce + length-bound the wire fields
+            // so a future regression that emits a nested object or a
+            // toString-throwing value doesn't crash the dispatch loop or
+            // print "[object Object]" to the user.
+            const msg = String(ev.message ?? 'internal error').slice(0, 500);
+            const ref = String(ev.correlation_id ?? '').slice(0, 64);
+            loading.textContent = ref ? `Fout: ${msg} (ref: ${ref})` : `Fout: ${msg}`;
             break;
+          }
           default:
             // Unknown event type — ignore, forward-compat safe.
             break;
