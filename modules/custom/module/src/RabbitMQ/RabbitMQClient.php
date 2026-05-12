@@ -203,7 +203,7 @@ class RabbitMQClient {
       return 'session.topic';
     }
     if (str_starts_with($routingKey, 'frontend.location.')) {
-      return 'session.topic';
+      return 'frontend.topic';
     }
     return self::EXCHANGE_TOPIC; // user.topic
   }
