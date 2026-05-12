@@ -173,20 +173,15 @@ class JarvisController extends ControllerBase {
         ],
       );
     }
-    catch (RequestException $e) {
-      $upstreamResp = $e->getResponse();
-      if ($upstreamResp !== NULL) {
-        $status = $upstreamResp->getStatusCode();
-        if ($status >= 400 && $status < 500) {
-          $errBody = json_decode((string) $upstreamResp->getBody(), TRUE);
-          return new JsonResponse(['error' => self::safeUpstreamError($errBody)], $status);
-        }
-      }
-      $this->logChannelFactory->get('jarvis_chat')
-        ->error('mcp-master /chat/stream failed: @msg', ['@msg' => $e->getMessage()]);
-      return new JsonResponse(['error' => 'upstream error'], 502);
-    }
-    catch (GuzzleException $e) {
+    catch (RequestException | GuzzleException $e) {
+      // /chat/stream has no documented 4xx error-strings (mcp-master only
+      // emits 200-streaming or 5xx pre-stream), so the safeUpstreamError
+      // allowlist (action-id lifecycle errors from /chat/approve|reject)
+      // would either collapse every legitimate future 4xx to opaque OR
+      // — worse — leak an action-id-string that accidentally appeared on
+      // the wrong route. Same posture as `chat()` with
+      // surfaceUpstreamStatus=FALSE: opaque "upstream error" + full chain
+      // logged server-side only.
       $this->logChannelFactory->get('jarvis_chat')
         ->error('mcp-master /chat/stream failed: @msg', ['@msg' => $e->getMessage()]);
       return new JsonResponse(['error' => 'upstream error'], 502);
