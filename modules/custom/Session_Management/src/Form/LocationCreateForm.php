@@ -83,5 +83,4 @@ class LocationCreateForm extends FormBase {
       $client->disconnect();
     }
   }
-
 }
