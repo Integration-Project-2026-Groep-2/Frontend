@@ -132,10 +132,13 @@
             });
             break;
           case 'tool_call_completed': {
-            // Match newest started entry without 'ok' set — handles parallel
-            // dispatch where multiple identical-tool calls overlap (LLM does
-            // this for count_contacts + count_registrations together).
-            for (let i = syntheticTrace.length - 1; i >= 0; i -= 1) {
+            // Match the OLDEST started-but-not-yet-completed entry by name.
+            // SSE delivers events in completion-order, mcp-master dispatches
+            // in input-order: with two parallel runs of the same tool the
+            // first completion belongs to the first dispatch (FIFO), so its
+            // action_id/status must land on syntheticTrace[i_oldest], not
+            // syntheticTrace[i_newest].
+            for (let i = 0; i < syntheticTrace.length; i += 1) {
               const t = syntheticTrace[i];
               if (t.tool === ev.name && !('ok' in t)) {
                 t.ok = !!ev.ok;
