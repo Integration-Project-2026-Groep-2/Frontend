@@ -41,14 +41,14 @@ class LoginRedirectionSubscriber implements EventSubscriberInterface {
       $url = '/user'; 
 
       if (in_array('administrator', $roles)) {
-        $url = Url::fromRoute('system.admin_dashboard')->toString();
+        $url = Url::fromUri('internal:/hello/admin')->setAbsolute()->toString();
       } 
-      elseif (in_array('speaker', $roles) || in_array('spreker', $roles)) {
-        $url = Url::fromUri('internal:/bespreker')->toString();
-      } 
-      elseif (in_array('visitor', $roles)) {
-        $url = Url::fromUri('internal:/home')->toString();
+      elseif (in_array('speaker', $roles)) {
+        $url = Url::fromUri('internal:/bespreker')->setAbsolute()->toString();
       }
+      else {
+      $url = Url::fromUri('internal:/')->setAbsolute()->toString();
+    }
 
       $event->setResponse(new RedirectResponse($url));
     }
