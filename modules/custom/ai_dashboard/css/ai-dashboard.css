@@ -299,6 +299,10 @@
   max-height: calc(100vh - 11rem);
 }
 
+.ai-dashboard-dialog-kibana {
+  margin-bottom: 0.75rem;
+}
+
 .ai-dashboard-dialog-section + .ai-dashboard-dialog-section {
   margin-top: 1rem;
 }
