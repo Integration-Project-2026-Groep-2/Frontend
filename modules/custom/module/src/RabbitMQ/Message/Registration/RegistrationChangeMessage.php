@@ -1,6 +1,8 @@
 <?php
 
-namespace Drupal\hello_world\RabbitMQ\Message;
+namespace Drupal\hello_world\RabbitMQ\Message\Registration;
+
+use Drupal\hello_world\RabbitMQ\Message\MessageInterface;
 
 /**
  * Bouwt de XML-payload voor Contract 2: Frontend → CRM (inschrijving wijzigen).

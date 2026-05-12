@@ -1,71 +1,30 @@
 <?php
 
-namespace Drupal\hello_world\Form;
+namespace Drupal\hello_world\RabbitMQ\Publisher;
 
-use Drupal\Core\Form\FormBase;
-use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Url;
-use Drupal\hello_world\RabbitMQ\Message\RegistrationMessage;
+use Drupal\hello_world\RabbitMQ\Message\Planning\PlanningSessionCreatedMessage;
 use Drupal\hello_world\RabbitMQ\RabbitMQClient;
-use Drupal\user\Entity\User;
 
-class PlanningSessionCreatedPublisher extends FormBase
-{
-    public function getFormId(): string
-    {
-        // TODO(nasr): add this with jelle's code
-    }
+/**
+ * Publishes planning.session.created (frontend.session.created) naar RabbitMQ.
+ */
+class PlanningSessionCreatedPublisher {
 
-    public function buildForm(
-        array $form,
-        FormStateInterface $form_state,
-    ): array {
-        // TODO(nasr):
-    }
+  public function __construct(
+    private readonly PlanningSessionCreatedMessage $message,
+  ) {}
 
-
-
-
-    $client = RabbitMQClient::fromEnv();
-
+  public function publish(): void {
     try {
-
-    // TODO(nasr): message needs to come from jelle's form stuff
-    $client->publish($message);
-
-
+      $client = RabbitMQClient::fromEnv();
+      $client->publish($this->message);
     }
-    catch(\RuntimeException $e) {
-
-        // TODO(nasr): replace with controlroom logger
-        \Drupal::logger('hello_world')->error(
-          'RabbitMQ publish mislukt: @err', ['@err' => $e->getMessage()]
+    catch (\Exception $e) {
+      \Drupal::logger('rabbitmq')->error(
+        'PlanningSessionCreatedPublisher mislukt: @err',
+        ['@err' => $e->getMessage()]
+      );
     }
-    finally {
-
-    $client->disconnect();
-    }
-
-
-    $this->messenger()->addStatus(
-        $this->t('Planning session Created!');j
-
-    );
-
-    // What is this?
-    $form_state->setRedirectUrl(Url::fromRoute(''));
-
-    private function setField(object $entity, string $field, mixed $value): void  {
-
-        if ($value !== NULL && $entity->hasField($field)) {
-           
-            $entity->set($field, $value);
-            
-        }
-
-    }
-
-
-
+  }
 
 }

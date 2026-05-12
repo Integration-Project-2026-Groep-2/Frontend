@@ -5,7 +5,7 @@ namespace Drupal\hello_world\Form;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
-use Drupal\hello_world\RabbitMQ\Message\RegistrationMessage;
+use Drupal\hello_world\RabbitMQ\Message\Registration\RegistrationMessage;
 use Drupal\hello_world\RabbitMQ\RabbitMQClient;
 use Drupal\user\Entity\User;
 

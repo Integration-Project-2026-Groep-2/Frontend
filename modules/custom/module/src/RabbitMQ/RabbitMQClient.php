@@ -25,6 +25,7 @@ class RabbitMQClient {
 
   // Exchange names used by this module.
   private const EXCHANGE_TOPIC     = 'user.topic';
+  private const EXCHANGE_SESSION   = 'session.topic';
   private const EXCHANGE_HEARTBEAT = 'heartbeat.direct';
 
   public function __construct(
@@ -185,10 +186,13 @@ class RabbitMQClient {
       'frontend.topic', 'topic', FALSE, TRUE, FALSE
     );
     $this->channel->exchange_declare(
+      self::EXCHANGE_SESSION, 'topic', FALSE, TRUE, FALSE
+    );
+    $this->channel->exchange_declare(
       self::EXCHANGE_HEARTBEAT, 'direct', FALSE, TRUE, FALSE
     );
   }
-  
+
   /**
    * Determines which exchange to use from the routing key prefix.
    */
@@ -197,7 +201,7 @@ class RabbitMQClient {
       return self::EXCHANGE_HEARTBEAT;
     }
     if (str_starts_with($routingKey, 'frontend.session.')) {
-      return 'session.topic';
+      return self::EXCHANGE_SESSION;
     }
     return self::EXCHANGE_TOPIC; // user.topic
   }
