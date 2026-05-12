@@ -188,6 +188,14 @@ class JarvisController extends ControllerBase {
     }
 
     $response = new StreamedResponse(function () use ($upstream): void {
+      // Hard-disable transparent gzip compression on this response. If
+      // php.ini ever flips `zlib.output_compression = On` (a one-line
+      // Infra-side change), the per-chunk flush would emit a partial
+      // deflate block — browsers reject mid-stream as decode-failure
+      // and SSE silently breaks. Belt-and-braces defense against future
+      // config drift.
+      @ini_set('zlib.output_compression', '0');
+      @ini_set('output_buffering', '0');
       // Force every echo to flush immediately. Drupal + PHP-FPM otherwise
       // buffer the response until the script ends, defeating SSE.
       @ob_implicit_flush(TRUE);
@@ -209,6 +217,9 @@ class JarvisController extends ControllerBase {
     // Tells nginx/Cloudflare not to buffer this response — `text/event-stream`
     // already hints it but the explicit header is honoured by more proxies.
     $response->headers->set('X-Accel-Buffering', 'no');
+    // Pair with the in-callback ini_set: tell any upstream that might
+    // otherwise advertise gzip that this body is identity-encoded.
+    $response->headers->set('Content-Encoding', 'identity');
     return $response;
   }
 
