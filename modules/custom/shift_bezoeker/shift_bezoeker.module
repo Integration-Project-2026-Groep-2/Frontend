@@ -34,9 +34,6 @@ function shift_bezoeker_theme($existing, $type, $theme, $path) {
     'home_template' => [
       'variables' => [],
     ],
-    'bezoeker_bedrijven' => [
-      'variables' => ['bedrijven' => NULL],
-    ],
   ];
 }
 
