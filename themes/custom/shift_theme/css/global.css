@@ -35,6 +35,9 @@ main,
 ::-webkit-scrollbar-thumb:hover {
   background: #6333ea;
 }
-html {
-  scroll-behavior: smooth;
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
 }

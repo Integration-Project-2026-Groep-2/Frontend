@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CompanyConfirmed>
+  <id>550e8400-e29b-41d4-a716-446655440010</id>
+  <vatNumber>BE0123456789</vatNumber>
+  <name>CRM Test Bedrijf NV</name>
+  <email>infotest@gmail.com</email>
+  <phone>+3221234567</phone>
+  <street>Teststraat</street>
+  <houseNumber>42</houseNumber>
+  <postalCode>1000</postalCode>
+  <city>Brussel</city>
+  <country>BE</country>
+  <isActive>true</isActive>
+  <confirmedAt>2026-04-22T10:15:30+00:00</confirmedAt>
+</CompanyConfirmed>

@@ -1,0 +1,51 @@
+jarvis_chat.page:
+  path: '/jarvis'
+  defaults:
+    _controller: '\Drupal\jarvis_chat\Controller\JarvisController::page'
+    _title: 'Jarvis'
+  requirements:
+    _permission: 'use jarvis chat'
+
+jarvis_chat.api_chat:
+  path: '/api/jarvis/chat'
+  defaults:
+    _controller: '\Drupal\jarvis_chat\Controller\JarvisController::chat'
+  methods: [POST]
+  requirements:
+    _permission: 'use jarvis chat'
+    _csrf_request_header_token: 'TRUE'
+  options:
+    no_cache: 'TRUE'
+
+jarvis_chat.api_approve:
+  path: '/api/jarvis/chat/approve'
+  defaults:
+    _controller: '\Drupal\jarvis_chat\Controller\JarvisController::approve'
+  methods: [POST]
+  requirements:
+    _permission: 'use jarvis chat'
+    _csrf_request_header_token: 'TRUE'
+  options:
+    no_cache: 'TRUE'
+
+jarvis_chat.api_reject:
+  path: '/api/jarvis/chat/reject'
+  defaults:
+    _controller: '\Drupal\jarvis_chat\Controller\JarvisController::reject'
+  methods: [POST]
+  requirements:
+    _permission: 'use jarvis chat'
+    _csrf_request_header_token: 'TRUE'
+  options:
+    no_cache: 'TRUE'
+
+jarvis_chat.api_chat_stream:
+  path: '/api/jarvis/chat/stream'
+  defaults:
+    _controller: '\Drupal\jarvis_chat\Controller\JarvisController::streamChat'
+  methods: [POST]
+  requirements:
+    _permission: 'use jarvis chat'
+    _csrf_request_header_token: 'TRUE'
+  options:
+    no_cache: 'TRUE'

@@ -1,0 +1,17 @@
+widget:
+  version: VERSION
+  css:
+    component:
+      css/jarvis-chat.css: {}
+  js:
+    js/jarvis-chat.js: {}
+  dependencies:
+    - core/drupal
+    - core/drupalSettings
+    - core/once
+
+fab:
+  version: VERSION
+  css:
+    component:
+      css/jarvis-fab.css: {}

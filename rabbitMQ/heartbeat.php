@@ -1,4 +1,5 @@
 <?php
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
 // /rabbitMQ/heartbeat.php
 
 require_once __DIR__ . '/vendor/autoload.php';
@@ -34,7 +35,7 @@ $channel->exchange_declare(
     false   // internal
 );
 
-echo "Heartbeat started. Press Ctrl+C to stop.\n";
+echo "Heartbeat started.\n";
 
 while (true) {
     $xml = new SimpleXMLElement('<Heartbeat/>');
@@ -52,7 +53,7 @@ while (true) {
         'routing.heartbeat'
     );
 
-    echo "Heartbeat sent at " . date('H:i:s') . "\n";
+    // Silent heartbeat — no console output.
 
     sleep(1);
 }
