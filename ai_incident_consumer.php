@@ -93,6 +93,7 @@ $ch->queue_declare('frontend.ai_incidents', false, true, false, false);
 $ch->queue_bind('frontend.ai_incidents', 'ai.events', 'event.incident_diagnosed');
 $ch->queue_bind('frontend.ai_incidents', 'ai.events', 'event.incident_skipped');
 $ch->queue_bind('frontend.ai_incidents', 'ai.events', 'event.incident_circuit_open');
+$ch->queue_bind('frontend.ai_incidents', 'ai.events', 'event.incident_resolved');
 $ch->basic_qos(null, 1, null);
 
 $ingester = \Drupal::service('ai_dashboard.incident_ingester');
