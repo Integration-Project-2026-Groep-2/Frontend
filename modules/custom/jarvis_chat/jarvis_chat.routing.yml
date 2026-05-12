@@ -38,3 +38,14 @@ jarvis_chat.api_reject:
     _csrf_request_header_token: 'TRUE'
   options:
     no_cache: 'TRUE'
+
+jarvis_chat.api_chat_stream:
+  path: '/api/jarvis/chat/stream'
+  defaults:
+    _controller: '\Drupal\jarvis_chat\Controller\JarvisController::streamChat'
+  methods: [POST]
+  requirements:
+    _permission: 'use jarvis chat'
+    _csrf_request_header_token: 'TRUE'
+  options:
+    no_cache: 'TRUE'

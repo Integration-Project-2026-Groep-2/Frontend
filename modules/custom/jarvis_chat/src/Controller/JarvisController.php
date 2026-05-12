@@ -12,11 +12,21 @@ use GuzzleHttp\Exception\RequestException;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class JarvisController extends ControllerBase {
 
   private const DEFAULT_BACKEND_URL = 'http://mcp-master:8080';
   private const REQUEST_TIMEOUT_SECONDS = 240;
+
+  /**
+   * Wall-clock cap for /chat/stream. Mcp-master enforces 600s; we hold
+   * the upstream connection +10s so the backend's terminal error event
+   * with correlation_id reaches the client before our own timeout fires.
+   */
+  private const STREAM_TIMEOUT_SECONDS = 610;
+
   private const ELEVATED_ROLES = ['administrator', 'event_manager'];
 
   /**
@@ -109,6 +119,136 @@ class JarvisController extends ControllerBase {
       $payload['reason'] = trim($body['reason']);
     }
     return $this->forwardToMaster('/chat/reject', $payload, TRUE);
+  }
+
+  /**
+   * Streaming counterpart of `chat()`. Returns text/event-stream that
+   * pipes mcp-master's /chat/stream ProgressEvent feed verbatim to the
+   * browser. Body validation + role-gate identical to `chat()`.
+   *
+   * Guzzle's `stream: true` keeps the upstream connection open and
+   * returns a PSR-7 response whose body is a streamable resource. The
+   * StreamedResponse callback drains it chunk-per-chunk with
+   * `flush()` after each write — without that, Drupal + PHP-FPM
+   * would buffer the entire response body and defeat the streaming
+   * UX. `X-Accel-Buffering: no` signals nginx/Cloudflare to bypass
+   * their own buffering on this response.
+   *
+   * Pre-stream failures (Guzzle exception before bytes flow) return
+   * JSON 4xx/502 — same shape as `chat()` so the JS error-handler
+   * stays single-codepath.
+   */
+  public function streamChat(Request $request): Response {
+    if (($denial = $this->assertElevatedRole()) !== NULL) {
+      return $denial;
+    }
+
+    $body = json_decode($request->getContent(), TRUE);
+    if (!is_array($body)) {
+      return new JsonResponse(['error' => 'invalid JSON body'], 400);
+    }
+    $hasPrompt = isset($body['prompt']) && trim((string) $body['prompt']) !== '';
+    $hasMessages = isset($body['messages'])
+      && is_array($body['messages'])
+      && !empty($body['messages']);
+    if (!$hasPrompt && !$hasMessages) {
+      return new JsonResponse(['error' => 'prompt or messages required'], 400);
+    }
+
+    $headers = ['Accept' => 'text/event-stream'];
+    if (($auth = $this->buildAuthorizationHeader()) !== NULL) {
+      $headers['Authorization'] = $auth;
+    }
+
+    try {
+      $upstream = $this->httpClient->request(
+        'POST',
+        $this->backendBaseUrl() . '/chat/stream',
+        [
+          'json' => $body,
+          'headers' => $headers,
+          'stream' => TRUE,
+          'timeout' => self::STREAM_TIMEOUT_SECONDS,
+          'read_timeout' => self::STREAM_TIMEOUT_SECONDS,
+        ],
+      );
+    }
+    catch (RequestException | GuzzleException $e) {
+      // /chat/stream has no documented 4xx error-strings (mcp-master only
+      // emits 200-streaming or 5xx pre-stream), so the safeUpstreamError
+      // allowlist (action-id lifecycle errors from /chat/approve|reject)
+      // would either collapse every legitimate future 4xx to opaque OR
+      // — worse — leak an action-id-string that accidentally appeared on
+      // the wrong route. Same posture as `chat()` with
+      // surfaceUpstreamStatus=FALSE: opaque "upstream error" + full chain
+      // logged server-side only.
+      $this->logChannelFactory->get('jarvis_chat')
+        ->error('mcp-master /chat/stream failed: @msg', ['@msg' => $e->getMessage()]);
+      return new JsonResponse(['error' => 'upstream error'], 502);
+    }
+
+    $logger = $this->logChannelFactory->get('jarvis_chat');
+    $response = new StreamedResponse(function () use ($upstream, $logger): void {
+      // Hard-disable transparent gzip compression on this response. If
+      // php.ini ever flips `zlib.output_compression = On` (a one-line
+      // Infra-side change), the per-chunk flush would emit a partial
+      // deflate block — browsers reject mid-stream as decode-failure
+      // and SSE silently breaks. Belt-and-braces defense against future
+      // config drift.
+      @ini_set('zlib.output_compression', '0');
+      @ini_set('output_buffering', '0');
+      // Honour client-abort so a tab-close releases the PHP-FPM worker
+      // instead of pinning it for up to STREAM_TIMEOUT_SECONDS while
+      // mcp-master keeps streaming into a discarded output buffer.
+      ignore_user_abort(FALSE);
+      // Force every echo to flush immediately. Drupal + PHP-FPM otherwise
+      // buffer the response until the script ends, defeating SSE.
+      @ob_implicit_flush(TRUE);
+      while (ob_get_level() > 0) {
+        @ob_end_flush();
+      }
+      $bodyStream = $upstream->getBody();
+      try {
+        while (!$bodyStream->eof()) {
+          $chunk = $bodyStream->read(8192);
+          if ($chunk !== '') {
+            echo $chunk;
+            flush();
+          }
+          // Client tab closed / refresh / network drop — connection_aborted
+          // is TRUE only after a write attempt notices the broken pipe.
+          // The flush() above is that write, so checking right after it
+          // means we exit within one chunk of disconnect.
+          if (connection_aborted()) {
+            break;
+          }
+        }
+      }
+      catch (\Throwable $e) {
+        // Mid-stream Guzzle exception (upstream RST, read-timeout): log
+        // server-side and let the body close in finally. Without the
+        // catch, the throw escapes Symfony's sendContent and PHP-FPM
+        // logs a fatal — the upstream Guzzle handle leaks until the
+        // worker recycles.
+        $logger->warning('mcp-master /chat/stream mid-stream error: @msg', ['@msg' => $e->getMessage()]);
+      }
+      finally {
+        // Always close the upstream so the Guzzle/cURL handle is freed
+        // immediately — otherwise the connection lingers until PHP's
+        // request shutdown, which on a long stream is too late to matter.
+        $bodyStream->close();
+      }
+    });
+
+    $response->headers->set('Content-Type', 'text/event-stream');
+    $response->headers->set('Cache-Control', 'no-cache, no-transform');
+    // Tells nginx/Cloudflare not to buffer this response — `text/event-stream`
+    // already hints it but the explicit header is honoured by more proxies.
+    $response->headers->set('X-Accel-Buffering', 'no');
+    // Pair with the in-callback ini_set: tell any upstream that might
+    // otherwise advertise gzip that this body is identity-encoded.
+    $response->headers->set('Content-Encoding', 'identity');
+    return $response;
   }
 
   /**

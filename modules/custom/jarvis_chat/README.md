@@ -115,6 +115,43 @@ docker compose exec frontend vendor/bin/phpunit \
    `mcp-master` repo, plus `MCP_MASTER_URL=http://host.docker.internal:8080`
    on the frontend container
 
+## Streaming endpoint (SSE)
+
+`POST /api/jarvis/chat/stream` is the Server-Sent Events counterpart of
+`/api/jarvis/chat`. Same body shape, same CSRF + permission flow, same
+`MCP_MASTER_BEARER_TOKEN` / JWT auth — but the response is
+`text/event-stream` and forwards mcp-master's `ProgressEvent` feed
+verbatim. Front-end JS consumes the stream and live-renders each
+`text_chunk` event into the assistant bubble; `tool_call_started` /
+`tool_call_completed` events are accumulated into a synthetic
+`tool_trace` that drives the existing approval-card + Mermaid tool-flow
+UI on the terminal `done` event.
+
+Event types (per mcp-master PR #20):
+
+- `thinking` — model is reasoning (no UI surface yet)
+- `text_chunk` — incremental answer text
+- `tool_call_started` / `tool_call_completed` — tool dispatch lifecycle
+- `approval_pending` — write-tool awaiting approval; matching
+  `tool_call_completed` carries `status: 'pending'` + `action_id`
+- `done` — terminal success with `tokens`, `iterations`, `correlation_id`
+- `error` — terminal failure (opaque message + `correlation_id` for
+  support tickets)
+
+The stream ends with exactly one `done` or `error` event. Server-side
+wall-clock cap is 600s; this module's Guzzle timeout is set 10s longer
+so the backend's own `error` event with `correlation_id` reaches the
+client before the proxy times out.
+
+Browser: tested on Chrome + Firefox stable. Both have native
+`ReadableStream` + `TextDecoderStream` support. EventSource is not
+used because POST + bearer headers aren't supported on that API.
+
+Drupal-side proxy uses Symfony `StreamedResponse` with explicit
+`ob_implicit_flush(true)` + `flush()` per chunk so PHP-FPM forwards
+bytes immediately. `X-Accel-Buffering: no` signals nginx/Cloudflare
+to bypass their own buffering on this response.
+
 ## See also
 
 - [R2_APPROVAL_CARD.md](R2_APPROVAL_CARD.md) — module-side spec for the

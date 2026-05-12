@@ -1,0 +1,5 @@
+name: AI Dashboard
+description: Admin-only dashboard for R3 incident-response diagnoses from mcp-master.
+type: module
+package: Custom
+core_version_requirement: ^11
