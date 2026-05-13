@@ -124,21 +124,32 @@ class RabbitMQClient {
    * @throws \RuntimeException On validation failure or publish error.
    */
   public function publish(MessageInterface $message): void {
-    $this->connect();
+    try {
+      $this->connect();
 
-    $xml = $message->toXml();
+      $xml = $message->toXml();
 
-    // Validate before we touch the broker.
-    $this->validator->validate($xml, $message->getType());
+      // Validate before we touch the broker.
+      $this->validator->validate($xml, $message->getType());
 
-    $exchange = $this->resolveExchange($message->getRoutingKey());
+      $exchange = $this->resolveExchange($message->getRoutingKey());
 
-    $amqpMessage = new AMQPMessage(
-      $xml,
-      ['content_type' => 'text/xml', 'delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT]
-    );
+      $amqpMessage = new AMQPMessage(
+        $xml,
+        ['content_type' => 'text/xml', 'delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT]
+      );
 
-    $this->channel->basic_publish($amqpMessage, $exchange, $message->getRoutingKey());
+      $this->channel->basic_publish($amqpMessage, $exchange, $message->getRoutingKey());
+    }
+    catch (\RuntimeException $e) {
+      \Drupal::logger('rabbitmq')->error(
+        'Bericht publicatie mislukt (@type): @err', [
+          '@type' => $message->getType(),
+          '@err'  => $e->getMessage(),
+        ]
+      );
+      throw $e;
+    }
   }
 
   // ---------------------------------------------------------------------------

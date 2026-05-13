@@ -193,7 +193,7 @@ class SessionCreateForm extends FormBase {
       locationId: $form_state->getValue('location') ?: NULL,
       speakerId:  $speakerUuid,
       status:     $form_state->getValue('status'),
-      timestamp:  (new \DateTime())->format(\DateTime::ISO8601),
+      timestamp:  (new \DateTime())->format(\DateTime::ATOM),
     );
 
     $client = RabbitMQClient::fromEnv();
