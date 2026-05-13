@@ -61,7 +61,6 @@ hello_world.bespreker_sessies:
     _controller: '\Drupal\hello_world\Controller\BesprekerController::sessies'
     _title: 'Mijn Sessies'
   requirements:
-    requirements:
     _permission: 'access speaker area'
 
 hello_world.bespreker_betalingen:
