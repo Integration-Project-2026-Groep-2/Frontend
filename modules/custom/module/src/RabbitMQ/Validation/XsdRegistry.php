@@ -58,7 +58,14 @@ class XsdRegistry {
     'planning_user_created'     => 'PlanningUserCreated',
     'planning_user_updated'     => 'PlanningUserUpdated',
     'planning_user_deactivated' => 'PlanningUserDeactivated',
-    'session_update'            => 'SessionUpdate',
+    'planning_session_created'     => 'SessionCreated',
+    'planning_session_updated'     => 'SessionUpdated',
+    'planning_session_cancelled'   => 'SessionCancelled',
+    'planning_session_rescheduled' => 'SessionRescheduled',
+    'planning_session_full'        => 'SessionFull',
+    'registration_created'         => 'RegistrationCreated',
+    'registration_confirmed'       => 'RegistrationConfirmed',
+    'session_update'               => 'SessionUpdate',
 
     // Facturatie company.
     'facturatie_company_created'     => 'FacturatieCompanyCreated',
@@ -89,9 +96,16 @@ class XsdRegistry {
    * @var array<string, string>
    */
   private array $schemaMap = [
-    'registration'        => 'frontend-contract.xsd',
-    'registration_change' => 'frontend-contract.xsd',
-    'company_created'     => 'frontend-contract.xsd',
+    'registration'                 => 'frontend-contract.xsd',
+    'registration_change'          => 'frontend-contract.xsd',
+    'company_created'              => 'frontend-contract.xsd',
+    'planning_session_created'     => 'session.xsd',
+    'planning_session_updated'     => 'session.xsd',
+    'planning_session_cancelled'   => 'session.xsd',
+    'planning_session_rescheduled' => 'session.xsd',
+    'planning_session_full'        => 'session.xsd',
+    'registration_created'         => 'session.xsd',
+    'registration_confirmed'       => 'session.xsd',
   ];
 
   public function __construct(?string $xsdRoot = NULL) {

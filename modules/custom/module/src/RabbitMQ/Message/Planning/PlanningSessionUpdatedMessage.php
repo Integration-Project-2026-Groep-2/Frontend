@@ -7,31 +7,33 @@ use SimpleXMLElement;
 /**
  * Contract: planning.session.updated
  * Routing:  frontend.session.updated
- * Element:  FrontendSessionUpdated
+ * Element:  SessionUpdated
  */
 final class PlanningSessionUpdatedMessage extends Planning {
 
   public function __construct(
     private readonly string  $sessionId,
-    private readonly string  $title,
-    private readonly string  $date,
-    private readonly string  $startTime,
-    private readonly string  $endTime,
-    private readonly int     $capacity,
-    private readonly ?string $locationId = NULL,
+    private readonly string  $sessionName,
+    private readonly string  $changeType,
+    private readonly ?string $newTime     = NULL,
+    private readonly ?string $newLocation  = NULL,
+    private readonly ?string $timestamp    = NULL,
   ) {}
 
   public function toXml(): string {
-    $xml = new SimpleXMLElement('<FrontendSessionUpdated/>');
-    $xml->addChild('sessionId', $this->sessionId);
-    $xml->addChild('title',     htmlspecialchars($this->title));
-    $xml->addChild('date',      $this->date);
-    $xml->addChild('startTime', $this->startTime);
-    $xml->addChild('endTime',   $this->endTime);
-    $xml->addChild('capacity',  (string) $this->capacity);
+    $xml = new SimpleXMLElement('<SessionUpdated/>');
+    $xml->addChild('sessionId',   $this->sessionId);
+    $xml->addChild('sessionName', htmlspecialchars($this->sessionName));
+    $xml->addChild('changeType',  $this->changeType);
 
-    if ($this->locationId !== NULL) {
-      $xml->addChild('locationId', $this->locationId);
+    if ($this->newTime !== NULL) {
+      $xml->addChild('newTime', $this->newTime);
+    }
+    if ($this->newLocation !== NULL) {
+      $xml->addChild('newLocation', htmlspecialchars($this->newLocation));
+    }
+    if ($this->timestamp !== NULL) {
+      $xml->addChild('timestamp', $this->timestamp);
     }
 
     return $xml->asXML();
