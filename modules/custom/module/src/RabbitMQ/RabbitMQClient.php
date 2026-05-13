@@ -187,9 +187,6 @@ class RabbitMQClient {
     $this->channel->exchange_declare(
       self::EXCHANGE_HEARTBEAT, 'direct', FALSE, TRUE, FALSE
     );
-    $this->channel->exchange_declare(
-      'session.topic', 'topic', false, true, false
-    );
   }
   
   /**
@@ -199,9 +196,12 @@ class RabbitMQClient {
     if (str_starts_with($routingKey, 'routing.heartbeat')) {
       return self::EXCHANGE_HEARTBEAT;
     }
-    if (str_starts_with($routingKey, 'frontend.')) {
+
+    // All messages destined for the Planning microservice use frontend.topic.
+    if (str_starts_with($routingKey, 'frontend.') || str_contains($routingKey, '.session.')) {
       return 'frontend.topic';
     }
+
     return self::EXCHANGE_TOPIC; // user.topic
   }
 
