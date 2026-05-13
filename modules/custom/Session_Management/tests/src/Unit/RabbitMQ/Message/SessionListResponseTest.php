@@ -41,15 +41,17 @@ class SessionListResponseTest extends UnitTestCase {
   }
 
   public function testParseerEenSessie(): void {
-    $xml = $this->xmlMetSessies([[
-      'id' => 'sess-1',
-      'title' => 'PHP workshop',
-      'start_time' => '2026-05-15T09:00:00',
-      'end_time' => '2026-05-15T11:00:00',
-      'location' => 'Zaal A',
-      'speaker' => 'Jan Janssen',
-      'capacity' => 50,
-    ]]);
+    $xml = $this->xmlMetSessies([
+      [
+        'id' => 'sess-1',
+        'title' => 'PHP workshop',
+        'start_time' => '2026-05-15T09:00:00',
+        'end_time' => '2026-05-15T11:00:00',
+        'location' => 'Zaal A',
+        'speaker' => 'Jan Janssen',
+        'capacity' => 50,
+      ],
+    ]);
 
     $response = new SessionListResponse($xml);
     $sessies = $response->getSessions();
