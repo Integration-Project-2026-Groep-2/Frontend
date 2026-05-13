@@ -14,8 +14,8 @@
         <xs:element name="sessionId"  type="uuid"        minOccurs="0"/>
         <xs:element name="title"      type="xs:string"/>
         <xs:element name="date"       type="xs:string"/>
-        <xs:element name="startTime"  type="xs:string"/>
-        <xs:element name="endTime"    type="xs:string"   minOccurs="0"/>
+        <xs:element name="startTime"  type="xs:time"/>
+        <xs:element name="endTime"    type="xs:time"     minOccurs="0"/>
         <xs:element name="capacity"   type="xs:int"      minOccurs="0"/>
         <xs:element name="locationId" type="uuid"        minOccurs="0"/>
         <xs:element name="speakerId"  type="uuid"        minOccurs="0"/>
@@ -39,6 +39,8 @@
         <xs:element name="sessionName" type="xs:string"/>
         <xs:element name="changeType"  type="xs:string"/>
         <xs:element name="newTime"     type="xs:string"   minOccurs="0"/>
+        <xs:element name="newStartTime" type="xs:time"    minOccurs="0"/>
+        <xs:element name="newEndTime"   type="xs:time"    minOccurs="0"/>
         <xs:element name="newLocation" type="xs:string"   minOccurs="0"/>
         <xs:element name="participantIds" minOccurs="0">
           <xs:complexType>
@@ -92,8 +94,8 @@
         <xs:element name="oldStartTime" type="xs:string"/>
         <xs:element name="oldEndTime"   type="xs:string"   minOccurs="0"/>
         <xs:element name="newDate"      type="xs:string"/>
-        <xs:element name="newStartTime" type="xs:string"/>
-        <xs:element name="newEndTime"   type="xs:string"   minOccurs="0"/>
+        <xs:element name="newStartTime" type="xs:time"/>
+        <xs:element name="newEndTime"   type="xs:time"    minOccurs="0"/>
         <xs:element name="newLocation"  type="xs:string"   minOccurs="0"/>
         <xs:element name="reason"       type="xs:string"   minOccurs="0"/>
         <xs:element name="participantIds" minOccurs="0">
@@ -172,8 +174,8 @@
                     <xs:element name="sessionId"  type="uuid"/>
                     <xs:element name="title"      type="xs:string"/>
                     <xs:element name="date"       type="xs:string"/>
-                    <xs:element name="startTime"  type="xs:string"/>
-                    <xs:element name="endTime"    type="xs:string"   minOccurs="0"/>
+                    <xs:element name="startTime"  type="xs:time"/>
+                    <xs:element name="endTime"    type="xs:time"     minOccurs="0"/>
                     <xs:element name="location"   type="xs:string"   minOccurs="0"/>
                     <xs:element name="locationId" type="uuid"        minOccurs="0"/>
                     <xs:element name="speakerId"  type="uuid"        minOccurs="0"/>

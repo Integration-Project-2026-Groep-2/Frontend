@@ -188,11 +188,20 @@ class SessionCreateForm extends FormBase {
     $locationOptions = $this->getLocationOptions();
     $locationLabel = $locationId && isset($locationOptions[$locationId]) ? $locationOptions[$locationId] : NULL;
 
+    $startTime = $form_state->getValue('startTime');
+    if ($startTime && strlen($startTime) === 5) {
+      $startTime .= ':00';
+    }
+    $endTime = $form_state->getValue('endTime');
+    if ($endTime && strlen($endTime) === 5) {
+      $endTime .= ':00';
+    }
+
     $message = new PlanningSessionCreatedMessage(
       title:      $form_state->getValue('title'),
       date:       $date,
-      startTime:  $startTime . ':00',
-      endTime:    $endTime . ':00',
+      startTime:  $startTime,
+      endTime:    $endTime,
       capacity:   (int) $form_state->getValue('capacity'),
       locationId: $locationId,
       location:   $locationLabel,

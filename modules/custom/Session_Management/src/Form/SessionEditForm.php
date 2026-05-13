@@ -148,13 +148,24 @@ class SessionEditForm extends FormBase {
     $sessionId = $form_state->getValue('sessionId');
     $title     = $form_state->getValue('title');
     
+    $startTime = $form_state->getValue('startTime');
+    if ($startTime && strlen($startTime) === 5) {
+      $startTime .= ':00';
+    }
+    $endTime = $form_state->getValue('endTime');
+    if ($endTime && strlen($endTime) === 5) {
+      $endTime .= ':00';
+    }
+    
     $message = new PlanningSessionUpdatedMessage(
-      sessionId:   $sessionId,
-      sessionName: $title,
-      changeType:  'updated',
-      newTime:     $form_state->getValue('date') . ' ' . $form_state->getValue('startTime') . ':00',
-      newLocation: $form_state->getValue('location'),
-      timestamp:   (new \DateTime())->format(\DateTime::ATOM),
+      sessionId:    $sessionId,
+      sessionName:  $title,
+      changeType:   'updated',
+      newTime:      $form_state->getValue('date') . ' ' . $startTime,
+      newStartTime: $startTime,
+      newEndTime:   $endTime,
+      newLocation:  $form_state->getValue('location'),
+      timestamp:    (new \DateTime())->format(\DateTime::ATOM),
     );
 
     $client = RabbitMQClient::fromEnv();
