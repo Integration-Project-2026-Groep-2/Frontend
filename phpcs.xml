@@ -9,6 +9,12 @@
     <exclude name="Drupal.Commenting.VariableComment"/>
     <exclude name="Drupal.Commenting.InlineComment"/>
     <exclude name="Drupal.Commenting.DocComment"/>
+    <!-- Moderne PHP stijl gebruikt lowercase null/true/false -->
+    <exclude name="Generic.PHP.UpperCaseConstant"/>
+    <!-- Lange regels in test-data zijn aanvaardbaar -->
+    <exclude name="Generic.Files.LineLength"/>
+    <!-- Array opmaak is flexibeler in tests -->
+    <exclude name="Drupal.Arrays.Array"/>
   </rule>
 
   <file>modules/custom/ai_dashboard/tests</file>

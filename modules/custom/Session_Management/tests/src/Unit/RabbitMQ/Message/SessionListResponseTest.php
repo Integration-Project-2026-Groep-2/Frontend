@@ -40,7 +40,7 @@ class SessionListResponseTest extends UnitTestCase {
     $this->assertSame([], $response->getSessions());
   }
 
-  public function testParseerEénSessie(): void {
+  public function testParseerEenSessie(): void {
     $xml = $this->xmlMetSessies([[
       'id' => 'sess-1',
       'title' => 'PHP workshop',
