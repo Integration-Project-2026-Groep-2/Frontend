@@ -18,18 +18,21 @@ COPY --chown=www-data:www-data ./themes/custom /opt/drupal/web/themes/custom
 COPY ./xsd /opt/drupal/xsd
 
 # RabbitMQ scripts
+COPY ./rabbitMQ/logger.php      /opt/drupal/logger.php
 COPY ./rabbitMQ/heartbeat.php   /opt/drupal/heartbeat.php
 COPY ./rabbitMQ/consumer.php    /opt/drupal/consumer.php
 COPY ./rabbitMQ/setup.php       /opt/drupal/setup.php
 COPY ./rabbitMQ/init_fields.php /opt/drupal/init_fields.php
-COPY ./ai_incident_consumer.php         /opt/drupal/ai_incident_consumer.php
+COPY ./ai_incident_consumer.php /opt/drupal/ai_incident_consumer.php
 
 RUN chown -R www-data:www-data /opt/drupal/web/modules/custom \
+    && chown www-data:www-data /opt/drupal/logger.php \
     && chown www-data:www-data /opt/drupal/heartbeat.php \
     && chown www-data:www-data /opt/drupal/consumer.php \
     && chown www-data:www-data /opt/drupal/setup.php \
     && chown www-data:www-data /opt/drupal/init_fields.php \
     && chown www-data:www-data /opt/drupal/ai_incident_consumer.php \
+    && chmod 750 /opt/drupal/logger.php \
     && chmod 750 /opt/drupal/heartbeat.php \
     && chmod 750 /opt/drupal/consumer.php \
     && chmod 750 /opt/drupal/setup.php \

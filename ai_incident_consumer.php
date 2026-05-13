@@ -2,7 +2,7 @@
 
 error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
 
-require_once __DIR__ . '/rabbitMQ/logger.php';
+require_once __DIR__ . '/logger.php';
 
 $maxWait = 60;
 $waited = 0;
@@ -93,6 +93,7 @@ $ch->queue_declare('frontend.ai_incidents', false, true, false, false);
 $ch->queue_bind('frontend.ai_incidents', 'ai.events', 'event.incident_diagnosed');
 $ch->queue_bind('frontend.ai_incidents', 'ai.events', 'event.incident_skipped');
 $ch->queue_bind('frontend.ai_incidents', 'ai.events', 'event.incident_circuit_open');
+$ch->queue_bind('frontend.ai_incidents', 'ai.events', 'event.incident_resolved');
 $ch->basic_qos(null, 1, null);
 
 $ingester = \Drupal::service('ai_dashboard.incident_ingester');

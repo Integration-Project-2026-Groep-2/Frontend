@@ -67,6 +67,79 @@ class IncidentRepositoryShapersTest extends UnitTestCase {
     $this->assertSame('skipped: debounced within 60s window', $item['root_cause_preview']);
   }
 
+  public function testToListItemPrefixesResolvedWithOriginalSummary(): void {
+    $entity = $this->fakeEntity([
+      'event_type' => 'incident_resolved',
+      'correlation_id' => 'cid-r1',
+      'service' => 'kassa',
+      'severity' => 'info',
+      'confidence' => NULL,
+      'received_at' => 1747000020,
+      'payload_json' => json_encode([
+        'payload' => ['original_summary' => 'KASSA heartbeat is back online'],
+      ]),
+    ], 7);
+
+    $item = IncidentRepository::toListItem($entity);
+
+    $this->assertSame('resolved: KASSA heartbeat is back online', $item['root_cause_preview']);
+  }
+
+  public function testToListItemExposesOriginalTsFromPayload(): void {
+    $entity = $this->fakeEntity([
+      'event_type' => 'incident_diagnosed',
+      'correlation_id' => 'cid-ts-1',
+      'service' => 'kassa',
+      'severity' => 'critical',
+      'confidence' => 'high',
+      'received_at' => 1747000100,
+      'payload_json' => json_encode([
+        'payload' => ['original_timestamp' => '2026-05-12T14:23:17Z'],
+      ]),
+    ], 10);
+
+    $item = IncidentRepository::toListItem($entity);
+
+    $this->assertSame(strtotime('2026-05-12T14:23:17Z'), $item['original_ts']);
+  }
+
+  public function testToListItemReturnsNullOriginalTsWhenMissing(): void {
+    $entity = $this->fakeEntity([
+      'event_type' => 'incident_diagnosed',
+      'correlation_id' => 'cid-ts-2',
+      'service' => 'crm',
+      'severity' => 'critical',
+      'confidence' => NULL,
+      'received_at' => 1747000110,
+      'payload_json' => json_encode([
+        'payload' => ['diagnosis' => ['root_cause' => 'x']],
+      ]),
+    ], 11);
+
+    $item = IncidentRepository::toListItem($entity);
+
+    $this->assertArrayHasKey('original_ts', $item);
+    $this->assertNull($item['original_ts']);
+  }
+
+  public function testToListItemReturnsNullOriginalTsWhenUnparseable(): void {
+    $entity = $this->fakeEntity([
+      'event_type' => 'incident_resolved',
+      'correlation_id' => 'cid-ts-3',
+      'service' => 'kassa',
+      'severity' => 'info',
+      'confidence' => NULL,
+      'received_at' => 1747000120,
+      'payload_json' => json_encode([
+        'payload' => ['original_timestamp' => 'not a date at all'],
+      ]),
+    ], 12);
+
+    $item = IncidentRepository::toListItem($entity);
+
+    $this->assertNull($item['original_ts']);
+  }
+
   public function testToListItemTruncatesPreviewAt200Chars(): void {
     $longRootCause = str_repeat('x', 350);
     $entity = $this->fakeEntity([

@@ -182,6 +182,7 @@
 .ai-dashboard-badge--type-skipped       { background: #ede9fe; color: #5b21b6; }
 .ai-dashboard-badge--type-circuit_open  { background: #fce7f3; color: #9d174d; }
 .ai-dashboard-badge--type-diagnosed     { background: #dbeafe; color: #1e3a8a; }
+.ai-dashboard-badge--type-resolved      { background: #d1fae5; color: #065f46; }
 
 .ai-dashboard-summary {
   color: #1d0b25;

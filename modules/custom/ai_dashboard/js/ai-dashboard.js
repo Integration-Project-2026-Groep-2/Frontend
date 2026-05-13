@@ -13,6 +13,10 @@
 
   const downSince = new Map();
 
+  function sortKey(inc) {
+    return typeof inc.original_ts === 'number' ? inc.original_ts : (inc.received_at || 0);
+  }
+
   let csrfToken = null;
   let lastSeenTs = 0;
   let pollStatusEl = null;
@@ -75,13 +79,22 @@
       }
       const data = await res.json();
       const incidents = Array.isArray(data.incidents) ? data.incidents : [];
-      for (const inc of incidents.slice().reverse()) {
+      const ordered = incidents.slice().sort((a, b) => {
+        const ka = sortKey(a);
+        const kb = sortKey(b);
+        if (ka !== kb) return ka - kb;
+        return (a.id || 0) - (b.id || 0);
+      });
+      for (const inc of ordered) {
         prependRow(inc);
         if (typeof inc.received_at === 'number' && inc.received_at > lastSeenTs) {
           lastSeenTs = inc.received_at;
         }
         if (inc.event_type === 'incident_diagnosed' && inc.service) {
-          downSince.set(inc.service, Date.now());
+          downSince.set(inc.service, sortKey(inc) * 1000);
+        }
+        if (inc.event_type === 'incident_resolved' && inc.service) {
+          downSince.delete(inc.service);
         }
       }
       renderPills();
@@ -176,9 +189,10 @@
 
   function makeTypeBadge(eventType) {
     const map = {
-      incident_diagnosed: ['diagnosed', 'diagnosed'],
-      incident_skipped: ['skipped', 'skipped'],
-      incident_circuit_open: ['circuit_open', 'circuit'],
+      incident_diagnosed: ['diagnosed', 'Diagnose'],
+      incident_skipped: ['skipped', 'Overgeslagen'],
+      incident_circuit_open: ['circuit_open', 'Circuit open'],
+      incident_resolved: ['resolved', 'Opgelost'],
     };
     const entry = map[eventType] || ['diagnosed', eventType || '—'];
     const span = document.createElement('span');
@@ -418,9 +432,10 @@
 
   function humanizeEventType(t) {
     const map = {
-      incident_diagnosed: 'Diagnosed',
-      incident_skipped: 'Skipped',
+      incident_diagnosed: 'Diagnose',
+      incident_skipped: 'Overgeslagen',
       incident_circuit_open: 'Circuit open',
+      incident_resolved: 'Opgelost',
     };
     return map[t] || t || '—';
   }

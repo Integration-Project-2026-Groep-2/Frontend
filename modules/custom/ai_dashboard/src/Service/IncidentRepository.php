@@ -41,6 +41,17 @@ class IncidentRepository {
     elseif (is_array($payload) && isset($payload['payload']['reason'])) {
       $rootCause = 'skipped: ' . (string) $payload['payload']['reason'];
     }
+    elseif (is_array($payload) && isset($payload['payload']['original_summary'])) {
+      $rootCause = 'resolved: ' . (string) $payload['payload']['original_summary'];
+    }
+
+    $originalTs = NULL;
+    if (is_array($payload) && isset($payload['payload']['original_timestamp'])) {
+      $parsed = strtotime((string) $payload['payload']['original_timestamp']);
+      if ($parsed !== FALSE) {
+        $originalTs = $parsed;
+      }
+    }
 
     return [
       'id' => (int) $entity->id(),
@@ -50,6 +61,7 @@ class IncidentRepository {
       'severity' => (string) $entity->get('severity')->value,
       'confidence' => $entity->get('confidence')->value,
       'received_at' => (int) $entity->get('received_at')->value,
+      'original_ts' => $originalTs,
       'root_cause_preview' => mb_substr($rootCause, 0, 200),
     ];
   }
