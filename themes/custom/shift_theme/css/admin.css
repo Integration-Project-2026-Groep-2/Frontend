@@ -1,0 +1,63 @@
+/* --- SESSIONS & LOCATIONS PAGINA --- */
+#block-shift-theme-content h1 {
+  font-family: 'Barlow', sans-serif;
+  font-size: 56px;
+  font-weight: 900;
+  color: #ffffff;
+  text-align: center;
+  padding: 40px 5% 20px 5%;
+}
+
+#block-shift-theme-content .button--primary {
+  background: #5b21b6 !important;
+  color: white !important;
+  border: none !important;
+  padding: 13px 26px !important;
+  border-radius: 8px !important;
+  font-weight: 700 !important;
+  font-family: 'Barlow', sans-serif !important;
+  text-decoration: none !important;
+  margin-bottom: 20px !important;
+  display: inline-block !important;
+}
+
+#block-shift-theme-content table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #161c2e;
+  border: 1px solid #2a2f4a;
+  border-radius: 12px;
+}
+
+#block-shift-theme-content thead th {
+  padding: 16px 20px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 700;
+  color: #8892b0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 1px solid #2a2f4a;
+  font-family: 'Inter', sans-serif;
+}
+
+#block-shift-theme-content tbody td {
+  padding: 16px 20px;
+  color: #e2e8f0;
+  font-size: 14px;
+  border-bottom: 1px solid #2a2f4a;
+  font-family: 'Inter', sans-serif;
+}
+
+#block-shift-theme-content tbody .empty td {
+  text-align: center;
+  color: #8892b0;
+  padding: 40px;
+}
+
+#block-shift-theme-content p {
+  color: #8892b0;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  margin-top: 20px;
+}
