@@ -237,8 +237,9 @@ class SessionEditForm extends FormBase {
       newTime:      $date . ' ' . $startTime,
       newStartTime: $startTime,
       newEndTime:   $endTime,
-      newLocation:  $locationLabel,
-      timestamp:    (new \DateTime())->format(\DateTime::ATOM),
+      newLocation:   $locationLabel,
+      newLocationId: $locationId,
+      timestamp:     (new \DateTime())->format(\DateTime::ATOM),
     );
 
     $client = RabbitMQClient::fromEnv();

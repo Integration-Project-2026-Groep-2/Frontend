@@ -87,6 +87,7 @@ class LocationCreateForm extends FormBase {
     }
 
     $message = new PlanningLocationCreatedMessage(
+      locationId: $locationUuid,
       roomName: $roomName,
       capacity: $capacity,
       address:  $address,

@@ -131,9 +131,11 @@ class LocationEditForm extends FormBase {
     // Check if PlanningLocationUpdatedMessage exists
     if (class_exists('Drupal\hello_world\RabbitMQ\Message\Planning\PlanningLocationUpdatedMessage')) {
       $message = new PlanningLocationUpdatedMessage(
-        roomName: $roomName,
-        capacity: $capacity,
-        address:  $address,
+        locationId: $locationId,
+        roomName:   $roomName,
+        capacity:   $capacity,
+        status:     $status,
+        address:    $address,
       );
 
       $client = RabbitMQClient::fromEnv();

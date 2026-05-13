@@ -19,6 +19,7 @@ final class PlanningSessionUpdatedMessage extends Planning {
     private readonly ?string $newStartTime = NULL,
     private readonly ?string $newEndTime   = NULL,
     private readonly ?string $newLocation  = NULL,
+    private readonly ?string $newLocationId = NULL,
     private readonly ?string $timestamp    = NULL,
   ) {}
 
@@ -42,6 +43,9 @@ final class PlanningSessionUpdatedMessage extends Planning {
     }
     if ($this->newLocation !== NULL) {
       $xml->addChild('newLocation', htmlspecialchars($this->newLocation));
+    }
+    if ($this->newLocationId !== NULL && self::isValidUuid($this->newLocationId)) {
+      $xml->addChild('locationId', $this->newLocationId);
     }
     if ($this->timestamp !== NULL) {
       $xml->addChild('timestamp', $this->timestamp);

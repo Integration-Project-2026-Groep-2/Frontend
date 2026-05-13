@@ -12,6 +12,7 @@ use SimpleXMLElement;
 final class PlanningLocationCreatedMessage extends Planning {
 
   public function __construct(
+    private readonly string  $locationId,
     private readonly string  $roomName,
     private readonly int     $capacity,
     private readonly ?string $address = NULL,
@@ -19,6 +20,7 @@ final class PlanningLocationCreatedMessage extends Planning {
 
   public function toXml(): string {
     $xml = new SimpleXMLElement('<FrontendLocationCreated/>');
+    $xml->addChild('locationId', $this->locationId);
     $xml->addChild('roomName', htmlspecialchars($this->roomName));
     $xml->addChild('capacity', (string) $this->capacity);
 
