@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  PHPUnit configuratie voor lokaal gebruik.
+  In CI wordt dit bestand gekopieerd naar /opt/drupal/phpunit.xml.
+  Voer lokaal uit vanuit /opt/drupal:
+      ./vendor/bin/phpunit --configuration phpunit.xml
+-->
+<phpunit
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
+  bootstrap="web/core/tests/bootstrap.php"
+  colors="true"
+  beStrictAboutTestsThatDoNotTestAnything="true"
+>
+  <php>
+    <!-- SQLite database voor kernel tests — geen aparte DB-server nodig -->
+    <env name="SIMPLETEST_DB" value="sqlite://localhost//tmp/drupal_ci_test.sqlite"/>
+    <env name="BROWSERTEST_OUTPUT_DIRECTORY" value="/tmp/browser_output"/>
+  </php>
+
+  <testsuites>
+    <!-- Unit tests: geen database, geen Drupal kernel, zeer snel -->
+    <testsuite name="unit">
+      <directory>web/modules/custom/ai_dashboard/tests/src/Unit</directory>
+      <directory>web/modules/custom/jarvis_chat/tests/src/Unit</directory>
+      <directory>web/modules/custom/module/tests/src/Unit</directory>
+      <directory>web/modules/custom/shift_bezoeker/tests/src/Unit</directory>
+      <directory>web/modules/custom/Session_Management/tests/src/Unit</directory>
+      <directory>web/modules/custom/custom_roles/tests/src/Unit</directory>
+    </testsuite>
+
+    <!-- Kernel tests: echte Drupal kernel + SQLite, trager -->
+    <testsuite name="kernel">
+      <directory>web/modules/custom/shift_bezoeker/tests/src/Kernel</directory>
+    </testsuite>
+  </testsuites>
+</phpunit>
