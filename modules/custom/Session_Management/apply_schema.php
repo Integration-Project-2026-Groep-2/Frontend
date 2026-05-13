@@ -45,6 +45,13 @@ try {
   }
 
   echo "Schema applied successfully!\n";
+  
+  // Clear Drupal cache to ensure new table structures are recognized.
+  if (function_exists('drupal_flush_all_caches')) {
+    echo "Clearing caches...\n";
+    drupal_flush_all_caches();
+    echo "Caches cleared.\n";
+  }
 }
 catch (\Exception $e) {
   echo "Error applying schema: " . $e->getMessage() . "\n";

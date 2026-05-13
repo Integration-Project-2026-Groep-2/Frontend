@@ -12,6 +12,12 @@ class SessionManagement extends ControllerBase {
     try {
       $database = \Drupal::database();
       
+      // Debug: Check total count.
+      $count = $database->select('session', 's')->countQuery()->execute()->fetchField();
+      if ($count > 0) {
+        $this->messenger()->addStatus($this->t('Debug: Found @count sessions in database.', ['@count' => $count]));
+      }
+
       $query = $database->select('session', 's');
       $query->leftJoin('location', 'l', 's.location_id = l.location_id');
       $query->fields('s', ['session_id', 'title', 'date', 'start_time', 'end_time', 'capacity', 'status'])
