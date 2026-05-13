@@ -17,14 +17,6 @@ class LocationManagement extends ControllerBase {
     try {
       $database = \Drupal::database();
       
-      // Debug: Check table name and count.
-      $tableName = $database->getPrefix() . 'location';
-      $count = $database->select('location', 'l')->countQuery()->execute()->fetchField();
-      $this->messenger()->addStatus($this->t('Debug: Querying table "@table". Found @count rows.', [
-        '@table' => $tableName,
-        '@count' => $count,
-      ]));
-
       $query = $database->select('location', 'l')
         ->fields('l', ['location_id', 'room_name', 'capacity', 'address', 'status'])
         ->orderBy('room_name', 'ASC');

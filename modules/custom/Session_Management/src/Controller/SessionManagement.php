@@ -12,14 +12,6 @@ class SessionManagement extends ControllerBase {
     try {
       $database = \Drupal::database();
       
-      // Debug: Check table name and count.
-      $tableName = $database->getPrefix() . 'session';
-      $count = $database->select('session', 's')->countQuery()->execute()->fetchField();
-      $this->messenger()->addStatus($this->t('Debug: Querying table "@table". Found @count rows.', [
-        '@table' => $tableName,
-        '@count' => $count,
-      ]));
-
       $query = $database->select('session', 's');
       $query->leftJoin('location', 'l', 's.location_id = l.location_id');
       $query->fields('s', ['session_id', 'title', 'date', 'start_time', 'end_time', 'capacity', 'status'])
