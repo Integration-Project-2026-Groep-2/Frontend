@@ -26,7 +26,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Setup PHP 8.3
         uses: shivammathur/setup-php@v2
@@ -65,7 +65,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Setup PHP 8.3
         uses: shivammathur/setup-php@v2
@@ -75,7 +75,7 @@ jobs:
           extensions: pdo_sqlite, sqlite3, gd, xml, mbstring, intl
 
       - name: Cache Composer downloads
-        uses: actions/cache@v4
+        uses: actions/cache@v4.2.3
         with:
           path: ~/.composer/cache
           key: composer-drupal11-${{ github.run_id }}
@@ -127,7 +127,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Setup PHP 8.3
         uses: shivammathur/setup-php@v2
@@ -137,7 +137,7 @@ jobs:
           extensions: pdo_sqlite, sqlite3, gd, xml, mbstring, intl
 
       - name: Cache Composer downloads
-        uses: actions/cache@v4
+        uses: actions/cache@v4.2.3
         with:
           path: ~/.composer/cache
           key: composer-drupal11-${{ github.run_id }}
