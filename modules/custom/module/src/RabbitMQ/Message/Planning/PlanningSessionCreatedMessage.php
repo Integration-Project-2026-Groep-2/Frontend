@@ -18,6 +18,7 @@ final class PlanningSessionCreatedMessage extends Planning {
     private readonly string  $endTime,    // H:i:s
     private readonly int     $capacity,
     private readonly ?string $locationId = NULL,
+    private readonly ?string $location   = NULL,
     private readonly ?string $speakerId  = NULL,
     private readonly ?string $status     = NULL,
     private readonly ?string $timestamp  = NULL,
@@ -31,10 +32,13 @@ final class PlanningSessionCreatedMessage extends Planning {
     $xml->addChild('endTime',   $this->endTime);
     $xml->addChild('capacity',  (string) $this->capacity);
 
-    if ($this->locationId !== NULL) {
+    if ($this->locationId !== NULL && self::isValidUuid($this->locationId)) {
       $xml->addChild('locationId', $this->locationId);
     }
-    if ($this->speakerId !== NULL) {
+    if ($this->location !== NULL) {
+      $xml->addChild('location', htmlspecialchars($this->location));
+    }
+    if ($this->speakerId !== NULL && self::isValidUuid($this->speakerId)) {
       $xml->addChild('speakerId', $this->speakerId);
     }
     if ($this->status !== NULL) {

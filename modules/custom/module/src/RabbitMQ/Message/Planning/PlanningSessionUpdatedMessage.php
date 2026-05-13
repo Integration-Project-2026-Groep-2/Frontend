@@ -22,6 +22,9 @@ final class PlanningSessionUpdatedMessage extends Planning {
 
   public function toXml(): string {
     $xml = new SimpleXMLElement('<SessionUpdated/>');
+    if (!self::isValidUuid($this->sessionId)) {
+        throw new \InvalidArgumentException("Invalid UUID for sessionId: " . $this->sessionId);
+    }
     $xml->addChild('sessionId',   $this->sessionId);
     $xml->addChild('sessionName', htmlspecialchars($this->sessionName));
     $xml->addChild('changeType',  $this->changeType);

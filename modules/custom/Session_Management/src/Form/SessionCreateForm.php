@@ -131,9 +131,9 @@ class SessionCreateForm extends FormBase {
    */
   protected function getLocationOptions(): array {
     return [
-      'campus_kaai_c_1_1' => $this->t('Campus Kaai, blok C, verdieping 1, lokaal 1'),
-      'campus_kaai_c_1_2' => $this->t('Campus Kaai, blok C, verdieping 1, lokaal 2'),
-      'campus_kaai_c_1_3' => $this->t('Campus Kaai, blok C, verdieping 1, lokaal 3'),
+      '85a6a68b-5779-4a41-893c-913a891636c1' => $this->t('Campus Kaai, blok C, verdieping 1, lokaal 1'),
+      'b1e9e0d1-0f7e-4e8c-b4b1-6e7d8f9a0b1c' => $this->t('Campus Kaai, blok C, verdieping 1, lokaal 2'),
+      'c2f0f1e2-1e8f-5f9d-c5c2-7f8e9a0b1c2d' => $this->t('Campus Kaai, blok C, verdieping 1, lokaal 3'),
     ];
   }
 
@@ -184,13 +184,18 @@ class SessionCreateForm extends FormBase {
       }
     }
 
+    $locationId = $form_state->getValue('location') ?: NULL;
+    $locationOptions = $this->getLocationOptions();
+    $locationLabel = $locationId && isset($locationOptions[$locationId]) ? $locationOptions[$locationId] : NULL;
+
     $message = new PlanningSessionCreatedMessage(
       title:      $form_state->getValue('title'),
       date:       $date,
       startTime:  $startTime . ':00',
       endTime:    $endTime . ':00',
       capacity:   (int) $form_state->getValue('capacity'),
-      locationId: $form_state->getValue('location') ?: NULL,
+      locationId: $locationId,
+      location:   $locationLabel,
       speakerId:  $speakerUuid,
       status:     $form_state->getValue('status'),
       timestamp:  (new \DateTime())->format(\DateTime::ATOM),
