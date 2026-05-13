@@ -89,6 +89,8 @@ class RabbitMQClient {
         }
         echo sprintf("RabbitMQ not ready (attempt %d/%d), retrying in %ds…\n",
           $attempt, $this->maxRetries, $this->retryDelay);
+        \ControlRoomLogger::warn('frontend-rabbitmq', sprintf('RabbitMQ not ready (attempt %d/%d), retrying in %ds...',
+          $attempt, $this->maxRetries, $this->retryDelay));
         sleep($this->retryDelay);
       }
     }
@@ -185,6 +187,9 @@ class RabbitMQClient {
     $this->channel->exchange_declare(
       self::EXCHANGE_HEARTBEAT, 'direct', FALSE, TRUE, FALSE
     );
+    $this->channel->exchange_declare(
+      'session.topic', 'topic', false, true, false
+    );
   }
   
   /**
@@ -194,8 +199,8 @@ class RabbitMQClient {
     if (str_starts_with($routingKey, 'routing.heartbeat')) {
       return self::EXCHANGE_HEARTBEAT;
     }
-    if (str_starts_with($routingKey, 'frontend.session.')) {
-      return 'session.topic';
+    if (str_starts_with($routingKey, 'frontend.')) {
+      return 'frontend.topic';
     }
     return self::EXCHANGE_TOPIC; // user.topic
   }

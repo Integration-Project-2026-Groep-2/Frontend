@@ -1,7 +1,9 @@
 <?php
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
 // /rabbitMQ/heartbeat.php
 
 require_once __DIR__ . '/vendor/autoload.php';
+require_once __DIR__ . '/logger.php';
 
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
@@ -17,6 +19,7 @@ while ($retry < $maxRetries) {
         break;
     } catch (\Exception $e) {
         echo "RabbitMQ not ready, retrying in 5s...\n";
+        ControlRoomLogger::warn('frontend-heartbeat', 'RabbitMQ not ready, retrying in 5s...');
         $retry++;
         sleep(5);
     }
@@ -34,7 +37,8 @@ $channel->exchange_declare(
     false   // internal
 );
 
-echo "Heartbeat started. Press Ctrl+C to stop.\n";
+echo "Heartbeat started.\n";
+ControlRoomLogger::info('frontend-heartbeat', 'Heartbeat started.');
 
 while (true) {
     $xml = new SimpleXMLElement('<Heartbeat/>');
@@ -52,7 +56,7 @@ while (true) {
         'routing.heartbeat'
     );
 
-    echo "Heartbeat sent at " . date('H:i:s') . "\n";
+    // Silent heartbeat — no console output.
 
     sleep(1);
 }

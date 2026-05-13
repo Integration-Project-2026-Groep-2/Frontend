@@ -1,0 +1,157 @@
+<?php
+
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+
+require_once __DIR__ . '/logger.php';
+
+$maxWait = 60;
+$waited = 0;
+while ($waited < $maxWait) {
+  try {
+    $dsn = sprintf(
+      'mysql:host=%s;dbname=%s',
+      $_ENV['DRUPAL_DB_HOST'] ?? 'frontend_db',
+      $_ENV['DRUPAL_DB_NAME'] ?? 'drupal'
+    );
+    $pdo = new PDO($dsn,
+      $_ENV['DRUPAL_DB_USER'] ?? 'drupal',
+      $_ENV['DRUPAL_DB_PASS'] ?? 'drupal'
+    );
+    unset($pdo);
+    echo "[ai_incident_consumer] database reachable\n";
+    ControlRoomLogger::info('ai-incident-consumer', 'database reachable');
+    break;
+  }
+  catch (\PDOException $e) {
+    echo "[ai_incident_consumer] db not ready, waiting 5s ({$waited}s/{$maxWait}s)\n";
+    ControlRoomLogger::warn('ai-incident-consumer', "db not ready, waiting 5s ({$waited}s/{$maxWait}s)");
+    sleep(5);
+    $waited += 5;
+  }
+}
+if ($waited >= $maxWait) {
+  echo "[ai_incident_consumer] database unreachable after {$maxWait}s, exiting\n";
+  ControlRoomLogger::fatal('ai-incident-consumer', "database unreachable after {$maxWait}s, exiting");
+  exit(1);
+}
+
+define('DRUPAL_ROOT', '/opt/drupal/web');
+chdir(DRUPAL_ROOT);
+
+$autoloader = require DRUPAL_ROOT . '/autoload.php';
+
+use Drupal\Core\DrupalKernel;
+use PhpAmqpLib\Connection\AMQPStreamConnection;
+use PhpAmqpLib\Exception\AMQPTimeoutException;
+use PhpAmqpLib\Message\AMQPMessage;
+use Symfony\Component\HttpFoundation\Request;
+
+$request = Request::createFromGlobals();
+$kernel = DrupalKernel::createFromRequest($request, $autoloader, 'prod');
+$kernel->boot();
+$kernel->preHandle($request);
+ini_set('display_errors', '0');
+
+echo "[ai_incident_consumer] drupal kernel booted\n";
+ControlRoomLogger::info('ai-incident-consumer', 'drupal kernel booted');
+
+if (!\Drupal::moduleHandler()->moduleExists('ai_dashboard')) {
+  echo "[ai_incident_consumer] ai_dashboard module not enabled, exiting (run: drush en ai_dashboard -y)\n";
+  ControlRoomLogger::error('ai-incident-consumer', 'ai_dashboard module not enabled, exiting (run: drush en ai_dashboard -y)');
+  exit(1);
+}
+
+$host = $_ENV['RABBITMQ_HOST'] ?? 'rabbitmq';
+$port = (int) ($_ENV['RABBITMQ_PORT'] ?? 5672);
+$user = $_ENV['RABBITMQ_USER'] ?? 'guest';
+$pass = $_ENV['RABBITMQ_PASS'] ?? 'guest';
+
+$maxRetries = 10;
+$attempt = 0;
+$conn = null;
+while ($attempt < $maxRetries) {
+  try {
+    $conn = new AMQPStreamConnection($host, $port, $user, $pass);
+    break;
+  }
+  catch (\Exception $e) {
+    $attempt++;
+    if ($attempt >= $maxRetries) {
+      echo "[ai_incident_consumer] rabbitmq unreachable after {$maxRetries} retries: {$e->getMessage()}\n";
+      ControlRoomLogger::fatal('ai-incident-consumer', "rabbitmq unreachable after {$maxRetries} retries: {$e->getMessage()}");
+      exit(1);
+    }
+    echo "[ai_incident_consumer] rabbitmq not ready (attempt {$attempt}/{$maxRetries}), retrying in 5s\n";
+    ControlRoomLogger::warn('ai-incident-consumer', "rabbitmq not ready (attempt {$attempt}/{$maxRetries}), retrying in 5s");
+    sleep(5);
+  }
+}
+
+$ch = $conn->channel();
+$ch->exchange_declare('ai.events', 'topic', false, true, false);
+$ch->queue_declare('frontend.ai_incidents', false, true, false, false);
+$ch->queue_bind('frontend.ai_incidents', 'ai.events', 'event.incident_diagnosed');
+$ch->queue_bind('frontend.ai_incidents', 'ai.events', 'event.incident_skipped');
+$ch->queue_bind('frontend.ai_incidents', 'ai.events', 'event.incident_circuit_open');
+$ch->queue_bind('frontend.ai_incidents', 'ai.events', 'event.incident_resolved');
+$ch->basic_qos(null, 1, null);
+
+$ingester = \Drupal::service('ai_dashboard.incident_ingester');
+$logger = \Drupal::logger('ai_dashboard');
+
+$callback = function (AMQPMessage $msg) use ($ch, $ingester, $logger): void {
+  $tag = $msg->delivery_info['delivery_tag'] ?? NULL;
+  try {
+    $envelope = json_decode($msg->getBody(), true, 512, JSON_THROW_ON_ERROR);
+    if (!is_array($envelope)) {
+      throw new \InvalidArgumentException('envelope decoded to non-array');
+    }
+    $ingester->save($envelope);
+    if ($tag !== NULL) {
+      $ch->basic_ack($tag);
+    }
+  }
+  catch (\Throwable $e) {
+    $rk = is_array($msg->delivery_info ?? NULL)
+      ? ($msg->delivery_info['routing_key'] ?? 'unknown')
+      : 'unknown';
+    $body = substr($msg->getBody(), 0, 500);
+    $logger->warning('ai_incident_consumer ingest failed: @msg (routing_key=@rk) body=@body', [
+      '@msg' => $e->getMessage(),
+      '@rk' => $rk,
+      '@body' => $body,
+    ]);
+    if ($tag !== NULL) {
+      $ch->basic_nack($tag, false, false);
+    }
+  }
+};
+
+$ch->basic_consume('frontend.ai_incidents', '', false, false, false, false, $callback);
+
+echo "[ai_incident_consumer] listening on frontend.ai_incidents (event.incident_*)\n";
+ControlRoomLogger::info('ai-incident-consumer', 'listening on frontend.ai_incidents (event.incident_*)');
+
+$shutdown = false;
+if (function_exists('pcntl_async_signals')) {
+  pcntl_async_signals(true);
+  $stop = function () use (&$shutdown) { $shutdown = true; };
+  pcntl_signal(SIGTERM, $stop);
+  pcntl_signal(SIGINT, $stop);
+}
+
+try {
+  while (!$shutdown && !empty($ch->callbacks)) {
+    try {
+      $ch->wait(null, false, 30);
+    }
+    catch (AMQPTimeoutException $e) {
+    }
+  }
+}
+finally {
+  echo "[ai_incident_consumer] shutting down gracefully\n";
+  ControlRoomLogger::info('ai-incident-consumer', 'shutting down gracefully');
+  try { $ch->close(); } catch (\Throwable $e) {}
+  try { $conn->close(); } catch (\Throwable $e) {}
+}

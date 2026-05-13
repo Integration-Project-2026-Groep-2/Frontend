@@ -1,70 +1,93 @@
-/* --- FORMULIER CONTAINER --- */
-#shift-bezoeker-registratie-form {
-  max-width: 100%;
-  width: 100%;
-  margin: 0;
-  padding: 60px 10%;
-  box-sizing: border-box;
-  background-color: transparent !important;
+/* --- ALGEMENE FORM WRAPPER --- */
+.shift-styled-form {
+  background: #161c2e;
+  border-radius: 12px;
+  padding: 30px;
+  border: 1px solid #2a2f4a;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+  max-width: 900px;
+  margin: 40px auto;
 }
 
-/* --- SECTIE TITELS --- */
+/* --- TITELS --- */
+.shift-styled-form h1,
+.shift-styled-form h2,
+.shift-styled-form h3,
 .form-section-title {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Barlow', sans-serif;
   font-size: 24px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #ffffff;
   display: block;
-  margin-top: 50px !important;
-  margin-bottom: 25px !important;
-  border-bottom: 2px solid #f0f0f5;
+  margin-top: 30px;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #2a2f4a;
   padding-bottom: 10px;
 }
 
-/* --- RADIO KEUZE KAARTEN --- */
+/* --- FIELD BESCHRIJVINGEN --- */
+.shift-styled-form .description,
+.shift-styled-form .form-item--help-text {
+  color: #8892b0;
+  font-size: 12px;
+  font-family: 'Inter', sans-serif;
+  margin-top: 4px;
+}
 
-/* De wrapper van de radios krijgt flex layout */
-#shift-bezoeker-registratie-form .form-item-registratie-type .form-radios {
+/* --- FIELDSETS --- */
+.shift-styled-form fieldset {
+  border: 1px solid #2a2f4a;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.shift-styled-form fieldset legend {
+  color: #cdd5f3;
+  font-family: 'Barlow', sans-serif;
+  font-weight: 700;
+  padding: 0 10px;
+}
+
+/* --- RADIO KEUZE KAARTEN --- */
+.shift-styled-form .form-radios {
   display: flex;
   flex-direction: row;
   gap: 30px;
-  margin-bottom: 50px;
+  margin-bottom: 30px;
 }
 
-/* Elke individuele radio+label combinatie */
-#shift-bezoeker-registratie-form .form-item-registratie-type .js-form-item {
+.shift-styled-form .form-radios .js-form-item {
   flex: 1;
   margin: 0;
   padding: 0;
 }
 
-/* Verberg de echte radio input */
-#shift-bezoeker-registratie-form .form-item-registratie-type input[type="radio"] {
+.shift-styled-form .form-radios input[type="radio"] {
   display: none;
 }
 
-/* Label wordt de klikbare kaart */
-#shift-bezoeker-registratie-form .form-item-registratie-type label {
+.shift-styled-form .form-radios label {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 40px;
-  border: 2px solid #e2e2ed;
-  border-radius: 15px;
+  padding: 30px;
+  border: 2px solid #2a2f4a;
+  border-radius: 12px;
   cursor: pointer;
   font-weight: 600;
   font-size: 16px;
   transition: all 0.3s ease;
-  background: #fff;
+  background: #0d121f;
+  color: #cdd5f3;
   width: 100%;
   box-sizing: border-box;
 }
 
-/* Geselecteerde kaart */
-#shift-bezoeker-registratie-form .form-item-registratie-type input[type="radio"]:checked + label {
-  border-color: #6333ea;
-  background: #f9f8ff;
-  color: #6333ea;
+.shift-styled-form .form-radios input[type="radio"]:checked + label {
+  border-color: #7c3aed;
+  background: #1e1535;
+  color: #7c3aed;
 }
 
 /* --- GRID LAYOUT VOOR RIJEN --- */
@@ -76,76 +99,98 @@
   margin-bottom: 20px;
 }
 
-/* Zorg dat form-items in een grid-row hun volle breedte pakken */
 .form-row .form-item {
   width: 100%;
-  min-width: 0; /* voorkomt overflow in grid */
+  min-width: 0;
 }
 
-/* --- LOSSE VELDEN (buiten form-row) --- */
+/* --- LOSSE VELDEN --- */
 .form-item {
   margin-bottom: 20px;
 }
 
+/* --- LABELS --- */
+.shift-styled-form label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 8px;
+  font-size: 13px;
+  color: #cdd5f3;
+  font-family: 'Inter', sans-serif;
+}
+
 /* --- INPUTS --- */
-input[type="text"],
-input[type="email"],
-input[type="tel"],
-select {
+.shift-styled-form input[type="text"],
+.shift-styled-form input[type="email"],
+.shift-styled-form input[type="tel"],
+.shift-styled-form input[type="password"],
+.shift-styled-form input[type="number"],
+.shift-styled-form input[type="date"],
+.shift-styled-form select,
+.shift-styled-form textarea {
   width: 100%;
-  padding: 14px 20px;
-  border: 1px solid #e2e2ed;
-  border-radius: 10px;
+  padding: 11px 14px;
+  background: #0d121f;
+  border: 1px solid #2a2f4a;
+  border-radius: 8px;
   font-size: 15px;
-  font-family: 'Poppins', sans-serif;
+  color: #e2e8f0;
+  font-family: 'Inter', sans-serif;
   box-sizing: border-box;
-  background-color: #fff;
+  outline: none;
   transition: border-color 0.2s ease;
 }
 
-input[type="text"]:focus,
-input[type="email"]:focus,
-input[type="tel"]:focus,
-select:focus {
-  border-color: #6333ea;
-  outline: none;
+.shift-styled-form input[type="text"]:focus,
+.shift-styled-form input[type="email"]:focus,
+.shift-styled-form input[type="tel"]:focus,
+.shift-styled-form input[type="password"]:focus,
+.shift-styled-form input[type="number"]:focus,
+.shift-styled-form input[type="date"]:focus,
+.shift-styled-form select:focus,
+.shift-styled-form textarea:focus {
+  border-color: #7c3aed;
 }
 
 /* --- SUBMIT KNOP --- */
-input[type="submit"] {
-  background: #6333ea;
+.shift-styled-form input[type="submit"],
+.shift-styled-form button[type="submit"] {
+  background: #5b21b6;
   color: white;
-  padding: 18px 40px;
+  padding: 13px 26px;
   border: none;
-  border-radius: 12px;
+  border-radius: 8px;
   font-weight: 700;
-  font-size: 16px;
+  font-size: 14px;
+  font-family: 'Barlow', sans-serif;
+  letter-spacing: 0.05em;
   cursor: pointer;
   margin-top: 30px;
   transition: background 0.2s ease;
 }
 
-input[type="submit"]:hover {
-  background: #5128c7;
+.shift-styled-form input[type="submit"]:hover,
+.shift-styled-form button[type="submit"]:hover {
+  background: #7c3aed;
 }
 
-/* --- CHECKBOX (GDPR) --- */
-.form-item-gdpr-consent {
+/* --- CHECKBOX --- */
+.shift-styled-form .form-item input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #7c3aed;
+  cursor: pointer;
+}
+
+.shift-styled-form .form-item-gdpr-consent {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-top: 20px;
 }
 
-.form-item-gdpr-consent input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  accent-color: #6333ea;
-  cursor: pointer;
-}
-
-.form-item-gdpr-consent label {
+.shift-styled-form .form-item-gdpr-consent label {
   font-size: 14px;
-  color: #555;
+  color: #8892b0;
   cursor: pointer;
 }

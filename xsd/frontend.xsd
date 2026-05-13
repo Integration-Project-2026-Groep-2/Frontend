@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           elementFormDefault="unqualified"
+           version="1.0">
+
+  <xs:include schemaLocation="common.xsd"/>
+
+  <xs:element name="FrontendLocationCreated">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="roomName" type="xs:string"/>
+        <xs:element name="capacity" type="PositiveIntType"/>
+        <xs:element name="address" type="xs:string" minOccurs="0"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="FrontendLocationUpdated">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="locationId" type="UUIDType"/>
+        <xs:element name="roomName" type="xs:string"/>
+        <xs:element name="capacity" type="PositiveIntType"/>
+        <xs:element name="address" type="xs:string" minOccurs="0"/>
+        <xs:element name="status" type="LocationStatusType"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="FrontendLocationDeleted">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="locationId" type="UUIDType"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="FrontendSpeakerCreated">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="firstName" type="NameType"/>
+        <xs:element name="lastName" type="NameType"/>
+        <xs:element name="email" type="EmailType"/>
+        <xs:element name="phoneNumber" type="xs:string" minOccurs="0"/>
+        <xs:element name="company" type="xs:string" minOccurs="0"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="FrontendSpeakerUpdated">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="speakerId" type="UUIDType"/>
+        <xs:element name="firstName" type="NameType"/>
+        <xs:element name="lastName" type="NameType"/>
+        <xs:element name="email" type="EmailType"/>
+        <xs:element name="phoneNumber" type="xs:string" minOccurs="0"/>
+        <xs:element name="company" type="xs:string" minOccurs="0"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="FrontendSpeakerDeactivated">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="speakerId" type="UUIDType"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="FrontendSessionCreated">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="title" type="xs:string"/>
+        <xs:element name="date" type="xs:date"/>
+        <xs:element name="startTime" type="xs:time"/>
+        <xs:element name="endTime" type="xs:time"/>
+        <xs:element name="capacity" type="PositiveIntType"/>
+        <xs:element name="locationId" type="UUIDType" minOccurs="0"/>
+        <xs:element name="speakerId" type="UUIDType" minOccurs="0"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="FrontendSessionUpdated">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="sessionId" type="UUIDType"/>
+        <xs:element name="title" type="xs:string"/>
+        <xs:element name="date" type="xs:date"/>
+        <xs:element name="startTime" type="xs:time"/>
+        <xs:element name="endTime" type="xs:time"/>
+        <xs:element name="capacity" type="PositiveIntType"/>
+        <xs:element name="locationId" type="UUIDType" minOccurs="0"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="FrontendSessionCancelled">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="sessionId" type="UUIDType"/>
+        <xs:element name="reason" type="xs:string" minOccurs="0"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="FrontendSessionsRequested">
+    <xs:complexType>
+      <xs:sequence/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="FrontendLocationsRequested">
+    <xs:complexType>
+      <xs:sequence/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="FrontendSpeakersRequested">
+    <xs:complexType>
+      <xs:sequence/>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>

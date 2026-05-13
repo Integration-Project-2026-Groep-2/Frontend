@@ -5,69 +5,6 @@
  * Hook implementations for the hello_world module.
  */
 
-use Drupal\hello_world\RabbitMQ\Message\RegistrationChangeMessage;
-use Drupal\hello_world\RabbitMQ\RabbitMQClient;
-use Drupal\user\UserInterface;
-
-/**
- * Implements hook_user_update().
- */
-function hello_world_user_update(UserInterface $account) {
-  if ($account->id() <= 1) {
-    return;
-  }
-
-  $original  = $account->original ?? NULL;
-  $firstName = NULL;
-  $lastName  = NULL;
-  $phone     = NULL;
-
-  if ($original) {
-    $newFirst = $account->hasField('field_first_name') ? $account->get('field_first_name')->value : NULL;
-    $oldFirst = $original->hasField('field_first_name') ? $original->get('field_first_name')->value : NULL;
-    if ($newFirst !== $oldFirst) {
-      $firstName = $newFirst;
-    }
-
-    $newLast = $account->hasField('field_surname') ? $account->get('field_surname')->value : NULL;
-    $oldLast = $original->hasField('field_surname') ? $original->get('field_surname')->value : NULL;
-    if ($newLast !== $oldLast) {
-      $lastName = $newLast;
-    }
-
-    $newPhone = $account->hasField('field_phone') ? $account->get('field_phone')->value : NULL;
-    $oldPhone = $original->hasField('field_phone') ? $original->get('field_phone')->value : NULL;
-    if ($newPhone !== $oldPhone) {
-      $phone = $newPhone;
-    }
-  }
-
-  $message = new RegistrationChangeMessage(
-    email:      $account->getEmail(),
-    sessionId:  uniqid('ses_', TRUE),
-    changeType: 'updated',
-    firstName:  $firstName,
-    lastName:   $lastName,
-    phone:      $phone,
-  );
-
-  $client = RabbitMQClient::fromEnv();
-  try {
-    $client->publish($message);
-    \Drupal::logger('hello_world')->info(
-      'RabbitMQ user update verstuurd voor @email', ['@email' => $account->getEmail()]
-    );
-  }
-  catch (\RuntimeException $e) {
-    \Drupal::logger('hello_world')->error(
-      'RabbitMQ user update mislukt: @err', ['@err' => $e->getMessage()]
-    );
-  }
-  finally {
-    $client->disconnect();
-  }
-}
-
 /**
  * Implements hook_form_FORM_ID_alter() for user_login_form.
  */
@@ -90,4 +27,32 @@ function _hello_world_login_email_validator($form, &$form_state) {
   if ($account) {
     $form_state->setValue('name', $account->getAccountName());
   }
+}
+
+/**
+ * Implements hook_user_update().
+ */
+function hello_world_user_update(\Drupal\user\UserInterface $account) {
+  if (!empty($account->_is_rabbitmq_sync)) {
+    return;
+  }
+  // Check if status changed to inactive
+  if ($account->original && $account->original->isActive() && !$account->isActive()) {
+    $publisher = new \Drupal\hello_world\RabbitMQ\Publisher\UserUpdatedPublisher($account, 'cancelled');
+    $publisher->publish();
+  } else {
+    $publisher = new \Drupal\hello_world\RabbitMQ\Publisher\UserUpdatedPublisher($account, 'updated');
+    $publisher->publish();
+  }
+}
+
+/**
+ * Implements hook_user_delete().
+ */
+function hello_world_user_delete(\Drupal\user\UserInterface $account) {
+  if (!empty($account->_is_rabbitmq_sync)) {
+    return;
+  }
+  $publisher = new \Drupal\hello_world\RabbitMQ\Publisher\UserUpdatedPublisher($account, 'cancelled');
+  $publisher->publish();
 }

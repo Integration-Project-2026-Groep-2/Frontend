@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+           elementFormDefault="unqualified"
+           version="1.0">
+
+  <xs:simpleType name="UUIDType">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="ISO8601DateTimeType">
+    <xs:restriction base="xs:dateTime"/>
+  </xs:simpleType>
+
+  <xs:simpleType name="EmailType">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[^@\s]+@[^@\s]+\.[^@\s]+"/>
+      <xs:maxLength value="254"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="NameType">
+    <xs:restriction base="xs:string">
+      <xs:minLength value="1"/>
+      <xs:maxLength value="100"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="BelgianVatNumberType">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="BE[0-9]{10}"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="SessionStatusType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="active"/>
+      <xs:enumeration value="cancelled"/>
+      <xs:enumeration value="full"/>
+      <xs:enumeration value="concept"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="LocationStatusType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="beschikbaar"/>
+      <xs:enumeration value="onbeschikbaar"/>
+      <xs:enumeration value="maintenance"/>
+      <xs:enumeration value="reserved"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="ChangeTypeType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="rescheduled"/>
+      <xs:enumeration value="cancelled"/>
+      <xs:enumeration value="updated"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="UserRoleType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="VISITOR"/>
+      <xs:enumeration value="COMPANY_CONTACT"/>
+      <xs:enumeration value="SPEAKER"/>
+      <xs:enumeration value="EVENT_MANAGER"/>
+      <xs:enumeration value="CASHIER"/>
+      <xs:enumeration value="BAR_STAFF"/>
+      <xs:enumeration value="ADMIN"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="PlanningUserRoleType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="SPEAKER"/>
+      <xs:enumeration value="EVENT_MANAGER"/>
+      <xs:enumeration value="VISITOR"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="ErrorTypeType">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="VALIDATION_ERROR"/>
+      <xs:enumeration value="OUTLOOK_SYNC_FAILED"/>
+      <xs:enumeration value="DATABASE_ERROR"/>
+      <xs:enumeration value="RABBITMQ_ERROR"/>
+      <xs:enumeration value="CONFLICT_ERROR"/>
+      <xs:enumeration value="NOT_FOUND"/>
+      <xs:enumeration value="IDEMPOTENCY_VIOLATION"/>
+      <xs:enumeration value="UNKNOWN_ERROR"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:simpleType name="PositiveIntType">
+    <xs:restriction base="xs:integer">
+      <xs:minInclusive value="1"/>
+    </xs:restriction>
+  </xs:simpleType>
+
+  <xs:complexType name="ParticipantIdsType">
+    <xs:sequence>
+      <xs:element name="participantId" type="UUIDType" minOccurs="0" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+</xs:schema>

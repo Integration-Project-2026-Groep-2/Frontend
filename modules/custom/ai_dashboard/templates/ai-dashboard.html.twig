@@ -1,0 +1,47 @@
+<div id="ai-dashboard-app">
+  <header class="ai-dashboard-header">
+    <h1>AI Incident Dashboard</h1>
+    <p class="ai-dashboard-subtitle">Live diagnoses van de incident-response agent</p>
+  </header>
+
+  <section class="ai-dashboard-section">
+    <h2 class="ai-dashboard-section-title">Service health (laatste 5 min)</h2>
+    <div class="ai-dashboard-pills" id="ai-dashboard-pills"></div>
+  </section>
+
+  <section class="ai-dashboard-section">
+    <div class="ai-dashboard-section-head">
+      <h2 class="ai-dashboard-section-title">Recente incidenten</h2>
+      <span class="ai-dashboard-poll-status" id="ai-dashboard-poll-status">init…</span>
+    </div>
+    <div class="ai-dashboard-table-wrap">
+      <table class="ai-dashboard-table" id="ai-dashboard-table">
+        <thead>
+          <tr>
+            <th>Tijd</th>
+            <th>Service</th>
+            <th>Severity</th>
+            <th>Confidence</th>
+            <th>Type</th>
+            <th>Samenvatting</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="ai-dashboard-rows">
+          <tr class="ai-dashboard-empty"><td colspan="7">Nog geen incidenten geregistreerd.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <dialog id="ai-dashboard-detail" class="ai-dashboard-dialog">
+    <button type="button" class="ai-dashboard-dialog-close" id="ai-dashboard-detail-close" aria-label="Sluiten">&times;</button>
+    <header class="ai-dashboard-dialog-header">
+      <h3 class="ai-dashboard-dialog-title" id="ai-dashboard-detail-title">Incident</h3>
+      <div class="ai-dashboard-dialog-meta" id="ai-dashboard-detail-meta"></div>
+    </header>
+    <div class="ai-dashboard-dialog-body" id="ai-dashboard-detail-body"></div>
+  </dialog>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js" defer></script>

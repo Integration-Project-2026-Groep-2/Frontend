@@ -6,14 +6,6 @@ session_management.create:
   requirements:
     _role: 'administrator'
 
-session_management.edit:
-  path: '/session/{sessionId}/edit'
-  defaults:
-    _controller: '\Drupal\session_management\Controller\SessionEdit::content'
-    _title: 'Edit Session'
-  requirements:
-    _role: 'administrator'
-
 session_management.list:
   path: '/sessions'
   defaults:
@@ -21,3 +13,29 @@ session_management.list:
     _title: 'Sessions'
   requirements:
     _role: 'administrator'
+
+session_management.location.list:
+  path: '/locations'
+  defaults:
+    _controller: '\Drupal\session_management\Controller\LocationManagement::content'
+    _title: 'Locations'
+  requirements:
+    _role: 'administrator'
+
+session_management.location.create:
+  path: '/location/create'
+  defaults:
+    _controller: '\Drupal\session_management\Controller\LocationCreate::content'
+    _title: 'Create Location'
+  requirements:
+    _role: 'administrator'
+
+session_management.location.create.modal:
+  path: '/location/create/modal'
+  defaults:
+    _controller: '\Drupal\session_management\Controller\LocationCreate::modal'
+    _title: 'Create Location'
+  requirements:
+    _role: 'administrator'
+  options:
+    _theme: 'dialog'

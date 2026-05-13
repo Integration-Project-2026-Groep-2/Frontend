@@ -12,14 +12,14 @@
     overflow-x: hidden;">
 
   {# 1. Dag Navigator #}
-  <div class="day-navigation-wrapper" style="display: flex; flex-direction: column; align-items: flex-start; margin-bottom: 25px;">
+  <div class="day-navigation-wrapper" style="display: flex; flex-direction: column; align-items: center; margin-bottom: 25px;">
     <div style="display: flex; align-items: center; gap: 15px;">
       <a href="#" style="text-decoration: none; color: #6333ea; font-size: 24px; font-weight: bold;">&#10094;</a>
-      <div style="text-align: left;">
-        <span style="display: block; text-transform: uppercase; letter-spacing: 2px; font-size: 10px; color: #6333ea; font-weight: 800;">
+      <div style="text-align: center;">
+        <span style="display: block; text-transform: uppercase; letter-spacing: 2px; font-size: 10px; color: #6333ea; font-weight: 800; font-family: 'Barlow', sans-serif;">
           Dag {{ day_number|default('NVT') }}
         </span>
-        <span style="font-size: 15px; color: #ffffff; font-weight: 600; opacity: 0.9;">
+        <span style="font-size: 15px; color: #ffffff; font-weight: 600; opacity: 0.9; font-family: 'Barlow', sans-serif;">
           {{ current_date|default('Onbekend') }}
         </span>
       </div>
@@ -29,11 +29,11 @@
   </div>
 
   {# 2. Titels #}
-  <div style="margin-bottom: 50px;">
-    <h1 style="font-size: 56px; font-weight: 900; margin: 0; line-height: 1.1;">
+  <div style="margin-bottom: 50px; text-align: center;">
+    <h1 style="font-size: 56px; font-weight: 900; margin: 0; line-height: 1.1; font-family: 'Barlow', sans-serif;">
       {% if logged_in %} Mijn Programma {% else %} Programma Overzicht {% endif %}
     </h1>
-    <p style="color: #a0a5b1; font-size: 19px; margin-top: 12px;">Beleef het Shift Festival 2026.</p>
+    <p style="color: #a0a5b1; font-size: 19px; margin-top: 12px; font-family: 'Inter', sans-serif;">Beleef het Shift Festival 2026.</p>
   </div>
 
   {# 3. De Grid #}

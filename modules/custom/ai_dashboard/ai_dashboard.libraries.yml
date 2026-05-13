@@ -1,0 +1,11 @@
+dashboard:
+  version: 1.3
+  css:
+    component:
+      css/ai-dashboard.css: {}
+  js:
+    js/ai-dashboard.js: {}
+  dependencies:
+    - core/drupal
+    - core/drupalSettings
+    - core/once

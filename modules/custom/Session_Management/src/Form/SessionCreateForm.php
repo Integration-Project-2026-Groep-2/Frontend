@@ -2,10 +2,9 @@
 
 namespace Drupal\session_management\Form;
 
-use DateTimeImmutable;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\Core\Url;
 use Drupal\hello_world\RabbitMQ\Message\Planning\PlanningSessionCreatedMessage;
 use Drupal\hello_world\RabbitMQ\RabbitMQClient;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -28,6 +27,9 @@ class SessionCreateForm extends FormBase {
   }
 
   public function buildForm(array $form, FormStateInterface $form_state): array {
+    // Laad de dialog library voor de modal.
+    $form['#attached']['library'][] = 'core/drupal.dialog.ajax';
+
     $form['title'] = [
       '#type'      => 'textfield',
       '#title'     => $this->t('Title'),
@@ -53,7 +55,12 @@ class SessionCreateForm extends FormBase {
       '#required' => TRUE,
     ];
 
-    $form['location'] = [
+    $form['location_wrapper'] = [
+      '#type'  => 'container',
+      '#attributes' => ['class' => ['location-wrapper']],
+    ];
+
+    $form['location_wrapper']['location'] = [
       '#type'         => 'select',
       '#title'        => $this->t('Location'),
       '#options'      => $this->getLocationOptions(),
@@ -61,10 +68,16 @@ class SessionCreateForm extends FormBase {
       '#required'     => TRUE,
     ];
 
-    $form['new_location_button'] = [
-      '#type'       => 'button',
-      '#value'      => $this->t('Nieuwe locatie'),
-      '#attributes' => ['class' => ['button', 'button--secondary', 'js-new-location']],
+    // "Nieuwe locatie" knop opent een modal via AJAX.
+    $form['location_wrapper']['new_location_button'] = [
+      '#type'       => 'link',
+      '#title'      => $this->t('+ New location'),
+      '#url'        => Url::fromRoute('session_management.location.create.modal'),
+      '#attributes' => [
+        'class'               => ['button', 'button--secondary', 'use-ajax'],
+        'data-dialog-type'    => 'modal',
+        'data-dialog-options' => '{"width": 600}',
+      ],
     ];
 
     $form['speaker'] = [
@@ -80,13 +93,13 @@ class SessionCreateForm extends FormBase {
       '#type'          => 'select',
       '#title'         => $this->t('Status'),
       '#options'       => [
-        'CONCEPT'    => $this->t('Concept'),
-        'ACTIVE'     => $this->t('Active'),
-        'CANCELLED'  => $this->t('Cancelled'),
-        'FULL'       => $this->t('Full'),
+        'concept'   => $this->t('Concept'),
+        'active'    => $this->t('Active'),
+        'cancelled' => $this->t('Cancelled'),
+        'full'      => $this->t('Full'),
       ],
       '#required'      => TRUE,
-      '#default_value' => 'CONCEPT',
+      '#default_value' => 'concept',
     ];
 
     $form['capacity'] = [
@@ -112,7 +125,7 @@ class SessionCreateForm extends FormBase {
 
   /**
    * Returns hardcoded location options.
-   * TODO: replace with RabbitMQ retrieval via planning.locations.requested.
+   * TODO: replace with data from Planning via RabbitMQ.
    *
    * @return array<string, string>
    */
@@ -125,7 +138,7 @@ class SessionCreateForm extends FormBase {
   }
 
   /**
-   * Loads all Drupal users with the 'speaker' role as dropdown options.
+   * Laadt alle actieve Drupal users met de rol 'speaker'.
    *
    * @return array<int, string>
    */
@@ -161,24 +174,24 @@ class SessionCreateForm extends FormBase {
     $endTime   = $form_state->getValue('endTime');
     $speakerId = $form_state->getValue('speaker') ?: NULL;
 
-    // Resolve speaker email from uid if set.
-    $speakerEmail = NULL;
+    // Resolve speaker UUID — planning verwacht een UUID, niet een e-mail.
+    // TODO: vervang door echte planning UUID als die beschikbaar is.
+    $speakerUuid = NULL;
     if ($speakerId) {
       $speaker = \Drupal::entityTypeManager()->getStorage('user')->load($speakerId);
       if ($speaker) {
-        $speakerEmail = $speaker->getEmail();
+        $speakerUuid = $speaker->uuid();
       }
     }
 
     $message = new PlanningSessionCreatedMessage(
       title:      $form_state->getValue('title'),
-      date:       new DateTimeImmutable($date),
-      startTime:  new DateTimeImmutable($date . ' ' . $startTime),
-      endTime:    new DateTimeImmutable($date . ' ' . $endTime),
-      locationId: $form_state->getValue('location'),
+      date:       $date,
+      startTime:  $startTime . ':00',
+      endTime:    $endTime . ':00',
+      locationId: $form_state->getValue('location') ?: NULL,
       capacity:   (int) $form_state->getValue('capacity'),
-      speakerId:  $speakerEmail,
-      timestamp:  new DateTimeImmutable(),
+      speakerId:  $speakerUuid,
     );
 
     $client = RabbitMQClient::fromEnv();
@@ -187,6 +200,7 @@ class SessionCreateForm extends FormBase {
       $this->messenger->addStatus($this->t('Session "@title" created and sent to planning.', [
         '@title' => $form_state->getValue('title'),
       ]));
+      $form_state->setRedirect('session_management.list');
     }
     catch (\RuntimeException $e) {
       \Drupal::logger('session_management')->error(
