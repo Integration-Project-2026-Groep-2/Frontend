@@ -54,6 +54,14 @@ bedrijf_registratie.terms:
   requirements:
     _permission: 'access content'
 
+bedrijf_registratie.privacy:
+  path: '/privacy'
+  defaults:
+    _controller: '\Drupal\bedrijf_registratie\Controller\RegistratieController::privacyPagina'
+    _title: 'Privacy'
+  requirements:
+    _permission: 'access content'
+
 bedrijf_registratie.home:
   path: '/home'
   defaults:
