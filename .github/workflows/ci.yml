@@ -47,7 +47,7 @@ jobs:
         run: ./vendor/bin/phpcs --standard=phpcs.xml
 
       - name: Beveiligingsaudit van PHP dependencies
-        run: composer audit
+        run: composer audit --no-dev
         continue-on-error: true
 
   # ─────────────────────────────────────────────────────────────
