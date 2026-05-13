@@ -65,7 +65,6 @@ class XsdRegistry {
     'planning_session_full'        => 'SessionFull',
     'registration_created'         => 'RegistrationCreated',
     'registration_confirmed'       => 'RegistrationConfirmed',
-    'session_update'               => 'SessionUpdate',
 
     // Facturatie company.
     'facturatie_company_created'     => 'FacturatieCompanyCreated',
