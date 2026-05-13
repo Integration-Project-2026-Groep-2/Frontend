@@ -87,7 +87,7 @@ jobs:
             --no-dev --no-interaction --no-progress --prefer-dist
           cd $HOME/drupal && composer require --dev \
             "drupal/core-dev:^11" \
-            --no-interaction --no-progress
+            --no-interaction --no-progress -W
 
       - name: Kopieer custom modules
         run: |
@@ -147,7 +147,7 @@ jobs:
             --no-dev --no-interaction --no-progress --prefer-dist
           cd $HOME/drupal && composer require --dev \
             "drupal/core-dev:^11" \
-            --no-interaction --no-progress
+            --no-interaction --no-progress -W
 
       - name: Kopieer custom modules
         run: |
