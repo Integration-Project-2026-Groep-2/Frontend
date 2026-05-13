@@ -97,11 +97,11 @@ jobs:
             --testdox
 
   # ─────────────────────────────────────────────────────────────
-  # JOB 3: Kernel Tests
+  # JOB 3: Integration Tests
   # Draait parallel met unit-tests NA lint — gebruikt SQLite
   # ─────────────────────────────────────────────────────────────
-  kernel-tests:
-    name: Kernel Tests
+  integration:
+    name: Integration Tests
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: lint
@@ -128,7 +128,7 @@ jobs:
       - name: Kopieer phpunit.xml
         run: cp $GITHUB_WORKSPACE/phpunit.xml /opt/drupal/phpunit.xml
 
-      - name: Voer kernel tests uit
+      - name: Voer integration tests uit
         working-directory: /opt/drupal
         env:
           SHIFT_BEZOEKER_DISABLE_AMQP: "1"
