@@ -7,10 +7,7 @@ use SimpleXMLElement;
 /**
  * Contract: planning.session.created
  * Routing:  frontend.session.created
- * Element:  FrontendSessionCreated
- *
- * speakerId is een UUID — planning kent die toe aan een speaker.
- * sessionId wordt door planning gegenereerd — niet meegestuurd.
+ * Element:  SessionCreated
  */
 final class PlanningSessionCreatedMessage extends Planning {
 
@@ -22,10 +19,12 @@ final class PlanningSessionCreatedMessage extends Planning {
     private readonly int     $capacity,
     private readonly ?string $locationId = NULL,
     private readonly ?string $speakerId  = NULL,
+    private readonly ?string $status     = NULL,
+    private readonly ?string $timestamp  = NULL,
   ) {}
 
   public function toXml(): string {
-    $xml = new SimpleXMLElement('<FrontendSessionCreated/>');
+    $xml = new SimpleXMLElement('<SessionCreated/>');
     $xml->addChild('title',    htmlspecialchars($this->title));
     $xml->addChild('date',     $this->date);
     $xml->addChild('startTime', $this->startTime);
@@ -37,6 +36,12 @@ final class PlanningSessionCreatedMessage extends Planning {
     }
     if ($this->speakerId !== NULL) {
       $xml->addChild('speakerId', $this->speakerId);
+    }
+    if ($this->status !== NULL) {
+      $xml->addChild('status', $this->status);
+    }
+    if ($this->timestamp !== NULL) {
+      $xml->addChild('timestamp', $this->timestamp);
     }
 
     return $xml->asXML();
