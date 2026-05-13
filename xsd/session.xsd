@@ -191,38 +191,7 @@
     </xs:complexType>
   </xs:element>
 
-  <!-- ========================================================= -->
-  <!-- FrontendSessionUpdated -->
-  <!-- Frontend → Planning -->
-  <!-- ========================================================= -->
 
-  <xs:element name="FrontendSessionUpdated">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element name="sessionId"  type="xs:string"/>
-        <xs:element name="title"      type="xs:string"   minOccurs="0"/>
-        <xs:element name="date"       type="xs:string"   minOccurs="0"/>
-        <xs:element name="startTime"  type="xs:string"   minOccurs="0"/>
-        <xs:element name="endTime"    type="xs:string"   minOccurs="0"/>
-        <xs:element name="capacity"   type="xs:int"      minOccurs="0"/>
-        <xs:element name="locationId" type="xs:string"   minOccurs="0"/>
-      </xs:sequence>
-    </xs:complexType>
-  </xs:element>
-
-  <!-- ========================================================= -->
-  <!-- FrontendSessionCancelled -->
-  <!-- Frontend → Planning -->
-  <!-- ========================================================= -->
-
-  <xs:element name="FrontendSessionCancelled">
-    <xs:complexType>
-      <xs:sequence>
-        <xs:element name="sessionId" type="xs:string"/>
-        <xs:element name="reason"    type="xs:string" minOccurs="0"/>
-      </xs:sequence>
-    </xs:complexType>
-  </xs:element>
 
   <!-- ========================================================= -->
   <!-- RegistrationCreated -->
@@ -253,19 +222,5 @@
       </xs:sequence>
     </xs:complexType>
   </xs:element>
-
-  <!-- FrontendSessionRescheduled -->
-<xs:element name="FrontendSessionRescheduled">
-  <xs:complexType>
-    <xs:sequence>
-      <xs:element name="sessionId"    type="xs:string"/>
-      <xs:element name="newDate"      type="xs:string"/>
-      <xs:element name="newStartTime" type="xs:string"/>
-      <xs:element name="newEndTime"   type="xs:string"/>
-      <xs:element name="newLocation"  type="xs:string" minOccurs="0"/>
-      <xs:element name="reason"       type="xs:string"/>
-    </xs:sequence>
-  </xs:complexType>
-</xs:element>
 
 </xs:schema>

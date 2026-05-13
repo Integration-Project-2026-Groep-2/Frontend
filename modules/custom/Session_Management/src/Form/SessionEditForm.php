@@ -154,7 +154,7 @@ class SessionEditForm extends FormBase {
       changeType:  'updated',
       newTime:     $form_state->getValue('date') . ' ' . $form_state->getValue('startTime') . ':00',
       newLocation: $form_state->getValue('location'),
-      timestamp:   (new \DateTime())->format(\DateTime::ISO8601),
+      timestamp:   (new \DateTime())->format(\DateTime::ATOM),
     );
 
     $client = RabbitMQClient::fromEnv();
