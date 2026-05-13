@@ -71,8 +71,8 @@ jobs:
       - name: Installeer test-dependencies
         working-directory: /opt/drupal
         run: |
+          composer install --no-interaction --no-progress --quiet
           composer require --dev \
-            "phpunit/phpunit:^10" \
             "phpspec/prophecy-phpunit:^2" \
             --no-interaction --no-progress --quiet
 
@@ -117,8 +117,8 @@ jobs:
       - name: Installeer test-dependencies
         working-directory: /opt/drupal
         run: |
+          composer install --no-interaction --no-progress --quiet
           composer require --dev \
-            "phpunit/phpunit:^10" \
             "phpspec/prophecy-phpunit:^2" \
             --no-interaction --no-progress --quiet
 
