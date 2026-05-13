@@ -12,7 +12,7 @@ bedrijf_registratie.gegevens:
     _controller: '\Drupal\bedrijf_registratie\Controller\RegistratieController::gegevensPagina'
     _title: 'Bedrijfsgegevens'
   requirements:
-    _role: 'authenticated'
+    _permission: 'access company area'
 
 bedrijf_registratie.medewerker_toevoegen:
   path: '/bedrijf/medewerker/toevoegen'
@@ -20,7 +20,7 @@ bedrijf_registratie.medewerker_toevoegen:
     _form: '\Drupal\bedrijf_registratie\Form\MedewerkerToevoegenForm'
     _title: 'Nieuwe Medewerker'
   requirements:
-    _role: 'authenticated'
+    _permission: 'access company area'
 
 bedrijf_registratie.sessies:
   path: '/bedrijf/sessies'
@@ -28,7 +28,7 @@ bedrijf_registratie.sessies:
     _controller: '\Drupal\bedrijf_registratie\Controller\RegistratieController::sessiePagina'
     _title: 'Sessies'
   requirements:
-    _role: 'authenticated'
+    _permission: 'access company area'
 
 bedrijf_registratie.betalingen:
   path: '/bedrijf/betalingen'
@@ -36,7 +36,7 @@ bedrijf_registratie.betalingen:
     _controller: '\Drupal\bedrijf_registratie\Controller\RegistratieController::betalingPagina'
     _title: 'Betalingsgeschiedenis'
   requirements:
-    _role: 'authenticated'
+    _permission: 'access company area'
 
 bedrijf_registratie.account:
   path: '/bedrijf/account'
@@ -44,7 +44,7 @@ bedrijf_registratie.account:
     _controller: '\Drupal\bedrijf_registratie\Controller\RegistratieController::accountPagina'
     _title: 'Accountgegevens'
   requirements:
-    _role: 'authenticated'
+    _permission: 'access company area'
 
 bedrijf_registratie.terms:
   path: '/algemene-voorwaarden'

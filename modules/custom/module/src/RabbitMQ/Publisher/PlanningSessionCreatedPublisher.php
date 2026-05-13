@@ -15,15 +15,18 @@ class PlanningSessionCreatedPublisher {
   ) {}
 
   public function publish(): void {
+    $client = RabbitMQClient::fromEnv();
     try {
-      $client = RabbitMQClient::fromEnv();
       $client->publish($this->message);
     }
-    catch (\Exception $e) {
+    catch (\Throwable $e) {
       \Drupal::logger('rabbitmq')->error(
         'PlanningSessionCreatedPublisher mislukt: @err',
         ['@err' => $e->getMessage()]
       );
+    }
+    finally {
+      $client->disconnect();
     }
   }
 

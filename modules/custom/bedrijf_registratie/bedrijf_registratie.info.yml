@@ -3,3 +3,6 @@ type: module
 description: 'Beheer van bedrijfsgegevens op basis van Figma.'
 package: Custom
 core_version_requirement: ^10 || ^11
+dependencies:
+  - drupal:user
+  - custom_roles:custom_roles

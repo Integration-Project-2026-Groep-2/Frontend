@@ -56,7 +56,7 @@ class RegisterVisitorForm extends FormBase {
   public function validateForm(array &$form, FormStateInterface $form_state): void {
     $email = $form_state->getValue('email');
     $phone = $form_state->getValue('phone');
-    $pass  = $form_state->getValue('pass');
+    $pass_plain = self::passwordConfirmPass1($form_state->getValue('pass'));
 
     if ($email && user_load_by_mail($email)) {
       $form_state->setErrorByName('email', $this->t('This email address is already registered.'));
@@ -66,7 +66,7 @@ class RegisterVisitorForm extends FormBase {
       $form_state->setErrorByName('phone', $this->t('Phone number must be at least 10 digits.'));
     }
 
-    if (strlen($pass) < 8) {
+    if (strlen($pass_plain) < 8) {
       $form_state->setErrorByName('pass', $this->t('Password must be at least 8 characters.'));
     }
   }
@@ -77,7 +77,7 @@ class RegisterVisitorForm extends FormBase {
     $lastName  = $form_state->getValue('last_name');
     $phone     = $form_state->getValue('phone') ?: NULL;
     $gdpr      = (bool) $form_state->getValue('gdpr_consent');
-    $password  = $form_state->getValue('pass');
+    $password  = self::passwordConfirmPass1($form_state->getValue('pass'));
 
     // ── 1. Drupal user aanmaken ───────────────────────────────────────────
     try {
@@ -142,6 +142,16 @@ class RegisterVisitorForm extends FormBase {
     if ($value !== NULL && $entity->hasField($field)) {
       $entity->set($field, $value);
     }
+  }
+
+  /**
+   * Plain password from #type password_confirm (array pass1/pass2).
+   */
+  private static function passwordConfirmPass1(mixed $value): string {
+    if (is_array($value)) {
+      return (string) ($value['pass1'] ?? '');
+    }
+    return (string) $value;
   }
 
 }
