@@ -5,7 +5,6 @@ hello_world.hello:
     _title: 'Hello World'
   requirements:
     _permission: 'access content'
-    _admin_route: TRUE
 
 hello_world.registration_choice:
   path: '/registration-choice'
@@ -37,8 +36,8 @@ hello_world.bespreker_home:
     _controller: '\Drupal\hello_world\Controller\BesprekerController::home'
     _title: 'Bespreker Dashboard'
   requirements:
-    _permission: 'access content'
-    _role: 'speaker, administrator'
+    _permission: 'access speaker area'
+    
 
 hello_world.bespreker_account:
   path: '/bespreker/account'
@@ -46,8 +45,7 @@ hello_world.bespreker_account:
     _controller: '\Drupal\hello_world\Controller\BesprekerController::account'
     _title: 'Account gegevens'
   requirements:
-    _permission: 'access content'
-    _role: 'speaker, administrator'
+    _permission: 'access speaker area'
 
 hello_world.bespreker_account_edit:
   path: '/bespreker/account/edit'
@@ -55,8 +53,7 @@ hello_world.bespreker_account_edit:
     _controller: '\Drupal\hello_world\Controller\BesprekerController::accountEdit'
     _title: 'Account Bewerken'
   requirements:
-    _permission: 'access content'
-    _role: 'speaker, administrator'
+    _permission: 'access speaker area'
 
 hello_world.bespreker_sessies:
   path: '/bespreker/sessies'
@@ -64,8 +61,8 @@ hello_world.bespreker_sessies:
     _controller: '\Drupal\hello_world\Controller\BesprekerController::sessies'
     _title: 'Mijn Sessies'
   requirements:
-    _permission: 'access content'
-    _role: 'speaker, administrator'
+    requirements:
+    _permission: 'access speaker area'
 
 hello_world.bespreker_betalingen:
   path: '/bespreker/betalingen'
@@ -73,8 +70,7 @@ hello_world.bespreker_betalingen:
     _controller: '\Drupal\hello_world\Controller\BesprekerController::betalingen'
     _title: 'Betalingsgeschiedenis'
   requirements:
-    _permission: 'access content'
-    _role: 'speaker, administrator'
+    _permission: 'access speaker area'
     
 hello_world.bespreker_account_qr:
   path: '/bespreker/account/qr'
@@ -82,8 +78,7 @@ hello_world.bespreker_account_qr:
     _controller: '\Drupal\hello_world\Controller\BesprekerController::qr'
     _title: 'Mijn QR-code'
   requirements:
-    _permission: 'access content'
-    _role: 'speaker, administrator'
+    _permission: 'access speaker area'
 
 hello_world.admin_page:
   path: '/hello/admin'
@@ -102,8 +97,7 @@ hello_world.bespreker_feedback:
     _controller: '\Drupal\hello_world\Controller\BesprekerController::feedback'
     _title: 'Feedback Overzicht'
   requirements:
-    _permission: 'access content'
-    _role: 'speaker, administrator'
+    _permission: 'access speaker area'
 
 hello_world.bespreker_feedback_summary:
   path: '/bespreker/feedback/summary'
@@ -111,8 +105,7 @@ hello_world.bespreker_feedback_summary:
     _controller: '\Drupal\hello_world\Controller\BesprekerController::feedbackSummary'
     _title: 'Feedback Analyse'
   requirements:
-    _permission: 'access content'
-    _role: 'speaker, administrator'
+    _permission: 'access speaker area'
 
 hello_world.bespreker_materialen:
   path: '/bespreker/materialen'
@@ -120,8 +113,7 @@ hello_world.bespreker_materialen:
     _controller: '\Drupal\hello_world\Controller\BesprekerController::materialen'
     _title: 'Materialen & Logistiek'
   requirements:
-    _permission: 'access content'
-    _role: 'speaker, administrator'
+    _permission: 'access speaker area'
 
 hello_world.bespreker_materialen_gehuurd:
   path: '/bespreker/materialen/gehuurd'
@@ -129,8 +121,7 @@ hello_world.bespreker_materialen_gehuurd:
     _controller: '\Drupal\hello_world\Controller\BesprekerController::materialenGehuurd'
     _title: 'Gehuurde Materialen'
   requirements:
-    _permission: 'access content'
-    _role: 'speaker, administrator'
+    _permission: 'access speaker area'
 
 hello_world.bespreker_sessies_details:
   path: '/bespreker/sessies/details'
@@ -138,8 +129,7 @@ hello_world.bespreker_sessies_details:
     _controller: '\Drupal\hello_world\Controller\BesprekerController::sessieDetails'
     _title: 'Sessie Details'
   requirements:
-    _permission: 'access content'
-    _role: 'speaker, administrator'
+    _permission: 'access speaker area'
 
 hello_world.bespreker_sessies_bezoekers:
   path: '/bespreker/sessies/bezoekers'
@@ -147,5 +137,4 @@ hello_world.bespreker_sessies_bezoekers:
     _controller: '\Drupal\hello_world\Controller\BesprekerController::bezoekersDetails'
     _title: 'Bezoekers Lijst'
   requirements:
-    _permission: 'access content'
-    _role: 'speaker, administrator'
+    _permission: 'access speaker area'
