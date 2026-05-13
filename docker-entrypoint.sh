@@ -47,7 +47,12 @@ if ! grep -q "drupal_db_configured" "$SETTINGS_FILE"; then
 SETTINGS
 fi
 
-# ── Drupal install (opt-in) + install.php verwijderen na succesvolle installatie ──
+# ── Drupal install (expliciete opt-in) + install.php verwijderen na succesvolle installatie ──
+# ALLOW_AUTO_INSTALL is bewust opt-in en uitsluitend bedoeld om een nieuwe omgeving
+# eenmalig te bootstrapen. Zet dit nooit aan in productie, omdat een foutieve
+# configuratie anders onbedoeld een fresh install kan starten.
+# De bootstrap-detectie controleert daarom eerst of Drupal al succesvol kan starten,
+# zodat een bestaande site niet opnieuw geïnstalleerd wordt.
 # Eerste run: install.php blijft beschikbaar zolang Drupal nog niet geïnstalleerd is.
 # Na een succesvolle bootstrap wordt install.php verwijderd.
 if [ -x "$DRUSH" ]; then
