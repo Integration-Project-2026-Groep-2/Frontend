@@ -47,32 +47,27 @@ if ! grep -q "drupal_db_configured" "$SETTINGS_FILE"; then
 SETTINGS
 fi
 
-# ── BEVEILIGDE AUTO-INSTALL: install.php blokkeren ────────────────────────────
-# Verwijder install.php na eerste run zodat het niet meer publiek bereikbaar is
-if [ -f "/opt/drupal/web/core/install.php" ]; then
-  rm -f /opt/drupal/web/core/install.php
-  echo "install.php verwijderd voor beveiliging."
-fi
-
-# ── Drupal install (opt-in) + module enable + cache rebuild ──────────────────
-# The install block runs only when ALLOW_AUTO_INSTALL=1 is set in the env.
-# Production must never set it; local dev sets it in .env so a fresh git
-# clone bootstraps without manual drush site:install. Detection uses
-# `drush status --field=bootstrap`: Drush actually boots Drupal and reports
-# "Successful" only when settings.php + DB schema are valid. The previous
-# raw-SQL probe was fail-open and wiped production on edge-case failures.
+# ── Drupal install (opt-in) + install.php verwijderen na succesvolle installatie ──
+# Eerste run: install.php blijft beschikbaar zolang Drupal nog niet geïnstalleerd is.
+# Na een succesvolle bootstrap wordt install.php verwijderd.
 if [ -x "$DRUSH" ]; then
-  if [ "${ALLOW_AUTO_INSTALL:-0}" = "1" ]; then
-    if ! "$DRUSH" status --field=bootstrap 2>/dev/null | grep -q "Successful"; then
-      echo "ALLOW_AUTO_INSTALL=1 + Drupal not bootstrapped → installing fresh standard..."
-      "$DRUSH" site:install standard \
-        --site-name="Frontend" \
-        --account-name="admin" \
-        --account-pass="admin" \
-        --account-mail="admin@example.com" \
-        --locale=en \
-        --yes
-    fi
+  BOOTSTRAP_STATUS="$("$DRUSH" status --field=bootstrap 2>/dev/null || true)"
+
+  if [ "${ALLOW_AUTO_INSTALL:-0}" = "1" ] && [ "$BOOTSTRAP_STATUS" != "Successful" ]; then
+    echo "ALLOW_AUTO_INSTALL=1 + Drupal not bootstrapped → installing fresh standard..."
+    "$DRUSH" site:install standard \
+      --site-name="Frontend" \
+      --account-name="admin" \
+      --account-pass="admin" \
+      --account-mail="admin@example.com" \
+      --locale=en \
+      --yes
+  fi
+
+  BOOTSTRAP_STATUS="$("$DRUSH" status --field=bootstrap 2>/dev/null || true)"
+  if [ "$BOOTSTRAP_STATUS" = "Successful" ] && [ -f "/opt/drupal/web/core/install.php" ]; then
+    rm -f /opt/drupal/web/core/install.php
+    echo "install.php verwijderd na succesvolle installatie."
   fi
 
   "$DRUSH" en hello_world custom_roles ai_dashboard -y || true
