@@ -28,8 +28,12 @@ final class PlanningSessionCreatedMessage extends Planning {
     $xml = new SimpleXMLElement('<SessionCreated/>');
     $xml->addChild('title',    htmlspecialchars($this->title));
     $xml->addChild('date',     $this->date);
-    $xml->addChild('startTime', $this->startTime);
-    $xml->addChild('endTime',   $this->endTime);
+    if ($this->startTime !== NULL) {
+      $xml->addChild('startTime', $this->startTime);
+    }
+    if ($this->endTime !== NULL) {
+      $xml->addChild('endTime', $this->endTime);
+    }
     $xml->addChild('capacity',  (string) $this->capacity);
 
     if ($this->locationId !== NULL && self::isValidUuid($this->locationId)) {
