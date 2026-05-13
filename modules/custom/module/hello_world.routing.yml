@@ -5,6 +5,7 @@ hello_world.hello:
     _title: 'Hello World'
   requirements:
     _permission: 'access content'
+    _admin_route: 'TRUE'
 
 hello_world.registration_choice:
   path: '/registration-choice'
