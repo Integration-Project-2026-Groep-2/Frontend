@@ -1,3 +1,5 @@
+# --- admin routes ---
+
 hello_world.hello:
   path: '/hello'
   defaults:
@@ -18,6 +20,8 @@ hello_world.admin_page:
     _permission: 'administer users'
   options:
     _admin_route: TRUE
+
+# --- registration routes ---
 
 hello_world.registration_choice:
   path: '/registration-choice'
@@ -42,6 +46,8 @@ hello_world.register_company:
     _title: 'Company Application'
   requirements:
     _permission: 'access content'
+
+# --- speaker routes ---
 
 hello_world.bespreker_home:
   path: '/bespreker'
