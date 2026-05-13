@@ -47,6 +47,13 @@ if ! grep -q "drupal_db_configured" "$SETTINGS_FILE"; then
 SETTINGS
 fi
 
+# ── BEVEILIGDE AUTO-INSTALL: install.php blokkeren ────────────────────────────
+# Verwijder install.php na eerste run zodat het niet meer publiek bereikbaar is
+if [ -f "/opt/drupal/web/core/install.php" ]; then
+  rm -f /opt/drupal/web/core/install.php
+  echo "install.php verwijderd voor beveiliging."
+fi
+
 # ── Drupal install (opt-in) + module enable + cache rebuild ──────────────────
 # The install block runs only when ALLOW_AUTO_INSTALL=1 is set in the env.
 # Production must never set it; local dev sets it in .env so a fresh git
