@@ -45,6 +45,9 @@ class LocationManagement extends ControllerBase {
 
     return [
       '#type' => 'container',
+      '#cache' => [
+        'max-age' => 0,
+      ],
       'title' => [
         '#markup' => '<h1>' . $this->t('Locations') . '</h1>',
       ],

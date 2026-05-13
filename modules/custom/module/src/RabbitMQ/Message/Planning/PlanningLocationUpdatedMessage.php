@@ -22,7 +22,7 @@ final class PlanningLocationUpdatedMessage extends Planning {
   ) {}
 
   public function toXml(): string {
-    $xml = new SimpleXMLElement('<FrontendLocationUpdated/>');
+    $xml = new SimpleXMLElement('<LocationUpdated/>');
     $xml->addChild('locationId', $this->locationId);
     $xml->addChild('roomName',   htmlspecialchars($this->roomName));
     $xml->addChild('capacity',   (string) $this->capacity);
@@ -32,6 +32,7 @@ final class PlanningLocationUpdatedMessage extends Planning {
     }
 
     $xml->addChild('status', $this->status);
+    $xml->addChild('timestamp', (new \DateTime())->format(\DateTime::ATOM));
 
     return $xml->asXML();
   }

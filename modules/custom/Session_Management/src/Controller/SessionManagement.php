@@ -50,6 +50,9 @@ class SessionManagement extends ControllerBase {
 
     return [
       '#type' => 'container',
+      '#cache' => [
+        'max-age' => 0,
+      ],
       'title' => [
         '#markup' => '<h1>Sessions</h1>',
       ],

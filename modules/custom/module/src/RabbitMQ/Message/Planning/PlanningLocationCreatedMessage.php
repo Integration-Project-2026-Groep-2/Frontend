@@ -19,14 +19,19 @@ final class PlanningLocationCreatedMessage extends Planning {
   ) {}
 
   public function toXml(): string {
-    $xml = new SimpleXMLElement('<FrontendLocationCreated/>');
-    $xml->addChild('locationId', $this->locationId);
+    $xml = new SimpleXMLElement('<LocationCreated/>');
+    if ($this->locationId !== NULL) {
+      $xml->addChild('locationId', $this->locationId);
+    }
     $xml->addChild('roomName', htmlspecialchars($this->roomName));
     $xml->addChild('capacity', (string) $this->capacity);
 
     if ($this->address !== NULL) {
       $xml->addChild('address', htmlspecialchars($this->address));
     }
+    
+    $xml->addChild('status', 'beschikbaar');
+    $xml->addChild('timestamp', (new \DateTime())->format(\DateTime::ATOM));
 
     return $xml->asXML();
   }
