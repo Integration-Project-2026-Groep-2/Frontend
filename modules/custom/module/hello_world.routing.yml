@@ -5,6 +5,7 @@ hello_world.hello:
     _title: 'Hello World'
   requirements:
     _permission: 'access content'
+    _admin_route: TRUE
 
 hello_world.registration_choice:
   path: '/registration-choice'
@@ -37,6 +38,7 @@ hello_world.bespreker_home:
     _title: 'Bespreker Dashboard'
   requirements:
     _permission: 'access content'
+    _role: 'speaker, administrator'
 
 hello_world.bespreker_account:
   path: '/bespreker/account'
@@ -45,6 +47,7 @@ hello_world.bespreker_account:
     _title: 'Account gegevens'
   requirements:
     _permission: 'access content'
+    _role: 'speaker, administrator'
 
 hello_world.bespreker_account_edit:
   path: '/bespreker/account/edit'
@@ -53,6 +56,7 @@ hello_world.bespreker_account_edit:
     _title: 'Account Bewerken'
   requirements:
     _permission: 'access content'
+    _role: 'speaker, administrator'
 
 hello_world.bespreker_sessies:
   path: '/bespreker/sessies'
@@ -61,6 +65,7 @@ hello_world.bespreker_sessies:
     _title: 'Mijn Sessies'
   requirements:
     _permission: 'access content'
+    _role: 'speaker, administrator'
 
 hello_world.bespreker_betalingen:
   path: '/bespreker/betalingen'
@@ -69,6 +74,7 @@ hello_world.bespreker_betalingen:
     _title: 'Betalingsgeschiedenis'
   requirements:
     _permission: 'access content'
+    _role: 'speaker, administrator'
     
 hello_world.bespreker_account_qr:
   path: '/bespreker/account/qr'
@@ -77,6 +83,7 @@ hello_world.bespreker_account_qr:
     _title: 'Mijn QR-code'
   requirements:
     _permission: 'access content'
+    _role: 'speaker, administrator'
 
 hello_world.admin_page:
   path: '/hello/admin'
@@ -87,6 +94,7 @@ hello_world.admin_page:
     _permission: 'administer users'
   options:
     _admin_route: TRUE
+    _role: 'administrator'
 
 hello_world.bespreker_feedback:
   path: '/bespreker/feedback'
@@ -95,6 +103,7 @@ hello_world.bespreker_feedback:
     _title: 'Feedback Overzicht'
   requirements:
     _permission: 'access content'
+    _role: 'speaker, administrator'
 
 hello_world.bespreker_feedback_summary:
   path: '/bespreker/feedback/summary'
@@ -103,6 +112,7 @@ hello_world.bespreker_feedback_summary:
     _title: 'Feedback Analyse'
   requirements:
     _permission: 'access content'
+    _role: 'speaker, administrator'
 
 hello_world.bespreker_materialen:
   path: '/bespreker/materialen'
@@ -111,6 +121,7 @@ hello_world.bespreker_materialen:
     _title: 'Materialen & Logistiek'
   requirements:
     _permission: 'access content'
+    _role: 'speaker, administrator'
 
 hello_world.bespreker_materialen_gehuurd:
   path: '/bespreker/materialen/gehuurd'
@@ -119,6 +130,7 @@ hello_world.bespreker_materialen_gehuurd:
     _title: 'Gehuurde Materialen'
   requirements:
     _permission: 'access content'
+    _role: 'speaker, administrator'
 
 hello_world.bespreker_sessies_details:
   path: '/bespreker/sessies/details'
@@ -127,6 +139,7 @@ hello_world.bespreker_sessies_details:
     _title: 'Sessie Details'
   requirements:
     _permission: 'access content'
+    _role: 'speaker, administrator'
 
 hello_world.bespreker_sessies_bezoekers:
   path: '/bespreker/sessies/bezoekers'
@@ -135,3 +148,4 @@ hello_world.bespreker_sessies_bezoekers:
     _title: 'Bezoekers Lijst'
   requirements:
     _permission: 'access content'
+    _role: 'speaker, administrator'
