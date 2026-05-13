@@ -5,7 +5,19 @@ hello_world.hello:
     _title: 'Hello World'
   requirements:
     _permission: 'access content'
-    _admin_route: 'TRUE'
+    _role: 'administrator'
+  options:
+    _admin_route: TRUE
+  
+hello_world.admin_page:
+  path: '/hello/admin'
+  defaults:
+    _controller: '\Drupal\hello_world\Controller\AdminController::page'
+    _title: 'Admin Dashboard'
+  requirements:
+    _permission: 'administer users'
+  options:
+    _admin_route: TRUE
 
 hello_world.registration_choice:
   path: '/registration-choice'
@@ -39,7 +51,6 @@ hello_world.bespreker_home:
   requirements:
     _permission: 'access speaker area'
     
-
 hello_world.bespreker_account:
   path: '/bespreker/account'
   defaults:
@@ -79,17 +90,6 @@ hello_world.bespreker_account_qr:
     _title: 'Mijn QR-code'
   requirements:
     _permission: 'access speaker area'
-
-hello_world.admin_page:
-  path: '/hello/admin'
-  defaults:
-    _controller: '\Drupal\hello_world\Controller\AdminController::page'
-    _title: 'Admin Dashboard'
-  requirements:
-    _permission: 'administer users'
-  options:
-    _admin_route: TRUE
-    _role: 'administrator'
 
 hello_world.bespreker_feedback:
   path: '/bespreker/feedback'
