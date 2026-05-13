@@ -10,6 +10,7 @@
   min-height: 70px;
   position: sticky;
   top: 0;
+  overflow: visible;
   z-index: 1000;
 }
 
@@ -24,22 +25,20 @@
 }
 
 .nav-logo-img {
-  height: 65px; /* Was 45px, nu 65px voor meer impact */
-  width: auto; /* Behoudt de verhoudingen */
+  height: 90px;
+  width: auto;
   display: block;
   transition: transform 0.3s ease;
-
-  /* DE MAGISCHE LIJNEN: Maakt het donkere logo wit */
   filter: brightness(0) invert(1);
-
-  /* Zorgt dat hover effecten op de link goed werken */
   pointer-events: none;
+  position: relative;
+
 }
 
 .navbar-logo {
   display: flex;
   align-items: center;
-  /* Zorgt dat het grotere logo goed uitlijnt in de navbar */
+  position: relative;
   margin-left: -5px;
   padding: 5px 0;
 }
