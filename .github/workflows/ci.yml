@@ -82,8 +82,10 @@ jobs:
       - name: Kopieer XSD schemas
         run: cp -r $GITHUB_WORKSPACE/xsd /opt/drupal/xsd
 
-      - name: Kopieer phpunit.xml
-        run: cp $GITHUB_WORKSPACE/phpunit.xml /opt/drupal/phpunit.xml
+      - name: Kopieer phpunit.xml en bootstrap
+        run: |
+          cp $GITHUB_WORKSPACE/phpunit.xml /opt/drupal/phpunit.xml
+          cp $GITHUB_WORKSPACE/tests_bootstrap.php /opt/drupal/tests_bootstrap.php
 
       - name: Voer unit tests uit
         working-directory: /opt/drupal
@@ -125,8 +127,10 @@ jobs:
       - name: Kopieer custom modules
         run: cp -r $GITHUB_WORKSPACE/modules/custom /opt/drupal/web/modules/custom
 
-      - name: Kopieer phpunit.xml
-        run: cp $GITHUB_WORKSPACE/phpunit.xml /opt/drupal/phpunit.xml
+      - name: Kopieer phpunit.xml en bootstrap
+        run: |
+          cp $GITHUB_WORKSPACE/phpunit.xml /opt/drupal/phpunit.xml
+          cp $GITHUB_WORKSPACE/tests_bootstrap.php /opt/drupal/tests_bootstrap.php
 
       - name: Voer integration tests uit
         working-directory: /opt/drupal
