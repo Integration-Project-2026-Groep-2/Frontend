@@ -8,6 +8,7 @@ use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\hello_world\RabbitMQ\Message\Planning\PlanningSessionUpdatedMessage;
 use Drupal\hello_world\RabbitMQ\RabbitMQClient;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Drupal\Core\Url;
 
 /**
  * Form for editing an existing session.
@@ -41,13 +42,29 @@ class SessionEditForm extends FormBase {
    * {@inheritdoc}
    */
   public function buildForm(array $form, FormStateInterface $form_state, $sessionId = NULL): array {
-    // TODO: Load session data from database/RabbitMQ based on $sessionId.
     $sessionData = [];
+    if ($sessionId) {
+      try {
+        $sessionData = (array) \Drupal::database()->select('Session', 's')
+          ->fields('s')
+          ->condition('sessionId', $sessionId)
+          ->execute()
+          ->fetchAssoc();
+      }
+      catch (\Exception $e) {
+        $this->messenger->addError($this->t('Could not load session data.'));
+      }
+    }
+
+    if (empty($sessionData)) {
+      $this->messenger->addError($this->t('Session not found.'));
+      return ['#markup' => $this->t('Session not found.')];
+    }
 
     $form['sessionId'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Session ID'),
-      '#default_value' => $sessionData['sessionId'] ?? $sessionId,
+      '#default_value' => $sessionData['sessionId'],
       '#disabled' => TRUE,
     ];
 
@@ -56,21 +73,21 @@ class SessionEditForm extends FormBase {
       '#title' => $this->t('Title'),
       '#required' => TRUE,
       '#maxlength' => 255,
-      '#default_value' => $sessionData['title'] ?? '',
+      '#default_value' => $sessionData['title'],
     ];
 
     $form['date'] = [
       '#type' => 'date',
       '#title' => $this->t('Date'),
       '#required' => TRUE,
-      '#default_value' => $sessionData['date'] ?? '',
+      '#default_value' => $sessionData['date'],
     ];
 
     $form['startTime'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Start Time'),
       '#required' => TRUE,
-      '#default_value' => $sessionData['startTime'] ?? '',
+      '#default_value' => substr($sessionData['startTime'], 0, 5),
       '#attributes' => ['placeholder' => 'HH:mm'],
     ];
 
@@ -78,29 +95,30 @@ class SessionEditForm extends FormBase {
       '#type' => 'textfield',
       '#title' => $this->t('End Time'),
       '#required' => TRUE,
-      '#default_value' => $sessionData['endTime'] ?? '',
+      '#default_value' => substr($sessionData['endTime'], 0, 5),
       '#attributes' => ['placeholder' => 'HH:mm'],
     ];
 
     $form['location'] = [
-      '#type' => 'textfield',
+      '#type' => 'select',
       '#title' => $this->t('Location'),
+      '#options' => $this->getLocationOptions(),
+      '#empty_option' => $this->t('- Select -'),
       '#required' => TRUE,
-      '#maxlength' => 255,
-      '#default_value' => $sessionData['location'] ?? '',
+      '#default_value' => $sessionData['locationId'],
     ];
 
     $form['status'] = [
       '#type' => 'select',
       '#title' => $this->t('Status'),
       '#options' => [
-        'draft' => $this->t('Draft'),
-        'scheduled' => $this->t('Scheduled'),
-        'active' => $this->t('Active'),
+        'concept'   => $this->t('Concept'),
+        'active'    => $this->t('Active'),
         'cancelled' => $this->t('Cancelled'),
+        'full'      => $this->t('Full'),
       ],
       '#required' => TRUE,
-      '#default_value' => $sessionData['status'] ?? 'draft',
+      '#default_value' => $sessionData['status'],
     ];
 
     $form['capacity'] = [
@@ -108,7 +126,7 @@ class SessionEditForm extends FormBase {
       '#title' => $this->t('Capacity'),
       '#required' => TRUE,
       '#min' => 1,
-      '#default_value' => $sessionData['capacity'] ?? '',
+      '#default_value' => $sessionData['capacity'],
       '#description' => $this->t('Maximum number of participants.'),
     ];
 
@@ -176,6 +194,8 @@ class SessionEditForm extends FormBase {
   public function submitForm(array &$form, FormStateInterface $form_state): void {
     $sessionId = $form_state->getValue('sessionId');
     $title     = $form_state->getValue('title');
+    $date      = $form_state->getValue('date');
+    $locationId = $form_state->getValue('location');
 
     $startTime = $this->extractTime($form_state->getValue('startTime'));
     if ($startTime && strlen($startTime) === 5) {
@@ -185,22 +205,46 @@ class SessionEditForm extends FormBase {
     if ($endTime && strlen($endTime) === 5) {
       $endTime .= ':00';
     }
+
+    try {
+      \Drupal::database()->update('Session')
+        ->fields([
+          'title'      => $title,
+          'date'       => $date,
+          'startTime'  => $startTime,
+          'endTime'    => $endTime,
+          'locationId' => $locationId,
+          'capacity'   => (int) $form_state->getValue('capacity'),
+          'status'     => $form_state->getValue('status'),
+        ])
+        ->condition('sessionId', $sessionId)
+        ->execute();
+      
+      $this->messenger->addStatus($this->t('Session "@title" updated in database.', ['@title' => $title]));
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('session_management')->error('Failed to update session in DB: @err', ['@err' => $e->getMessage()]);
+      $this->messenger->addError($this->t('Failed to update session locally.'));
+    }
     
+    $locationOptions = $this->getLocationOptions();
+    $locationLabel = $locationId && isset($locationOptions[$locationId]) ? $locationOptions[$locationId] : $locationId;
+
     $message = new PlanningSessionUpdatedMessage(
       sessionId:    $sessionId,
       sessionName:  $title,
       changeType:   'updated',
-      newTime:      $form_state->getValue('date') . ' ' . $startTime,
+      newTime:      $date . ' ' . $startTime,
       newStartTime: $startTime,
       newEndTime:   $endTime,
-      newLocation:  $form_state->getValue('location'),
+      newLocation:  $locationLabel,
       timestamp:    (new \DateTime())->format(\DateTime::ATOM),
     );
 
     $client = RabbitMQClient::fromEnv();
     try {
       $client->publish($message);
-      $this->messenger->addStatus($this->t('Session "@title" updated and sent to planning.', [
+      $this->messenger->addStatus($this->t('Update for "@title" sent to planning.', [
         '@title' => $title,
       ]));
       $form_state->setRedirect('session_management.list');
@@ -214,6 +258,28 @@ class SessionEditForm extends FormBase {
     finally {
       $client->disconnect();
     }
+  }
+
+  /**
+   * Returns location options from database.
+   */
+  protected function getLocationOptions(): array {
+    $options = [];
+    try {
+      $results = \Drupal::database()->select('Location', 'l')
+        ->fields('l', ['locationId', 'roomName'])
+        ->orderBy('roomName', 'ASC')
+        ->execute()
+        ->fetchAll();
+
+      foreach ($results as $location) {
+        $options[$location->locationId] = $location->roomName;
+      }
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('session_management')->error('Failed to load location options: @err', ['@err' => $e->getMessage()]);
+    }
+    return $options;
   }
 
 }

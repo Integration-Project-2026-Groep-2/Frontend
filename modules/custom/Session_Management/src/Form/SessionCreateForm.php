@@ -134,11 +134,22 @@ class SessionCreateForm extends FormBase {
    * @return array<string, string>
    */
   protected function getLocationOptions(): array {
-    return [
-      '85a6a68b-5779-4a41-893c-913a891636c1' => $this->t('Campus Kaai, blok C, verdieping 1, lokaal 1'),
-      'b1e9e0d1-0f7e-4e8c-b4b1-6e7d8f9a0b1c' => $this->t('Campus Kaai, blok C, verdieping 1, lokaal 2'),
-      'c2f0f1e2-1e8f-5f9d-c5c2-7f8e9a0b1c2d' => $this->t('Campus Kaai, blok C, verdieping 1, lokaal 3'),
-    ];
+    $options = [];
+    try {
+      $results = \Drupal::database()->select('Location', 'l')
+        ->fields('l', ['locationId', 'roomName'])
+        ->orderBy('roomName', 'ASC')
+        ->execute()
+        ->fetchAll();
+
+      foreach ($results as $location) {
+        $options[$location->locationId] = $location->roomName;
+      }
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('session_management')->error('Failed to load location options: @err', ['@err' => $e->getMessage()]);
+    }
+    return $options;
   }
 
   /**
@@ -224,8 +235,33 @@ class SessionCreateForm extends FormBase {
     $locationOptions = $this->getLocationOptions();
     $locationLabel = $locationId && isset($locationOptions[$locationId]) ? $locationOptions[$locationId] : NULL;
 
+    $sessionUuid = \Drupal::service('uuid')->generate();
+    $title = $form_state->getValue('title');
+
+    try {
+      \Drupal::database()->insert('Session')
+        ->fields([
+          'sessionId'   => $sessionUuid,
+          'title'       => $title,
+          'date'        => $date,
+          'startTime'   => $startTime,
+          'endTime'     => $endTime,
+          'locationId'  => $locationId,
+          'capacity'    => (int) $form_state->getValue('capacity'),
+          'status'      => $form_state->getValue('status'),
+          'syncStatus'  => 'pending',
+        ])
+        ->execute();
+      
+      $this->messenger->addStatus($this->t('Session "@title" saved to database.', ['@title' => $title]));
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('session_management')->error('Failed to save session to DB: @err', ['@err' => $e->getMessage()]);
+      $this->messenger->addError($this->t('Failed to save session locally.'));
+    }
+
     $message = new PlanningSessionCreatedMessage(
-      title:      $form_state->getValue('title'),
+      title:      $title,
       date:       $date,
       startTime:  $startTime,
       endTime:    $endTime,
@@ -240,8 +276,8 @@ class SessionCreateForm extends FormBase {
     $client = RabbitMQClient::fromEnv();
     try {
       $client->publish($message);
-      $this->messenger->addStatus($this->t('Session "@title" created and sent to planning.', [
-        '@title' => $form_state->getValue('title'),
+      $this->messenger->addStatus($this->t('Session "@title" sent to planning.', [
+        '@title' => $title,
       ]));
       $form_state->setRedirect('session_management.list');
     }

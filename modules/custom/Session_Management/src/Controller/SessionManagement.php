@@ -8,9 +8,46 @@ use Drupal\Core\Url;
 class SessionManagement extends ControllerBase {
 
   public function content() {
-    // TODO: In the future, fetch all sessions from Planning via RabbitMQ
-    // For now, show placeholder message
-    $this->messenger()->addStatus($this->t('Session list will be loaded from Planning.'));
+    $rows = [];
+    try {
+      $database = \Drupal::database();
+      
+      // We join with Location to get the room name.
+      // Note: Speaker joining is more complex if there are multiple speakers per session.
+      // For now, we'll fetch basic session data and join Location.
+      $query = $database->select('Session', 's');
+      $query->leftJoin('Location', 'l', 's.locationId = l.locationId');
+      $query->fields('s', ['sessionId', 'title', 'date', 'startTime', 'endTime', 'capacity', 'status'])
+        ->fields('l', ['roomName'])
+        ->orderBy('s.date', 'ASC')
+        ->orderBy('s.startTime', 'ASC');
+      
+      $results = $query->execute()->fetchAll();
+
+      foreach ($results as $session) {
+        $edit_url = Url::fromRoute('session_management.edit', ['sessionId' => $session->sessionId]);
+        
+        $rows[] = [
+          $session->title,
+          $session->date . ' ' . $session->startTime,
+          $session->endTime,
+          $session->roomName ?: '-',
+          '-', // Speaker column (TODO: join with Speaker table)
+          $session->capacity,
+          [
+            'data' => [
+              '#type' => 'link',
+              '#title' => $this->t('Edit'),
+              '#url' => $edit_url,
+              '#attributes' => ['class' => ['button', 'button--small']],
+            ],
+          ],
+        ];
+      }
+    }
+    catch (\Exception $e) {
+      $this->messenger()->addError($this->t('Could not load sessions: @msg', ['@msg' => $e->getMessage()]));
+    }
 
     $create_url = Url::fromRoute('session_management.create');
 
@@ -30,8 +67,8 @@ class SessionManagement extends ControllerBase {
       'table' => [
         '#type' => 'table',
         '#header' => ['Title', 'Start', 'End', 'Location', 'Speaker', 'Capacity', 'Actions'],
-        '#rows' => [],
-        '#empty' => $this->t('No sessions loaded yet.'),
+        '#rows' => $rows,
+        '#empty' => $this->t('No sessions found in the database.'),
       ],
     ];
   }
