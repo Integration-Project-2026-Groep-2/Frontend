@@ -170,12 +170,16 @@ class SessionCreateForm extends FormBase {
 
   public function submitForm(array &$form, FormStateInterface $form_state): void {
     $date      = $form_state->getValue('date');
-    $startTime = $form_state->getValue('startTime');
-    $endTime   = $form_state->getValue('endTime');
-    $speakerId = $form_state->getValue('speaker') ?: NULL;
+    $startTime = $form_state->getValue('startTime') ?: NULL;
+    if ($startTime && strlen($startTime) === 5) {
+      $startTime .= ':00';
+    }
+    $endTime = $form_state->getValue('endTime') ?: NULL;
+    if ($endTime && strlen($endTime) === 5) {
+      $endTime .= ':00';
+    }
 
-    // Resolve speaker UUID — planning verwacht een UUID, niet een e-mail.
-    // TODO: vervang door echte planning UUID als die beschikbaar is.
+    $speakerId = $form_state->getValue('speaker') ?: NULL;
     $speakerUuid = NULL;
     if ($speakerId) {
       $speaker = \Drupal::entityTypeManager()->getStorage('user')->load($speakerId);
@@ -187,15 +191,6 @@ class SessionCreateForm extends FormBase {
     $locationId = $form_state->getValue('location') ?: NULL;
     $locationOptions = $this->getLocationOptions();
     $locationLabel = $locationId && isset($locationOptions[$locationId]) ? $locationOptions[$locationId] : NULL;
-
-    $startTime = $form_state->getValue('startTime');
-    if ($startTime && strlen($startTime) === 5) {
-      $startTime .= ':00';
-    }
-    $endTime = $form_state->getValue('endTime');
-    if ($endTime && strlen($endTime) === 5) {
-      $endTime .= ':00';
-    }
 
     $message = new PlanningSessionCreatedMessage(
       title:      $form_state->getValue('title'),

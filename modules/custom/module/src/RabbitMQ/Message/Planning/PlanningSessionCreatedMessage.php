@@ -14,8 +14,8 @@ final class PlanningSessionCreatedMessage extends Planning {
   public function __construct(
     private readonly string  $title,
     private readonly string  $date,       // Y-m-d
-    private readonly string  $startTime,  // H:i:s
-    private readonly string  $endTime,    // H:i:s
+    private readonly ?string $startTime,  // H:i:s
+    private readonly ?string $endTime,    // H:i:s
     private readonly int     $capacity,
     private readonly ?string $locationId = NULL,
     private readonly ?string $location   = NULL,
