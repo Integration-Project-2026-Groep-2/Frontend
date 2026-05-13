@@ -1,7 +1,7 @@
 -- MariaDB Schema for Frontend Service
 -- Converted from PostgreSQL schema.sql
 
-CREATE TABLE IF NOT EXISTS Location (
+CREATE TABLE IF NOT EXISTS {Location} (
     locationId  VARCHAR(36)  PRIMARY KEY,
     roomName    VARCHAR(100) NOT NULL UNIQUE,
     address     VARCHAR(255),
@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS Location (
     status      VARCHAR(50)  NOT NULL DEFAULT 'beschikbaar'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS Speaker (
+CREATE TABLE IF NOT EXISTS {Speaker} (
     speakerId   VARCHAR(36)  PRIMARY KEY,
     crmMasterId VARCHAR(36),
     firstName   VARCHAR(100) NOT NULL,
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS Speaker (
     gdprConsent BOOLEAN      NOT NULL DEFAULT false
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS Session (
+CREATE TABLE IF NOT EXISTS {Session} (
     sessionId      VARCHAR(36)  PRIMARY KEY,
     title          VARCHAR(255) NOT NULL,
     description    TEXT,
@@ -33,20 +33,20 @@ CREATE TABLE IF NOT EXISTS Session (
     capacity       INT          NOT NULL,
     syncStatus     VARCHAR(50)  NOT NULL DEFAULT 'pending',
     outlookEventId VARCHAR(255),
-    FOREIGN KEY (locationId) REFERENCES Location(locationId) ON DELETE SET NULL
+    FOREIGN KEY (locationId) REFERENCES {Location}(locationId) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS SessionSpeaker (
+CREATE TABLE IF NOT EXISTS {SessionSpeaker} (
     sessionSpeakerId VARCHAR(36)  PRIMARY KEY,
     sessionId        VARCHAR(36)  NOT NULL,
     speakerId        VARCHAR(36)  NOT NULL,
     role             VARCHAR(100),
     confirmed        BOOLEAN      NOT NULL DEFAULT false,
-    FOREIGN KEY (sessionId) REFERENCES Session(sessionId) ON DELETE CASCADE,
-    FOREIGN KEY (speakerId) REFERENCES Speaker(speakerId) ON DELETE CASCADE
+    FOREIGN KEY (sessionId) REFERENCES {Session}(sessionId) ON DELETE CASCADE,
+    FOREIGN KEY (speakerId) REFERENCES {Speaker}(speakerId) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS Participant (
+CREATE TABLE IF NOT EXISTS {Participant} (
     participantId VARCHAR(36)  PRIMARY KEY,
     firstName     VARCHAR(100) NOT NULL,
     lastName      VARCHAR(100) NOT NULL,
@@ -56,17 +56,17 @@ CREATE TABLE IF NOT EXISTS Participant (
     gdprConsent   BOOLEAN      NOT NULL DEFAULT false
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS Registration (
+CREATE TABLE IF NOT EXISTS {Registration} (
     registrationId   VARCHAR(36)  PRIMARY KEY,
     sessionId        VARCHAR(36)  NOT NULL,
     participantId    VARCHAR(36)  NOT NULL,
     crmMasterId      VARCHAR(36),
     registrationTime TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (sessionId) REFERENCES Session(sessionId) ON DELETE CASCADE,
-    FOREIGN KEY (participantId) REFERENCES Participant(participantId) ON DELETE CASCADE
+    FOREIGN KEY (sessionId) REFERENCES {Session}(sessionId) ON DELETE CASCADE,
+    FOREIGN KEY (participantId) REFERENCES {Participant}(participantId) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS SessionChangeLog (
+CREATE TABLE IF NOT EXISTS {SessionChangeLog} (
     logId        VARCHAR(36)  PRIMARY KEY,
     sessionId    VARCHAR(36)  NOT NULL,
     oldStartTime DATETIME,
@@ -76,15 +76,15 @@ CREATE TABLE IF NOT EXISTS SessionChangeLog (
     reason       TEXT,
     changedAt    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     changedBy    VARCHAR(255),
-    FOREIGN KEY (sessionId) REFERENCES Session(sessionId) ON DELETE CASCADE
+    FOREIGN KEY (sessionId) REFERENCES {Session}(sessionId) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS ProcessedMessages (
+CREATE TABLE IF NOT EXISTS {ProcessedMessages} (
     messageId   VARCHAR(255) PRIMARY KEY,
     processedAt TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS FrontendUser (
+CREATE TABLE IF NOT EXISTS {FrontendUser} (
     userId      VARCHAR(36)  PRIMARY KEY,
     firstName   VARCHAR(100) NOT NULL,
     lastName    VARCHAR(100) NOT NULL,
@@ -94,3 +94,4 @@ CREATE TABLE IF NOT EXISTS FrontendUser (
     isActive    BOOLEAN      NOT NULL DEFAULT true,
     crmMasterId VARCHAR(36)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
