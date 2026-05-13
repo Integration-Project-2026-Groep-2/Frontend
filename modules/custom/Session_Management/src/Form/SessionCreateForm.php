@@ -44,17 +44,19 @@ class SessionCreateForm extends FormBase {
     ];
 
     $form['startTime'] = [
-      '#type'          => 'time',
+      '#type'          => 'textfield',
       '#title'         => $this->t('Start Time'),
       '#required'      => TRUE,
       '#default_value' => '12:00',
+      '#attributes'    => ['placeholder' => 'HH:mm'],
     ];
 
     $form['endTime'] = [
-      '#type'          => 'time',
+      '#type'          => 'textfield',
       '#title'         => $this->t('End Time'),
       '#required'      => TRUE,
       '#default_value' => '13:00',
+      '#attributes'    => ['placeholder' => 'HH:mm'],
     ];
 
     $form['location_wrapper'] = [

@@ -67,17 +67,19 @@ class SessionEditForm extends FormBase {
     ];
 
     $form['startTime'] = [
-      '#type' => 'time',
+      '#type' => 'textfield',
       '#title' => $this->t('Start Time'),
       '#required' => TRUE,
       '#default_value' => $sessionData['startTime'] ?? '',
+      '#attributes' => ['placeholder' => 'HH:mm'],
     ];
 
     $form['endTime'] = [
-      '#type' => 'time',
+      '#type' => 'textfield',
       '#title' => $this->t('End Time'),
       '#required' => TRUE,
       '#default_value' => $sessionData['endTime'] ?? '',
+      '#attributes' => ['placeholder' => 'HH:mm'],
     ];
 
     $form['location'] = [
