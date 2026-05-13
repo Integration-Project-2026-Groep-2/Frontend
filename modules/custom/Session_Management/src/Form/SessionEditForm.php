@@ -137,10 +137,12 @@ class SessionEditForm extends FormBase {
     $endTime   = $this->extractTime($form_state->getValue('endTime'));
 
     if (!$startTime) {
-      $form_state->setErrorByName('startTime', $this->t('Start time is required.'));
+      $raw = var_export($form_state->getValue('startTime'), TRUE);
+      $form_state->setErrorByName('startTime', $this->t('Start time is required (Received: @val).', ['@val' => $raw]));
     }
     if (!$endTime) {
-      $form_state->setErrorByName('endTime', $this->t('End time is required.'));
+      $raw = var_export($form_state->getValue('endTime'), TRUE);
+      $form_state->setErrorByName('endTime', $this->t('End time is required (Received: @val).', ['@val' => $raw]));
     }
 
     if ($startTime && $endTime && $startTime >= $endTime) {
@@ -152,11 +154,16 @@ class SessionEditForm extends FormBase {
    * Helper to extract time string from Drupal form value (handles string or array).
    */
   private function extractTime($value): ?string {
-    if (is_string($value)) {
-      return $value ?: NULL;
+    if (is_string($value) && !empty($value)) {
+      return $value;
     }
-    if (is_array($value) && isset($value['hour'], $value['minute'])) {
-      return sprintf('%02d:%02d', $value['hour'], $value['minute']);
+    if (is_array($value)) {
+      if (isset($value['time']) && is_string($value['time'])) {
+        return $value['time'];
+      }
+      if (isset($value['hour'], $value['minute'])) {
+        return sprintf('%02d:%02d', $value['hour'], $value['minute']);
+      }
     }
     return NULL;
   }
