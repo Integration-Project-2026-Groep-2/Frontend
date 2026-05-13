@@ -134,7 +134,14 @@ class SessionEditForm extends FormBase {
    */
   public function validateForm(array &$form, FormStateInterface $form_state): void {
     $startTime = $form_state->getValue('startTime');
-    $endTime = $form_state->getValue('endTime');
+    $endTime   = $form_state->getValue('endTime');
+
+    if (!$startTime) {
+      $form_state->setErrorByName('startTime', $this->t('Start time is required.'));
+    }
+    if (!$endTime) {
+      $form_state->setErrorByName('endTime', $this->t('End time is required.'));
+    }
 
     if ($startTime && $endTime && $startTime >= $endTime) {
       $form_state->setErrorByName('endTime', $this->t('End time must be after start time.'));
@@ -148,13 +155,24 @@ class SessionEditForm extends FormBase {
     $sessionId = $form_state->getValue('sessionId');
     $title     = $form_state->getValue('title');
     
+    $startTime = $form_state->getValue('startTime');
+    if ($startTime && strlen($startTime) === 5) {
+      $startTime .= ':00';
+    }
+    $endTime = $form_state->getValue('endTime');
+    if ($endTime && strlen($endTime) === 5) {
+      $endTime .= ':00';
+    }
+    
     $message = new PlanningSessionUpdatedMessage(
-      sessionId:   $sessionId,
-      sessionName: $title,
-      changeType:  'updated',
-      newTime:     $form_state->getValue('date') . ' ' . $form_state->getValue('startTime') . ':00',
-      newLocation: $form_state->getValue('location'),
-      timestamp:   (new \DateTime())->format(\DateTime::ISO8601),
+      sessionId:    $sessionId,
+      sessionName:  $title,
+      changeType:   'updated',
+      newTime:      $form_state->getValue('date') . ' ' . $startTime,
+      newStartTime: $startTime,
+      newEndTime:   $endTime,
+      newLocation:  $form_state->getValue('location'),
+      timestamp:    (new \DateTime())->format(\DateTime::ATOM),
     );
 
     $client = RabbitMQClient::fromEnv();

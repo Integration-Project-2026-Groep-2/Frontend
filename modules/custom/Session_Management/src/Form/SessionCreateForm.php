@@ -131,9 +131,9 @@ class SessionCreateForm extends FormBase {
    */
   protected function getLocationOptions(): array {
     return [
-      'campus_kaai_c_1_1' => $this->t('Campus Kaai, blok C, verdieping 1, lokaal 1'),
-      'campus_kaai_c_1_2' => $this->t('Campus Kaai, blok C, verdieping 1, lokaal 2'),
-      'campus_kaai_c_1_3' => $this->t('Campus Kaai, blok C, verdieping 1, lokaal 3'),
+      '85a6a68b-5779-4a41-893c-913a891636c1' => $this->t('Campus Kaai, blok C, verdieping 1, lokaal 1'),
+      'b1e9e0d1-0f7e-4e8c-b4b1-6e7d8f9a0b1c' => $this->t('Campus Kaai, blok C, verdieping 1, lokaal 2'),
+      'c2f0f1e2-1e8f-5f9d-c5c2-7f8e9a0b1c2d' => $this->t('Campus Kaai, blok C, verdieping 1, lokaal 3'),
     ];
   }
 
@@ -163,6 +163,13 @@ class SessionCreateForm extends FormBase {
     $startTime = $form_state->getValue('startTime');
     $endTime   = $form_state->getValue('endTime');
 
+    if (!$startTime) {
+      $form_state->setErrorByName('startTime', $this->t('Start time is required.'));
+    }
+    if (!$endTime) {
+      $form_state->setErrorByName('endTime', $this->t('End time is required.'));
+    }
+
     if ($startTime && $endTime && $startTime >= $endTime) {
       $form_state->setErrorByName('endTime', $this->t('End time must be after start time.'));
     }
@@ -170,12 +177,16 @@ class SessionCreateForm extends FormBase {
 
   public function submitForm(array &$form, FormStateInterface $form_state): void {
     $date      = $form_state->getValue('date');
-    $startTime = $form_state->getValue('startTime');
-    $endTime   = $form_state->getValue('endTime');
-    $speakerId = $form_state->getValue('speaker') ?: NULL;
+    $startTime = $form_state->getValue('startTime') ?: NULL;
+    if ($startTime && strlen($startTime) === 5) {
+      $startTime .= ':00';
+    }
+    $endTime = $form_state->getValue('endTime') ?: NULL;
+    if ($endTime && strlen($endTime) === 5) {
+      $endTime .= ':00';
+    }
 
-    // Resolve speaker UUID — planning verwacht een UUID, niet een e-mail.
-    // TODO: vervang door echte planning UUID als die beschikbaar is.
+    $speakerId = $form_state->getValue('speaker') ?: NULL;
     $speakerUuid = NULL;
     if ($speakerId) {
       $speaker = \Drupal::entityTypeManager()->getStorage('user')->load($speakerId);
@@ -184,16 +195,21 @@ class SessionCreateForm extends FormBase {
       }
     }
 
+    $locationId = $form_state->getValue('location') ?: NULL;
+    $locationOptions = $this->getLocationOptions();
+    $locationLabel = $locationId && isset($locationOptions[$locationId]) ? $locationOptions[$locationId] : NULL;
+
     $message = new PlanningSessionCreatedMessage(
       title:      $form_state->getValue('title'),
       date:       $date,
-      startTime:  $startTime . ':00',
-      endTime:    $endTime . ':00',
+      startTime:  $startTime,
+      endTime:    $endTime,
       capacity:   (int) $form_state->getValue('capacity'),
-      locationId: $form_state->getValue('location') ?: NULL,
+      locationId: $locationId,
+      location:   $locationLabel,
       speakerId:  $speakerUuid,
       status:     $form_state->getValue('status'),
-      timestamp:  (new \DateTime())->format(\DateTime::ISO8601),
+      timestamp:  (new \DateTime())->format(\DateTime::ATOM),
     );
 
     $client = RabbitMQClient::fromEnv();

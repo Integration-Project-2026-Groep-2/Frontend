@@ -15,19 +15,30 @@ final class PlanningSessionUpdatedMessage extends Planning {
     private readonly string  $sessionId,
     private readonly string  $sessionName,
     private readonly string  $changeType,
-    private readonly ?string $newTime     = NULL,
+    private readonly ?string $newTime      = NULL,
+    private readonly ?string $newStartTime = NULL,
+    private readonly ?string $newEndTime   = NULL,
     private readonly ?string $newLocation  = NULL,
     private readonly ?string $timestamp    = NULL,
   ) {}
 
   public function toXml(): string {
     $xml = new SimpleXMLElement('<SessionUpdated/>');
+    if (!self::isValidUuid($this->sessionId)) {
+        throw new \InvalidArgumentException("Invalid UUID for sessionId: " . $this->sessionId);
+    }
     $xml->addChild('sessionId',   $this->sessionId);
     $xml->addChild('sessionName', htmlspecialchars($this->sessionName));
     $xml->addChild('changeType',  $this->changeType);
 
     if ($this->newTime !== NULL) {
       $xml->addChild('newTime', $this->newTime);
+    }
+    if ($this->newStartTime !== NULL) {
+      $xml->addChild('newStartTime', $this->newStartTime);
+    }
+    if ($this->newEndTime !== NULL) {
+      $xml->addChild('newEndTime', $this->newEndTime);
     }
     if ($this->newLocation !== NULL) {
       $xml->addChild('newLocation', htmlspecialchars($this->newLocation));
