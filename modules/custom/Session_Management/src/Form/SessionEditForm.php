@@ -5,6 +5,8 @@ namespace Drupal\session_management\Form;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\hello_world\RabbitMQ\Message\Planning\PlanningSessionUpdatedMessage;
+use Drupal\hello_world\RabbitMQ\RabbitMQClient;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -143,12 +145,35 @@ class SessionEditForm extends FormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state): void {
-    $this->messenger->addMessage($this->t('Session "@title" updated successfully.', [
-      '@title' => $form_state->getValue('title'),
-    ]));
+    $sessionId = $form_state->getValue('sessionId');
+    $title     = $form_state->getValue('title');
+    
+    $message = new PlanningSessionUpdatedMessage(
+      sessionId:   $sessionId,
+      sessionName: $title,
+      changeType:  'updated',
+      newTime:     $form_state->getValue('date') . ' ' . $form_state->getValue('startTime') . ':00',
+      newLocation: $form_state->getValue('location'),
+      timestamp:   (new \DateTime())->format(\DateTime::ISO8601),
+    );
 
-    // TODO: Update session data via RabbitMQ or database.
-    $form_state->setRedirect('session_management.list');
+    $client = RabbitMQClient::fromEnv();
+    try {
+      $client->publish($message);
+      $this->messenger->addStatus($this->t('Session "@title" updated and sent to planning.', [
+        '@title' => $title,
+      ]));
+      $form_state->setRedirect('session_management.list');
+    }
+    catch (\RuntimeException $e) {
+      \Drupal::logger('session_management')->error(
+        'RabbitMQ session update failed: @err', ['@err' => $e->getMessage()]
+      );
+      $this->messenger->addError($this->t('Update could not be sent to planning. Please try again.'));
+    }
+    finally {
+      $client->disconnect();
+    }
   }
 
 }
