@@ -40,10 +40,8 @@ jobs:
           composer require --dev \
             "squizlabs/php_codesniffer:^3" \
             "drupal/coder:^8" \
+            "slevomat/coding-standard:^8" \
             --no-interaction --no-progress --quiet
-
-      - name: Registreer Drupal coding standaard
-        run: ./vendor/bin/phpcs --config-set installed_paths vendor/drupal/coder/coder_sniffer
 
       - name: Controleer coding standards (Drupal standaard)
         run: |
