@@ -52,40 +52,49 @@ jobs:
 
   # ─────────────────────────────────────────────────────────────
   # JOB 2: Unit Tests
-  # Draait pas NA lint — geen database nodig
+  # Draait pas NA lint — verse Drupal installatie via composer
   # ─────────────────────────────────────────────────────────────
   unit-tests:
     name: Unit Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 25
     needs: lint
     permissions:
       contents: read
-    container:
-      image: drupal:11
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Installeer test-dependencies
-        working-directory: /opt/drupal
+      - name: Setup PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+          extensions: pdo_sqlite, sqlite3, gd, xml, mbstring, intl
+
+      - name: Cache Composer downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-drupal11-unit-${{ github.run_id }}
+          restore-keys: composer-drupal11-
+
+      - name: Maak Drupal testomgeving
         run: |
-          composer install --no-interaction --no-progress --quiet
-          composer require --dev \
-            "phpspec/prophecy-phpunit:^2" \
-            --no-interaction --no-progress --quiet
+          composer create-project drupal/recommended-project:^11 /opt/drupal \
+            --no-interaction --no-progress --prefer-dist
 
       - name: Kopieer custom modules
-        run: cp -r $GITHUB_WORKSPACE/modules/custom /opt/drupal/web/modules/custom
+        run: |
+          mkdir -p /opt/drupal/web/modules/custom
+          cp -r $GITHUB_WORKSPACE/modules/custom/. /opt/drupal/web/modules/custom/
 
       - name: Kopieer XSD schemas
         run: cp -r $GITHUB_WORKSPACE/xsd /opt/drupal/xsd
 
-      - name: Kopieer phpunit.xml en bootstrap
-        run: |
-          cp $GITHUB_WORKSPACE/phpunit.xml /opt/drupal/phpunit.xml
-          cp $GITHUB_WORKSPACE/tests_bootstrap.php /opt/drupal/tests_bootstrap.php
+      - name: Kopieer phpunit.xml
+        run: cp $GITHUB_WORKSPACE/phpunit.xml /opt/drupal/phpunit.xml
 
       - name: Voer unit tests uit
         working-directory: /opt/drupal
@@ -100,37 +109,46 @@ jobs:
 
   # ─────────────────────────────────────────────────────────────
   # JOB 3: Integration Tests
-  # Draait parallel met unit-tests NA lint — gebruikt SQLite
+  # Draait parallel met unit-tests NA lint — SQLite kernel tests
   # ─────────────────────────────────────────────────────────────
   integration:
     name: Integration Tests
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 25
     needs: lint
     permissions:
       contents: read
-    container:
-      image: drupal:11
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Installeer test-dependencies
-        working-directory: /opt/drupal
+      - name: Setup PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+          extensions: pdo_sqlite, sqlite3, gd, xml, mbstring, intl
+
+      - name: Cache Composer downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.composer/cache
+          key: composer-drupal11-integration-${{ github.run_id }}
+          restore-keys: composer-drupal11-
+
+      - name: Maak Drupal testomgeving
         run: |
-          composer install --no-interaction --no-progress --quiet
-          composer require --dev \
-            "phpspec/prophecy-phpunit:^2" \
-            --no-interaction --no-progress --quiet
+          composer create-project drupal/recommended-project:^11 /opt/drupal \
+            --no-interaction --no-progress --prefer-dist
 
       - name: Kopieer custom modules
-        run: cp -r $GITHUB_WORKSPACE/modules/custom /opt/drupal/web/modules/custom
-
-      - name: Kopieer phpunit.xml en bootstrap
         run: |
-          cp $GITHUB_WORKSPACE/phpunit.xml /opt/drupal/phpunit.xml
-          cp $GITHUB_WORKSPACE/tests_bootstrap.php /opt/drupal/tests_bootstrap.php
+          mkdir -p /opt/drupal/web/modules/custom
+          cp -r $GITHUB_WORKSPACE/modules/custom/. /opt/drupal/web/modules/custom/
+
+      - name: Kopieer phpunit.xml
+        run: cp $GITHUB_WORKSPACE/phpunit.xml /opt/drupal/phpunit.xml
 
       - name: Voer integration tests uit
         working-directory: /opt/drupal
