@@ -34,6 +34,11 @@ function shift_bezoeker_theme($existing, $type, $theme, $path) {
     'home_template' => [
       'variables' => [],
     ],
+    'account_verwijderd' => [
+      'variables' => [],
+      'template' => 'account-verwijderd',
+      'path' => $path . '/templates',
+    ],
   ];
 }
 
