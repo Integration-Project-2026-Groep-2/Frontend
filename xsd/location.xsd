@@ -10,7 +10,7 @@
   <xs:element name="LocationCreated">
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="locationId" type="xs:string"   minOccurs="0"/>
+        <xs:element name="locationId" type="xs:string"/>
         <xs:element name="roomName"   type="xs:string"/>
         <xs:element name="capacity"   type="xs:int"/>
         <xs:element name="address"    type="xs:string"   minOccurs="0"/>

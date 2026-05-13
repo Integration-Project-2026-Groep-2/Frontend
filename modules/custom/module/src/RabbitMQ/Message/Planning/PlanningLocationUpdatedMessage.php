@@ -7,7 +7,7 @@ use SimpleXMLElement;
 /**
  * Contract: planning.location.updated
  * Routing:  frontend.location.updated
- * Element:  FrontendLocationUpdated
+ * Element:  LocationUpdated
  *
  * status: beschikbaar | onbeschikbaar | maintenance | reserved
  */

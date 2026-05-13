@@ -253,7 +253,10 @@ class SessionCreateForm extends FormBase {
         ])
         ->execute();
       
-      $this->messenger->addStatus($this->t('Session "@title" saved to database.', ['@title' => $title]));
+      $this->messenger->addStatus($this->t('Session "@title" saved to database (Location ID: @loc).', [
+        '@title' => $title,
+        '@loc' => $locationId ?: 'None',
+      ]));
     }
     catch (\Exception $e) {
       \Drupal::logger('session_management')->error('Failed to save session to DB: @err', ['@err' => $e->getMessage()]);
@@ -261,6 +264,7 @@ class SessionCreateForm extends FormBase {
     }
 
     $message = new PlanningSessionCreatedMessage(
+      sessionId:  $sessionUuid,
       title:      $title,
       date:       $date,
       startTime:  $startTime,

@@ -12,6 +12,7 @@ use SimpleXMLElement;
 final class PlanningSessionCreatedMessage extends Planning {
 
   public function __construct(
+    private readonly string  $sessionId,
     private readonly string  $title,
     private readonly string  $date,       // Y-m-d
     private readonly ?string $startTime,  // H:i:s
@@ -26,6 +27,7 @@ final class PlanningSessionCreatedMessage extends Planning {
 
   public function toXml(): string {
     $xml = new SimpleXMLElement('<SessionCreated/>');
+    $xml->addChild('sessionId', $this->sessionId);
     $xml->addChild('title',    htmlspecialchars($this->title));
     $xml->addChild('date',     $this->date);
     if ($this->startTime !== NULL) {

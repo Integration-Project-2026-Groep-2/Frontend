@@ -79,7 +79,10 @@ class LocationCreateForm extends FormBase {
         ])
         ->execute();
 
-      $this->messenger()->addStatus($this->t('Location "@name" saved to database.', ['@name' => $roomName]));
+      $this->messenger()->addStatus($this->t('Location "@name" saved to database with ID: @id', [
+        '@name' => $roomName,
+        '@id' => $locationUuid,
+      ]));
     }
     catch (\Exception $e) {
       \Drupal::logger('session_management')->error('Failed to save location to DB: @err', ['@err' => $e->getMessage()]);

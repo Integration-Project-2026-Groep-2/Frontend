@@ -7,7 +7,7 @@ use SimpleXMLElement;
 /**
  * Contract: planning.location.created
  * Routing:  frontend.location.created
- * Element:  FrontendLocationCreated
+ * Element:  LocationCreated
  */
 final class PlanningLocationCreatedMessage extends Planning {
 
@@ -20,9 +20,7 @@ final class PlanningLocationCreatedMessage extends Planning {
 
   public function toXml(): string {
     $xml = new SimpleXMLElement('<LocationCreated/>');
-    if ($this->locationId !== NULL) {
-      $xml->addChild('locationId', $this->locationId);
-    }
+    $xml->addChild('locationId', $this->locationId);
     $xml->addChild('roomName', htmlspecialchars($this->roomName));
     $xml->addChild('capacity', (string) $this->capacity);
 
