@@ -133,8 +133,8 @@ class SessionEditForm extends FormBase {
    * {@inheritdoc}
    */
   public function validateForm(array &$form, FormStateInterface $form_state): void {
-    $startTime = $form_state->getValue('startTime');
-    $endTime   = $form_state->getValue('endTime');
+    $startTime = $this->extractTime($form_state->getValue('startTime'));
+    $endTime   = $this->extractTime($form_state->getValue('endTime'));
 
     if (!$startTime) {
       $form_state->setErrorByName('startTime', $this->t('Start time is required.'));
@@ -149,17 +149,30 @@ class SessionEditForm extends FormBase {
   }
 
   /**
+   * Helper to extract time string from Drupal form value (handles string or array).
+   */
+  private function extractTime($value): ?string {
+    if (is_string($value)) {
+      return $value ?: NULL;
+    }
+    if (is_array($value) && isset($value['hour'], $value['minute'])) {
+      return sprintf('%02d:%02d', $value['hour'], $value['minute']);
+    }
+    return NULL;
+  }
+
+  /**
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state): void {
     $sessionId = $form_state->getValue('sessionId');
     $title     = $form_state->getValue('title');
-    
-    $startTime = $form_state->getValue('startTime');
+
+    $startTime = $this->extractTime($form_state->getValue('startTime'));
     if ($startTime && strlen($startTime) === 5) {
       $startTime .= ':00';
     }
-    $endTime = $form_state->getValue('endTime');
+    $endTime = $this->extractTime($form_state->getValue('endTime'));
     if ($endTime && strlen($endTime) === 5) {
       $endTime .= ':00';
     }
