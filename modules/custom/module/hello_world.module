@@ -56,3 +56,14 @@ function hello_world_user_delete(\Drupal\user\UserInterface $account) {
   $publisher = new \Drupal\hello_world\RabbitMQ\Publisher\UserUpdatedPublisher($account, 'cancelled');
   $publisher->publish();
 }
+
+/**
+ * Implements hook_theme().
+ */
+function hello_world_theme($existing, $type, $theme, $path) {
+  return [
+    'bespreker_dashboard' => [
+      'variables' => ['user_name' => NULL],
+    ],
+  ];
+}
