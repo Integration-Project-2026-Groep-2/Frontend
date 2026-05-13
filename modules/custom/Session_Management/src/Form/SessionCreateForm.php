@@ -191,6 +191,7 @@ class SessionCreateForm extends FormBase {
   }
 
   public function submitForm(array &$form, FormStateInterface $form_state): void {
+    $this->messenger->addStatus($this->t('Processing session creation...'));
     $date      = $form_state->getValue('date');
     $startTime = $this->extractTime($form_state->getValue('startTime'));
     if ($startTime && strlen($startTime) === 5) {
