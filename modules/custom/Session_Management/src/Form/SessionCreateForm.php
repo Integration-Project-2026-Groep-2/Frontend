@@ -163,6 +163,13 @@ class SessionCreateForm extends FormBase {
     $startTime = $form_state->getValue('startTime');
     $endTime   = $form_state->getValue('endTime');
 
+    if (!$startTime) {
+      $form_state->setErrorByName('startTime', $this->t('Start time is required.'));
+    }
+    if (!$endTime) {
+      $form_state->setErrorByName('endTime', $this->t('End time is required.'));
+    }
+
     if ($startTime && $endTime && $startTime >= $endTime) {
       $form_state->setErrorByName('endTime', $this->t('End time must be after start time.'));
     }
