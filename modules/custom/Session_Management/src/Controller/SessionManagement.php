@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\Session_Management\Controller;
+namespace Drupal\session_management\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Url;

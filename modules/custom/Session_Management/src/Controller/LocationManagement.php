@@ -40,7 +40,7 @@ class LocationManagement extends ControllerBase {
             'data' => [
               '#type' => 'link',
               '#title' => $this->t('Edit'),
-              '#url' => Url::fromRoute('session_management.location.create', ['locationId' => $location->location_id]),
+              '#url' => Url::fromRoute('session_management.location.edit', ['locationId' => $location->location_id]),
               '#attributes' => ['class' => ['button', 'button--small']],
             ],
           ],
