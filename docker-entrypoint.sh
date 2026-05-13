@@ -85,6 +85,14 @@ else
   php /opt/drupal/consumer.php confirmed   &
   php /opt/drupal/consumer.php updated     &
   php /opt/drupal/consumer.php deactivated &
+  php /opt/drupal/consumer.php session_created &
+  php /opt/drupal/consumer.php session_updated &
+  php /opt/drupal/consumer.php session_rescheduled &
+  php /opt/drupal/consumer.php session_cancelled &
+  php /opt/drupal/consumer.php session_full &
+  php /opt/drupal/consumer.php location_created &
+  php /opt/drupal/consumer.php location_updated &
+  php /opt/drupal/consumer.php location_deleted &
   php /opt/drupal/ai_incident_consumer.php &
 fi
 
