@@ -35,11 +35,11 @@ final class PlanningSessionCreatedMessage extends Planning {
     if ($this->locationId !== NULL && self::isValidUuid($this->locationId)) {
       $xml->addChild('locationId', $this->locationId);
     }
-    if ($this->location !== NULL) {
-      $xml->addChild('location', htmlspecialchars($this->location));
-    }
     if ($this->speakerId !== NULL && self::isValidUuid($this->speakerId)) {
       $xml->addChild('speakerId', $this->speakerId);
+    }
+    if ($this->location !== NULL) {
+      $xml->addChild('location', htmlspecialchars($this->location));
     }
     if ($this->status !== NULL) {
       $xml->addChild('status', $this->status);
