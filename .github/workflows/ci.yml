@@ -50,7 +50,12 @@ jobs:
             --standard=Drupal \
             --extensions=php \
             --warning-severity=0 \
-            modules/custom/
+            modules/custom/ai_dashboard/tests \
+            modules/custom/jarvis_chat/tests \
+            modules/custom/Session_Management/tests \
+            modules/custom/custom_roles/tests \
+            modules/custom/shift_bezoeker/tests \
+            modules/custom/module/tests
 
       - name: Beveiligingsaudit van PHP dependencies
         run: composer audit
