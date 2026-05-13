@@ -16,14 +16,14 @@ class LocationManagement extends ControllerBase {
     $rows = [];
     try {
       $database = \Drupal::database();
-      $query = $database->select('Location', 'l')
-        ->fields('l', ['locationId', 'roomName', 'capacity', 'address', 'status'])
-        ->orderBy('roomName', 'ASC');
+      $query = $database->select('location', 'l')
+        ->fields('l', ['location_id', 'room_name', 'capacity', 'address', 'status'])
+        ->orderBy('room_name', 'ASC');
       $results = $query->execute()->fetchAll();
 
       foreach ($results as $location) {
         $rows[] = [
-          $location->roomName,
+          $location->room_name,
           $location->capacity,
           $location->address ?: '-',
           $location->status,
@@ -31,7 +31,7 @@ class LocationManagement extends ControllerBase {
             'data' => [
               '#type' => 'link',
               '#title' => $this->t('Edit'),
-              '#url' => Url::fromRoute('session_management.location.create', ['locationId' => $location->locationId]),
+              '#url' => Url::fromRoute('session_management.location.create', ['locationId' => $location->location_id]),
               '#attributes' => ['class' => ['button', 'button--small']],
             ],
           ],

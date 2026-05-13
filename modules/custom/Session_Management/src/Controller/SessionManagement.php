@@ -12,27 +12,24 @@ class SessionManagement extends ControllerBase {
     try {
       $database = \Drupal::database();
       
-      // We join with Location to get the room name.
-      // Note: Speaker joining is more complex if there are multiple speakers per session.
-      // For now, we'll fetch basic session data and join Location.
-      $query = $database->select('Session', 's');
-      $query->leftJoin('Location', 'l', 's.locationId = l.locationId');
-      $query->fields('s', ['sessionId', 'title', 'date', 'startTime', 'endTime', 'capacity', 'status'])
-        ->fields('l', ['roomName'])
+      $query = $database->select('session', 's');
+      $query->leftJoin('location', 'l', 's.location_id = l.location_id');
+      $query->fields('s', ['session_id', 'title', 'date', 'start_time', 'end_time', 'capacity', 'status'])
+        ->fields('l', ['room_name'])
         ->orderBy('s.date', 'ASC')
-        ->orderBy('s.startTime', 'ASC');
+        ->orderBy('s.start_time', 'ASC');
       
       $results = $query->execute()->fetchAll();
 
       foreach ($results as $session) {
-        $edit_url = Url::fromRoute('session_management.edit', ['sessionId' => $session->sessionId]);
+        $edit_url = Url::fromRoute('session_management.edit', ['sessionId' => $session->session_id]);
         
         $rows[] = [
           $session->title,
-          $session->date . ' ' . $session->startTime,
-          $session->endTime,
-          $session->roomName ?: '-',
-          '-', // Speaker column (TODO: join with Speaker table)
+          $session->date . ' ' . $session->start_time,
+          $session->end_time,
+          $session->room_name ?: '-',
+          '-',
           $session->capacity,
           [
             'data' => [

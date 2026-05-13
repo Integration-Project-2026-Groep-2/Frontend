@@ -136,14 +136,14 @@ class SessionCreateForm extends FormBase {
   protected function getLocationOptions(): array {
     $options = [];
     try {
-      $results = \Drupal::database()->select('Location', 'l')
-        ->fields('l', ['locationId', 'roomName'])
-        ->orderBy('roomName', 'ASC')
+      $results = \Drupal::database()->select('location', 'l')
+        ->fields('l', ['location_id', 'room_name'])
+        ->orderBy('room_name', 'ASC')
         ->execute()
         ->fetchAll();
 
       foreach ($results as $location) {
-        $options[$location->locationId] = $location->roomName;
+        $options[$location->location_id] = $location->room_name;
       }
     }
     catch (\Exception $e) {
@@ -239,17 +239,17 @@ class SessionCreateForm extends FormBase {
     $title = $form_state->getValue('title');
 
     try {
-      \Drupal::database()->insert('Session')
+      \Drupal::database()->insert('session')
         ->fields([
-          'sessionId'   => $sessionUuid,
-          'title'       => $title,
-          'date'        => $date,
-          'startTime'   => $startTime,
-          'endTime'     => $endTime,
-          'locationId'  => $locationId,
-          'capacity'    => (int) $form_state->getValue('capacity'),
-          'status'      => $form_state->getValue('status'),
-          'syncStatus'  => 'pending',
+          'session_id'   => $sessionUuid,
+          'title'        => $title,
+          'date'         => $date,
+          'start_time'   => $startTime,
+          'end_time'     => $endTime,
+          'location_id'  => $locationId,
+          'capacity'     => (int) $form_state->getValue('capacity'),
+          'status'       => $form_state->getValue('status'),
+          'sync_status'  => 'pending',
         ])
         ->execute();
       

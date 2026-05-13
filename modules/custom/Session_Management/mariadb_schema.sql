@@ -1,97 +1,107 @@
--- MariaDB Schema for Frontend Service
--- Converted from PostgreSQL schema.sql
+-- MariaDB Schema for Frontend Service (Lowercase Version)
+-- Converted from PostgreSQL schema.sql and normalized to lowercase
 
-CREATE TABLE IF NOT EXISTS {Location} (
-    locationId  VARCHAR(36)  PRIMARY KEY,
-    roomName    VARCHAR(100) NOT NULL UNIQUE,
+-- Drop existing tables if they exist (with prefixes if run via Drush)
+DROP TABLE IF EXISTS {session_speaker};
+DROP TABLE IF EXISTS {registration};
+DROP TABLE IF EXISTS {session_change_log};
+DROP TABLE IF EXISTS {session};
+DROP TABLE IF EXISTS {location};
+DROP TABLE IF EXISTS {speaker};
+DROP TABLE IF EXISTS {participant};
+DROP TABLE IF EXISTS {processed_messages};
+DROP TABLE IF EXISTS {frontend_user};
+
+CREATE TABLE {location} (
+    location_id VARCHAR(36)  PRIMARY KEY,
+    room_name   VARCHAR(100) NOT NULL UNIQUE,
     address     VARCHAR(255),
     capacity    INT          NOT NULL,
     status      VARCHAR(50)  NOT NULL DEFAULT 'beschikbaar'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS {Speaker} (
-    speakerId   VARCHAR(36)  PRIMARY KEY,
-    crmMasterId VARCHAR(36),
-    firstName   VARCHAR(100) NOT NULL,
-    lastName    VARCHAR(100) NOT NULL,
-    email       VARCHAR(255) NOT NULL UNIQUE,
-    phoneNumber VARCHAR(20),
-    company     VARCHAR(255),
-    isActive    BOOLEAN      NOT NULL DEFAULT true,
-    gdprConsent BOOLEAN      NOT NULL DEFAULT false
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS {Session} (
-    sessionId      VARCHAR(36)  PRIMARY KEY,
-    title          VARCHAR(255) NOT NULL,
-    description    TEXT,
-    date           DATE         NOT NULL,
-    startTime      TIME         NOT NULL,
-    endTime        TIME         NOT NULL,
-    status         VARCHAR(50)  NOT NULL DEFAULT 'concept',
-    locationId     VARCHAR(36),
-    capacity       INT          NOT NULL,
-    syncStatus     VARCHAR(50)  NOT NULL DEFAULT 'pending',
-    outlookEventId VARCHAR(255),
-    FOREIGN KEY (locationId) REFERENCES {Location}(locationId) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS {SessionSpeaker} (
-    sessionSpeakerId VARCHAR(36)  PRIMARY KEY,
-    sessionId        VARCHAR(36)  NOT NULL,
-    speakerId        VARCHAR(36)  NOT NULL,
-    role             VARCHAR(100),
-    confirmed        BOOLEAN      NOT NULL DEFAULT false,
-    FOREIGN KEY (sessionId) REFERENCES {Session}(sessionId) ON DELETE CASCADE,
-    FOREIGN KEY (speakerId) REFERENCES {Speaker}(speakerId) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-CREATE TABLE IF NOT EXISTS {Participant} (
-    participantId VARCHAR(36)  PRIMARY KEY,
-    firstName     VARCHAR(100) NOT NULL,
-    lastName      VARCHAR(100) NOT NULL,
-    email         VARCHAR(255) NOT NULL,
+CREATE TABLE {speaker} (
+    speaker_id    VARCHAR(36)  PRIMARY KEY,
+    crm_master_id VARCHAR(36),
+    first_name    VARCHAR(100) NOT NULL,
+    last_name     VARCHAR(100) NOT NULL,
+    email         VARCHAR(255) NOT NULL UNIQUE,
+    phone_number  VARCHAR(20),
     company       VARCHAR(255),
-    crmMasterId   VARCHAR(36),
-    gdprConsent   BOOLEAN      NOT NULL DEFAULT false
+    is_active     BOOLEAN      NOT NULL DEFAULT true,
+    gdpr_consent  BOOLEAN      NOT NULL DEFAULT false
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS {Registration} (
-    registrationId   VARCHAR(36)  PRIMARY KEY,
-    sessionId        VARCHAR(36)  NOT NULL,
-    participantId    VARCHAR(36)  NOT NULL,
-    crmMasterId      VARCHAR(36),
-    registrationTime TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (sessionId) REFERENCES {Session}(sessionId) ON DELETE CASCADE,
-    FOREIGN KEY (participantId) REFERENCES {Participant}(participantId) ON DELETE CASCADE
+CREATE TABLE {session} (
+    session_id       VARCHAR(36)  PRIMARY KEY,
+    title            VARCHAR(255) NOT NULL,
+    description      TEXT,
+    date             DATE         NOT NULL,
+    start_time       TIME         NOT NULL,
+    end_time         TIME         NOT NULL,
+    status           VARCHAR(50)  NOT NULL DEFAULT 'concept',
+    location_id      VARCHAR(36),
+    capacity         INT          NOT NULL,
+    sync_status      VARCHAR(50)  NOT NULL DEFAULT 'pending',
+    outlook_event_id VARCHAR(255),
+    FOREIGN KEY (location_id) REFERENCES {location}(location_id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS {SessionChangeLog} (
-    logId        VARCHAR(36)  PRIMARY KEY,
-    sessionId    VARCHAR(36)  NOT NULL,
-    oldStartTime DATETIME,
-    newStartTime DATETIME,
-    oldEndTime   DATETIME,
-    newEndTime   DATETIME,
-    reason       TEXT,
-    changedAt    TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    changedBy    VARCHAR(255),
-    FOREIGN KEY (sessionId) REFERENCES {Session}(sessionId) ON DELETE CASCADE
+CREATE TABLE {session_speaker} (
+    session_speaker_id VARCHAR(36)  PRIMARY KEY,
+    session_id         VARCHAR(36)  NOT NULL,
+    speaker_id         VARCHAR(36)  NOT NULL,
+    role               VARCHAR(100),
+    confirmed          BOOLEAN      NOT NULL DEFAULT false,
+    FOREIGN KEY (session_id) REFERENCES {session}(session_id) ON DELETE CASCADE,
+    FOREIGN KEY (speaker_id) REFERENCES {speaker}(speaker_id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS {ProcessedMessages} (
-    messageId   VARCHAR(255) PRIMARY KEY,
-    processedAt TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE {participant} (
+    participant_id VARCHAR(36)  PRIMARY KEY,
+    first_name     VARCHAR(100) NOT NULL,
+    last_name      VARCHAR(100) NOT NULL,
+    email          VARCHAR(255) NOT NULL,
+    company        VARCHAR(255),
+    crm_master_id  VARCHAR(36),
+    gdpr_consent   BOOLEAN      NOT NULL DEFAULT false
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-CREATE TABLE IF NOT EXISTS {FrontendUser} (
-    userId      VARCHAR(36)  PRIMARY KEY,
-    firstName   VARCHAR(100) NOT NULL,
-    lastName    VARCHAR(100) NOT NULL,
-    email       VARCHAR(255) NOT NULL UNIQUE,
-    role        VARCHAR(50)  NOT NULL,
-    company     VARCHAR(255),
-    isActive    BOOLEAN      NOT NULL DEFAULT true,
-    crmMasterId VARCHAR(36)
+CREATE TABLE {registration} (
+    registration_id   VARCHAR(36)  PRIMARY KEY,
+    session_id        VARCHAR(36)  NOT NULL,
+    participant_id    VARCHAR(36)  NOT NULL,
+    crm_master_id     VARCHAR(36),
+    registration_time TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (session_id) REFERENCES {session}(session_id) ON DELETE CASCADE,
+    FOREIGN KEY (participant_id) REFERENCES {participant}(participant_id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE {session_change_log} (
+    log_id         VARCHAR(36)  PRIMARY KEY,
+    session_id     VARCHAR(36)  NOT NULL,
+    old_start_time DATETIME,
+    new_start_time DATETIME,
+    old_end_time   DATETIME,
+    new_end_time   DATETIME,
+    reason         TEXT,
+    changed_at     TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    changed_by     VARCHAR(255),
+    FOREIGN KEY (session_id) REFERENCES {session}(session_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE {processed_messages} (
+    message_id   VARCHAR(255) PRIMARY KEY,
+    processed_at TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE {frontend_user} (
+    user_id       VARCHAR(36)  PRIMARY KEY,
+    first_name    VARCHAR(100) NOT NULL,
+    last_name     VARCHAR(100) NOT NULL,
+    email         VARCHAR(255) NOT NULL UNIQUE,
+    role          VARCHAR(50)  NOT NULL,
+    company       VARCHAR(255),
+    is_active     BOOLEAN      NOT NULL DEFAULT true,
+    crm_master_id VARCHAR(36)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

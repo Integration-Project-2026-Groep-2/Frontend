@@ -45,9 +45,9 @@ class SessionEditForm extends FormBase {
     $sessionData = [];
     if ($sessionId) {
       try {
-        $sessionData = (array) \Drupal::database()->select('Session', 's')
+        $sessionData = (array) \Drupal::database()->select('session', 's')
           ->fields('s')
-          ->condition('sessionId', $sessionId)
+          ->condition('session_id', $sessionId)
           ->execute()
           ->fetchAssoc();
       }
@@ -64,7 +64,7 @@ class SessionEditForm extends FormBase {
     $form['sessionId'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Session ID'),
-      '#default_value' => $sessionData['sessionId'],
+      '#default_value' => $sessionData['session_id'],
       '#disabled' => TRUE,
     ];
 
@@ -87,7 +87,7 @@ class SessionEditForm extends FormBase {
       '#type' => 'textfield',
       '#title' => $this->t('Start Time'),
       '#required' => TRUE,
-      '#default_value' => substr($sessionData['startTime'], 0, 5),
+      '#default_value' => substr($sessionData['start_time'], 0, 5),
       '#attributes' => ['placeholder' => 'HH:mm'],
     ];
 
@@ -95,7 +95,7 @@ class SessionEditForm extends FormBase {
       '#type' => 'textfield',
       '#title' => $this->t('End Time'),
       '#required' => TRUE,
-      '#default_value' => substr($sessionData['endTime'], 0, 5),
+      '#default_value' => substr($sessionData['end_time'], 0, 5),
       '#attributes' => ['placeholder' => 'HH:mm'],
     ];
 
@@ -105,7 +105,7 @@ class SessionEditForm extends FormBase {
       '#options' => $this->getLocationOptions(),
       '#empty_option' => $this->t('- Select -'),
       '#required' => TRUE,
-      '#default_value' => $sessionData['locationId'],
+      '#default_value' => $sessionData['location_id'],
     ];
 
     $form['status'] = [
@@ -207,17 +207,17 @@ class SessionEditForm extends FormBase {
     }
 
     try {
-      \Drupal::database()->update('Session')
+      \Drupal::database()->update('session')
         ->fields([
-          'title'      => $title,
-          'date'       => $date,
-          'startTime'  => $startTime,
-          'endTime'    => $endTime,
-          'locationId' => $locationId,
-          'capacity'   => (int) $form_state->getValue('capacity'),
-          'status'     => $form_state->getValue('status'),
+          'title'       => $title,
+          'date'        => $date,
+          'start_time'  => $startTime,
+          'end_time'    => $endTime,
+          'location_id' => $locationId,
+          'capacity'    => (int) $form_state->getValue('capacity'),
+          'status'      => $form_state->getValue('status'),
         ])
-        ->condition('sessionId', $sessionId)
+        ->condition('session_id', $sessionId)
         ->execute();
       
       $this->messenger->addStatus($this->t('Session "@title" updated in database.', ['@title' => $title]));
@@ -266,14 +266,14 @@ class SessionEditForm extends FormBase {
   protected function getLocationOptions(): array {
     $options = [];
     try {
-      $results = \Drupal::database()->select('Location', 'l')
-        ->fields('l', ['locationId', 'roomName'])
-        ->orderBy('roomName', 'ASC')
+      $results = \Drupal::database()->select('location', 'l')
+        ->fields('l', ['location_id', 'room_name'])
+        ->orderBy('room_name', 'ASC')
         ->execute()
         ->fetchAll();
 
       foreach ($results as $location) {
-        $options[$location->locationId] = $location->roomName;
+        $options[$location->location_id] = $location->room_name;
       }
     }
     catch (\Exception $e) {

@@ -69,13 +69,13 @@ class LocationCreateForm extends FormBase {
     $address  = $form_state->getValue('address') ?: NULL;
 
     try {
-      \Drupal::database()->insert('Location')
+      \Drupal::database()->insert('location')
         ->fields([
-          'locationId' => $locationUuid,
-          'roomName'   => $roomName,
-          'capacity'   => $capacity,
-          'address'    => $address,
-          'status'     => 'beschikbaar',
+          'location_id' => $locationUuid,
+          'room_name'   => $roomName,
+          'capacity'    => $capacity,
+          'address'     => $address,
+          'status'      => 'beschikbaar',
         ])
         ->execute();
 
