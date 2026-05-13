@@ -52,7 +52,8 @@ jobs:
 
   # ─────────────────────────────────────────────────────────────
   # JOB 2: Unit Tests
-  # Draait pas NA lint — verse Drupal installatie via composer
+  # Drupal project in $HOME — gegarandeerde schrijfrechten
+  # drupal/core-dev brengt PHPUnit en alle test-infrastructuur mee
   # ─────────────────────────────────────────────────────────────
   unit-tests:
     name: Unit Tests
@@ -77,29 +78,32 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.composer/cache
-          key: composer-drupal11-unit-${{ github.run_id }}
+          key: composer-drupal11-${{ github.run_id }}
           restore-keys: composer-drupal11-
 
       - name: Maak Drupal testomgeving
         run: |
-          composer create-project drupal/recommended-project:^11 /opt/drupal \
-            --no-interaction --no-progress --prefer-dist
+          composer create-project drupal/recommended-project:^11 $HOME/drupal \
+            --no-dev --no-interaction --no-progress --prefer-dist
+          cd $HOME/drupal && composer require --dev \
+            "drupal/core-dev:^11" \
+            --no-interaction --no-progress
 
       - name: Kopieer custom modules
         run: |
-          mkdir -p /opt/drupal/web/modules/custom
-          cp -r $GITHUB_WORKSPACE/modules/custom/. /opt/drupal/web/modules/custom/
+          mkdir -p $HOME/drupal/web/modules/custom
+          cp -r $GITHUB_WORKSPACE/modules/custom/. $HOME/drupal/web/modules/custom/
 
       - name: Kopieer XSD schemas
-        run: cp -r $GITHUB_WORKSPACE/xsd /opt/drupal/xsd
+        run: cp -r $GITHUB_WORKSPACE/xsd $HOME/drupal/xsd
 
       - name: Kopieer phpunit.xml
-        run: cp $GITHUB_WORKSPACE/phpunit.xml /opt/drupal/phpunit.xml
+        run: cp $GITHUB_WORKSPACE/phpunit.xml $HOME/drupal/phpunit.xml
 
       - name: Voer unit tests uit
-        working-directory: /opt/drupal
+        working-directory: /home/runner/drupal
         env:
-          XSD_ROOT: /opt/drupal/xsd
+          XSD_ROOT: /home/runner/drupal/xsd
         run: |
           ./vendor/bin/phpunit \
             --configuration phpunit.xml \
@@ -109,7 +113,7 @@ jobs:
 
   # ─────────────────────────────────────────────────────────────
   # JOB 3: Integration Tests
-  # Draait parallel met unit-tests NA lint — SQLite kernel tests
+  # Zelfde aanpak als unit-tests maar met SQLite kernel testsuite
   # ─────────────────────────────────────────────────────────────
   integration:
     name: Integration Tests
@@ -134,24 +138,27 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.composer/cache
-          key: composer-drupal11-integration-${{ github.run_id }}
+          key: composer-drupal11-${{ github.run_id }}
           restore-keys: composer-drupal11-
 
       - name: Maak Drupal testomgeving
         run: |
-          composer create-project drupal/recommended-project:^11 /opt/drupal \
-            --no-interaction --no-progress --prefer-dist
+          composer create-project drupal/recommended-project:^11 $HOME/drupal \
+            --no-dev --no-interaction --no-progress --prefer-dist
+          cd $HOME/drupal && composer require --dev \
+            "drupal/core-dev:^11" \
+            --no-interaction --no-progress
 
       - name: Kopieer custom modules
         run: |
-          mkdir -p /opt/drupal/web/modules/custom
-          cp -r $GITHUB_WORKSPACE/modules/custom/. /opt/drupal/web/modules/custom/
+          mkdir -p $HOME/drupal/web/modules/custom
+          cp -r $GITHUB_WORKSPACE/modules/custom/. $HOME/drupal/web/modules/custom/
 
       - name: Kopieer phpunit.xml
-        run: cp $GITHUB_WORKSPACE/phpunit.xml /opt/drupal/phpunit.xml
+        run: cp $GITHUB_WORKSPACE/phpunit.xml $HOME/drupal/phpunit.xml
 
       - name: Voer integration tests uit
-        working-directory: /opt/drupal
+        working-directory: /home/runner/drupal
         env:
           SHIFT_BEZOEKER_DISABLE_AMQP: "1"
           SIMPLETEST_DB: "sqlite://localhost//tmp/drupal_ci_test.sqlite"
