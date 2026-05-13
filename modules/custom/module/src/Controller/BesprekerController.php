@@ -27,27 +27,8 @@ class BesprekerController extends ControllerBase {
    * ACCOUNT GEGEVENS
    * Bevat links naar "Bewerken" en "QR" zoals in de sitemap.
    */
-  public function account(): array {
-    return [
-'#markup' => '
-        <div class="info-card">
-          <h2>Account gegevens</h2>
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div>
-              <p><strong>Naam:</strong> Bespreker Test</p>
-              <p><strong>Email:</strong> bespreker@example.com</p>
-              <p><a href="/bespreker/account/edit" class="btn-primary">Gegevens bewerken</a></p>
-            </div>
-            <div style="text-align: center; border: 1px solid #ddd; padding: 15px; border-radius: 8px;">
-              <p><strong>Jouw QR</strong></p>
-              <a href="/bespreker/account/qr" style="text-decoration: none;">
-                <div style="width: 100px; height: 100px; background: #333; color: white; display: flex; align-items: center; justify-content: center;">QR</div>
-              </a>
-            </div>
-          </div>
-        </div>
-        <p><a href="/bespreker" style="color: #6a0dad;">« Terug naar Dashboard</a></p>',
-    ];
+public function account() {
+    return ['#theme' => 'bespreker_account'];
   }
 
   /**
@@ -101,45 +82,20 @@ class BesprekerController extends ControllerBase {
    * SESSIES
    * Inclusief "Status sessie" en "Aantal bezoekers" zoals in sitemap.
    */
-public function sessies(): array {
-    return [
-      '#markup' => '
-        <h2>Jouw Festival Sessies</h2>
-        <div class="info-card">
-          <h3>Drupal 10 Deep Dive</h3>
-          <p>Status: <strong>On track</strong></p>
-          <a href="/bespreker/sessies/details" class="btn-primary">Sessie details</a>
-          <a href="/bespreker/sessies/bezoekers" class="btn-primary" style="background:#444;">Bezoekers details</a>
-        </div>
-        <p><a href="/bespreker" style="color: #6a0dad;">« Terug</a></p>',
-    ];
+public function sessies() {
+    return ['#theme' => 'bespreker_sessies'];
   }
-  public function feedback(): array {
-    return [
-      '#markup' => '
-        <div class="info-card">
-          <h2>Feedback Overzicht</h2>
-          <p>Gemiddelde score: ⭐ 4.8/5</p>
-          <a href="/bespreker/feedback/summary" class="btn-primary">Summary en Analyse</a>
-        </div>
-        <p><a href="/bespreker" style="color: #6a0dad;">« Terug</a></p>',
-    ];
+
+public function feedback() {
+    return ['#theme' => 'bespreker_feedback'];
   }
 
   public function feedbackSummary(): array {
     return ['#markup' => '<div class="info-card"><h2>Analyse van Feedback</h2><p>Gedetailleerde grafieken en opmerkingen van bezoekers.</p></div>'];
   }
 
-  public function materialen(): array {
-    return [
-      '#markup' => '
-        <div class="info-card">
-          <h2>Logistiek & Materialen</h2>
-          <p>Beheer de benodigdheden voor je sessie.</p>
-          <a href="/bespreker/materialen/gehuurd" class="btn-primary">Gehuurde materialen</a>
-        </div>
-        <p><a href="/bespreker" style="color: #6a0dad;">« Terug</a></p>',
-    ];
+public function materialen() {
+    return ['#theme' => 'bespreker_logistiek'];
   }
 
   public function materialenGehuurd(): array {
