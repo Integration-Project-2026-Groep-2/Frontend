@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\Session_Management\Controller;
+namespace Drupal\session_management\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Url;
@@ -8,9 +8,51 @@ use Drupal\Core\Url;
 class SessionManagement extends ControllerBase {
 
   public function content() {
-    // TODO: In the future, fetch all sessions from Planning via RabbitMQ
-    // For now, show placeholder message
-    $this->messenger()->addStatus($this->t('Session list will be loaded from Planning.'));
+    $rows = [];
+    try {
+      $database = \Drupal::database();
+      
+      // Debug: Check table name and count.
+      $tableName = $database->getPrefix() . 'session';
+      $count = $database->select('session', 's')->countQuery()->execute()->fetchField();
+      $this->messenger()->addStatus($this->t('Debug: Querying table "@table". Found @count rows.', [
+        '@table' => $tableName,
+        '@count' => $count,
+      ]));
+
+      $query = $database->select('session', 's');
+      $query->leftJoin('location', 'l', 's.location_id = l.location_id');
+      $query->fields('s', ['session_id', 'title', 'date', 'start_time', 'end_time', 'capacity', 'status'])
+        ->fields('l', ['room_name'])
+        ->orderBy('s.date', 'ASC')
+        ->orderBy('s.start_time', 'ASC');
+      
+      $results = $query->execute()->fetchAll();
+
+      foreach ($results as $session) {
+        $edit_url = Url::fromRoute('session_management.edit', ['sessionId' => $session->session_id]);
+        
+        $rows[] = [
+          $session->title,
+          $session->date . ' ' . $session->start_time,
+          $session->end_time,
+          $session->room_name ?: '-',
+          '-',
+          $session->capacity,
+          [
+            'data' => [
+              '#type' => 'link',
+              '#title' => $this->t('Edit'),
+              '#url' => $edit_url,
+              '#attributes' => ['class' => ['button', 'button--small']],
+            ],
+          ],
+        ];
+      }
+    }
+    catch (\Exception $e) {
+      $this->messenger()->addError($this->t('Could not load sessions: @msg', ['@msg' => $e->getMessage()]));
+    }
 
     $create_url = Url::fromRoute('session_management.create');
 
@@ -30,8 +72,8 @@ class SessionManagement extends ControllerBase {
       'table' => [
         '#type' => 'table',
         '#header' => ['Title', 'Start', 'End', 'Location', 'Speaker', 'Capacity', 'Actions'],
-        '#rows' => [],
-        '#empty' => $this->t('No sessions loaded yet.'),
+        '#rows' => $rows,
+        '#empty' => $this->t('No sessions found in the database.'),
       ],
     ];
   }

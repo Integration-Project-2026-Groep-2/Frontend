@@ -13,6 +13,44 @@ class LocationManagement extends ControllerBase {
   public function content(): array {
     $create_url = Url::fromRoute('session_management.location.create');
 
+    $rows = [];
+    try {
+      $database = \Drupal::database();
+      
+      // Debug: Check table name and count.
+      $tableName = $database->getPrefix() . 'location';
+      $count = $database->select('location', 'l')->countQuery()->execute()->fetchField();
+      $this->messenger()->addStatus($this->t('Debug: Querying table "@table". Found @count rows.', [
+        '@table' => $tableName,
+        '@count' => $count,
+      ]));
+
+      $query = $database->select('location', 'l')
+        ->fields('l', ['location_id', 'room_name', 'capacity', 'address', 'status'])
+        ->orderBy('room_name', 'ASC');
+      $results = $query->execute()->fetchAll();
+
+      foreach ($results as $location) {
+        $rows[] = [
+          $location->room_name,
+          $location->capacity,
+          $location->address ?: '-',
+          $location->status,
+          [
+            'data' => [
+              '#type' => 'link',
+              '#title' => $this->t('Edit'),
+              '#url' => Url::fromRoute('session_management.location.edit', ['locationId' => $location->location_id]),
+              '#attributes' => ['class' => ['button', 'button--small']],
+            ],
+          ],
+        ];
+      }
+    }
+    catch (\Exception $e) {
+      $this->messenger()->addError($this->t('Could not load locations: @msg', ['@msg' => $e->getMessage()]));
+    }
+
     return [
       '#type' => 'container',
       'title' => [
@@ -35,11 +73,8 @@ class LocationManagement extends ControllerBase {
           $this->t('Status'),
           $this->t('Actions'),
         ],
-        '#rows'  => [],
-        '#empty' => $this->t('No locations loaded yet. Locations are managed by the Planning system.'),
-      ],
-      'note' => [
-        '#markup' => '<p>' . $this->t('Location data is retrieved from the Planning system via RabbitMQ.') . '</p>',
+        '#rows'  => $rows,
+        '#empty' => $this->t('No locations found in the database.'),
       ],
     ];
   }
