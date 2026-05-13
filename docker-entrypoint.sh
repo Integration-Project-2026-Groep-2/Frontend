@@ -66,8 +66,10 @@ if [ -x "$DRUSH" ]; then
 
   BOOTSTRAP_STATUS="$("$DRUSH" status --field=bootstrap 2>/dev/null || true)"
   if [ "$BOOTSTRAP_STATUS" = "Successful" ] && [ -f "/opt/drupal/web/core/install.php" ]; then
-    rm -f /opt/drupal/web/core/install.php
-    echo "install.php verwijderd na succesvolle installatie."
+    if rm -f /opt/drupal/web/core/install.php; then
+      echo "install.php verwijderd na succesvolle installatie."
+    else
+      echo "Waarschuwing: install.php kon niet verwijderd worden; doorgaan met opstarten."
   fi
 
   "$DRUSH" en hello_world custom_roles ai_dashboard -y || true
