@@ -1,99 +1,69 @@
-{# Laden van de thema-libraries #}
+{# Laden van de thema-libraries voor de juiste fonts en kleuren #}
 {{ attach_library('shift_theme/global-styling') }}
 
-{# SECTIE 1: De Sprekers Hub (Gebaseerd op de "About" sectie van je collega) #}
+{# SECTIE 1: De Sprekers Hub #}
 <div style="background: #0d121f; padding: 100px 5%; display: flex; gap: 60px; align-items: center; font-family: 'Inter', sans-serif;">
 
-  {# Links: Welkomsttekst voor de spreker #}
+  {# Links: Welkomsttekst #}
   <div style="flex: 1; min-width: 280px;">
-    <span style="font-size: 13px; font-weight: 600; color: #a0a5b1; text-transform: uppercase; letter-spacing: 4px; font-family: 'Barlow', sans-serif;">Sprekers Portaal</span>
-    <h2 style="font-size: 42px; font-weight: 900; color: #6333ea; margin: 15px 0 20px 0; line-height: 1.2; font-family: 'Barlow', sans-serif;">Welkom terug,<br>{{ user_name }}</h2>
+    <span style="font-size: 13px; font-weight: 600; color: #a0a5b1; text-transform: uppercase; letter-spacing: 4px; font-family: 'Barlow', sans-serif;">Dashboard</span>
+    <h2 style="font-size: 42px; font-weight: 900; color: #6333ea; margin: 15px 0 20px 0; line-height: 1.2; font-family: 'Barlow', sans-serif;">Welkom,<br>{{ user_name }}</h2>
     <div style="width: 50px; height: 3px; background: #6333ea; margin-bottom: 30px; border-radius: 2px;"></div>
     
     <p style="color: rgba(255,255,255,0.7); font-size: 15px; line-height: 1.8; margin-bottom: 25px;">
-      Bedankt voor je bijdrage aan Shift Festival. In dit portaal beheer je alles rondom jouw presentaties, van technische vereisten tot de feedback van je publiek.
+      Beheer hier je volledige aanwezigheid op het Shift Festival. Bekijk je planning, beheer je materiaal-aanvragen en bekijk de feedback van je publiek na afloop.
     </p>
     
     <a href="/bespreker/account/qr" style="background: #6333ea; color: white; padding: 14px 35px; border-radius: 8px; font-size: 13px; font-weight: 800; text-decoration: none; letter-spacing: 2px; text-transform: uppercase; font-family: 'Barlow', sans-serif;">
-      MIJN TOEGANGSBEWIJS
+      TOON MIJN QR-CODE
     </a>
   </div>
 
-  {# Rechts: De 4 belangrijkste dashboard-acties in een grid #}
+  {# Rechts: Grid met actieknoppen die linken naar je nieuwe pagina's #}
   <div style="flex: 1.5; display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
 
-      {# Kaart 1: Sessies #}
+      {# Kaart 1: Gelinkt naar /bespreker/sessies #}
       <div style="background: rgba(26,31,46,0.8); border: 1px solid rgba(99,51,234,0.2); border-radius: 16px; padding: 30px; box-shadow: 0 8px 32px rgba(0,0,0,0.4);">
         <div style="width: 40px; height: 3px; background: #6333ea; margin-bottom: 20px; border-radius: 2px;"></div>
         <h3 style="font-size: 18px; font-weight: 800; color: white; margin: 0 0 12px 0; font-family: 'Barlow', sans-serif;">Mijn Sessies</h3>
-        <p style="color: #a0a5b1; font-size: 13px; line-height: 1.7; margin-bottom: 15px;">Beheer je planning, bekijk zaalinformatie en check de status van je presentaties.</p>
-        <a href="/bespreker/sessies" style="color: #6333ea; font-size: 12px; font-weight: 800; text-decoration: none; text-transform: uppercase; letter-spacing: 1px;">Bekijk Sessies →</a>
+        <p style="color: #a0a5b1; font-size: 13px; line-height: 1.7; margin-bottom: 15px;">Check je tijden en locaties.</p>
+        <a href="/bespreker/sessies" style="color: #6333ea; font-size: 12px; font-weight: 800; text-decoration: none; text-transform: uppercase; letter-spacing: 1px;">BEKIJK PLANNING →</a>
       </div>
 
-      {# Kaart 2: Feedback #}
+      {# Kaart 2: Gelinkt naar /bespreker/feedback #}
       <div style="background: rgba(26,31,46,0.8); border: 1px solid rgba(99,51,234,0.2); border-radius: 16px; padding: 30px; box-shadow: 0 8px 32px rgba(0,0,0,0.4);">
         <div style="width: 40px; height: 3px; background: #6333ea; margin-bottom: 20px; border-radius: 2px;"></div>
-        <h3 style="font-size: 18px; font-weight: 800; color: white; margin: 0 0 12px 0; font-family: 'Barlow', sans-serif;">Feedback & Analyse</h3>
-        <p style="color: #a0a5b1; font-size: 13px; line-height: 1.7; margin-bottom: 15px;">Bekijk de beoordelingen van bezoekers en analyseer de impact van je sessie.</p>
-        <a href="/bespreker/feedback" style="color: #6333ea; font-size: 12px; font-weight: 800; text-decoration: none; text-transform: uppercase; letter-spacing: 1px;">Naar Feedback →</a>
+        <h3 style="font-size: 18px; font-weight: 800; color: white; margin: 0 0 12px 0; font-family: 'Barlow', sans-serif;">Feedback</h3>
+        <p style="color: #a0a5b1; font-size: 13px; line-height: 1.7; margin-bottom: 15px;">Wat vond het publiek ervan?</p>
+        <a href="/bespreker/feedback" style="color: #6333ea; font-size: 12px; font-weight: 800; text-decoration: none; text-transform: uppercase; letter-spacing: 1px;">NAAR FEEDBACK →</a>
       </div>
 
-      {# Kaart 3: Materialen #}
+      {# Kaart 3: Gelinkt naar /bespreker/materialen #}
       <div style="background: rgba(26,31,46,0.8); border: 1px solid rgba(99,51,234,0.2); border-radius: 16px; padding: 30px; box-shadow: 0 8px 32px rgba(0,0,0,0.4);">
         <div style="width: 40px; height: 3px; background: #6333ea; margin-bottom: 20px; border-radius: 2px;"></div>
         <h3 style="font-size: 18px; font-weight: 800; color: white; margin: 0 0 12px 0; font-family: 'Barlow', sans-serif;">Logistiek</h3>
-        <p style="color: #a0a5b1; font-size: 13px; line-height: 1.7; margin-bottom: 15px;">Overzicht van je gereserveerde materialen zoals beamers en microfoons.</p>
-        <a href="/bespreker/materialen" style="color: #6333ea; font-size: 12px; font-weight: 800; text-decoration: none; text-transform: uppercase; letter-spacing: 1px;">Materialen →</a>
+        <p style="color: #a0a5b1; font-size: 13px; line-height: 1.7; margin-bottom: 15px;">Je gereserveerde materiaal.</p>
+        <a href="/bespreker/materialen" style="color: #6333ea; font-size: 12px; font-weight: 800; text-decoration: none; text-transform: uppercase; letter-spacing: 1px;">BEKIJK LIJST →</a>
       </div>
 
-      {# Kaart 4: Account #}
+      {# Kaart 4: Gelinkt naar /bespreker/account #}
       <div style="background: rgba(26,31,46,0.8); border: 1px solid rgba(99,51,234,0.2); border-radius: 16px; padding: 30px; box-shadow: 0 8px 32px rgba(0,0,0,0.4);">
         <div style="width: 40px; height: 3px; background: #6333ea; margin-bottom: 20px; border-radius: 2px;"></div>
         <h3 style="font-size: 18px; font-weight: 800; color: white; margin: 0 0 12px 0; font-family: 'Barlow', sans-serif;">Mijn Profiel</h3>
-        <p style="color: #a0a5b1; font-size: 13px; line-height: 1.7; margin-bottom: 15px;">Pas je biografie aan, beheer je contactgegevens en bekijk je betalingen.</p>
-        <a href="/bespreker/account" style="color: #6333ea; font-size: 12px; font-weight: 800; text-decoration: none; text-transform: uppercase; letter-spacing: 1px;">Profiel Beheren →</a>
+        <p style="color: #a0a5b1; font-size: 13px; line-height: 1.7; margin-bottom: 15px;">Pas je gegevens en bio aan.</p>
+        <a href="/bespreker/account" style="color: #6333ea; font-size: 12px; font-weight: 800; text-decoration: none; text-transform: uppercase; letter-spacing: 1px;">INSTELLINGEN →</a>
       </div>
 
   </div>
 </div>
 
-{# SECTIE 2: Locatie & Logistiek (Exact zoals de locatie sectie van je collega) #}
-<div id="locatie-sectie" style="background: #111827; padding: 80px 5%; font-family: 'Inter', sans-serif;">
-  <div style="display: flex; gap: 60px; align-items: flex-start; max-width: 1200px; margin: 0 auto;">
-
-    {# Google Maps iframe #}
-    <div style="flex: 1.5; border-radius: 16px; overflow: hidden; border: 1px solid rgba(99,51,234,0.3); box-shadow: 0 8px 32px rgba(0,0,0,0.4);">
-      <iframe
-        src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2519.146937217983!2d4.321689277028163!3d50.84698505869408!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47c3c40d709280d9%3A0x6a0058b8f2d5f04b!2sErasmushogeschool%20Brussel%20-%20Campus%20Kaai!5e0!3m2!1snl!2sbe!4v1715599000000!5m2!1snl!2sbe"
-        width="100%"
-        height="450"
-        style="border: 0; display: block;"
-        allowfullscreen=""
-        loading="lazy"
-        referrerpolicy="no-referrer-when-downgrade">
-      </iframe>
+{# SECTIE 2: Ondersteuning (In de stijl van de Locatie-sectie) #}
+<div style="background: #111827; padding: 80px 5%; font-family: 'Inter', sans-serif;">
+  <div style="max-width: 1200px; margin: 0 auto; background: rgba(99,51,234,0.05); border: 1px solid rgba(99,51,234,0.2); border-radius: 16px; padding: 40px; display: flex; justify-content: space-between; align-items: center;">
+    <div>
+      <h3 style="color: white; font-family: 'Barlow', sans-serif; margin: 0;">Hulp nodig tijdens het festival?</h3>
+      <p style="color: #a0a5b1; margin: 10px 0 0 0;">Bezoek de spreker-desk in de Foyer of neem contact op met de organisatie.</p>
     </div>
-
-    {# Info voor de spreker #}
-    <div style="flex: 1; min-width: 280px;">
-      <span style="font-size: 13px; font-weight: 600; color: #a0a5b1; text-transform: uppercase; letter-spacing: 4px; font-family: 'Barlow', sans-serif;">Logistiek</span>
-      <h2 style="font-size: 42px; font-weight: 900; color: #6333ea; margin: 15px 0 20px 0; line-height: 1.2; font-family: 'Barlow', sans-serif;">Waar moet je<br>Zijn?</h2>
-      <div style="width: 50px; height: 3px; background: #6333ea; margin-bottom: 30px; border-radius: 2px;"></div>
-
-      <h3 style="color: #ffffff; font-family: 'Barlow', sans-serif; font-weight: 700; font-size: 20px; margin: 0 0 8px 0;">Erasmushogeschool Brussel</h3>
-      <p style="color: rgba(255,255,255,0.7); font-size: 15px; line-height: 1.8; margin-bottom: 8px;">Nijverheidskaai 170<br>1070 Anderlecht, België</p>
-
-      <div style="margin-top: 30px; display: flex; flex-direction: column; gap: 12px;">
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <span style="color: #6333ea; font-size: 16px;">🏢</span>
-          <span style="color: rgba(255,255,255,0.7); font-size: 15px;">Meldpunt: <strong style="color: white;">Sprekersdesk (Foyer)</strong></span>
-        </div>
-        <div style="display: flex; align-items: center; gap: 12px;">
-          <span style="color: #6333ea; font-size: 16px;">🕙</span>
-          <span style="color: rgba(255,255,255,0.7); font-size: 15px;">Check-in: <strong style="color: white;">30 min voor aanvang</strong></span>
-        </div>
-      </div>
-    </div>
-
+    <a href="mailto:support@shiftfestival.be" style="border: 1px solid #6333ea; color: white; padding: 12px 25px; border-radius: 8px; text-decoration: none; font-size: 12px; font-weight: 800; text-transform: uppercase;">Contact Support</a>
   </div>
 </div>

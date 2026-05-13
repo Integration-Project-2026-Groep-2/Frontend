@@ -1,11 +1,17 @@
 {{ attach_library('shift_theme/global-styling') }}
 <div style="background: #0d121f; padding: 60px 5%; min-height: 100vh; color: white; font-family: 'Inter', sans-serif;">
-    <h2 style="font-size: 36px; font-weight: 900; color: #6333ea; font-family: 'Barlow', sans-serif;">Mijn Sessies</h2>
-    <div style="background: rgba(26,31,46,0.8); border-left: 4px solid #6333ea; border-radius: 8px; padding: 25px; margin-top: 20px; display: flex; justify-content: space-between; align-items: center;">
-        <div>
-            <h3 style="margin: 0; font-family: 'Barlow', sans-serif;">De Toekomst van Drupal 11</h3>
-            <p style="color: #a0a5b1; margin: 5px 0 0 0;">Zaal: De Aula | 14:00 - 15:00</p>
+    <h2 style="font-size: 32px; font-weight: 900; color: #6333ea; font-family: 'Barlow';">Mijn Sessies</h2>
+
+    <div style="background: rgba(26,31,46,0.8); border-radius: 16px; padding: 30px; border: 1px solid rgba(99,51,234,0.2); margin-top: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="margin: 0;">Drupal 11 Masterclass</h3>
+            <span style="color: #00ff88; font-size: 12px; font-weight: 800;">STATUS: BEVESTIGD</span>
         </div>
-        <span style="background: rgba(0,255,136,0.1); color: #00ff88; padding: 5px 15px; border-radius: 20px; font-size: 12px; font-weight: 800;">BEVESTIGD</span>
+        <p style="color: #a0a5b1; margin: 10px 0 25px 0;">Locatie: De Aula | Tijd: 14:00</p>
+        
+        <div style="display: flex; gap: 20px;">
+            <a href="/bespreker/sessies/details" style="background: #6333ea; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 800;">ZAAL DETAILS</a>
+            <a href="/bespreker/sessies/bezoekers" style="border: 1px solid #6333ea; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 800;">BEZOEKERSLIJST</a>
+        </div>
     </div>
 </div>

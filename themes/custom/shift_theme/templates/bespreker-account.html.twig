@@ -1,15 +1,27 @@
 {{ attach_library('shift_theme/global-styling') }}
 <div style="background: #0d121f; padding: 60px 5%; min-height: 100vh; color: white; font-family: 'Inter', sans-serif;">
-    <h2 style="font-size: 36px; font-weight: 900; color: #6333ea; font-family: 'Barlow', sans-serif;">Mijn Account</h2>
-    <div style="background: rgba(26,31,46,0.8); border: 1px solid rgba(99,51,234,0.2); border-radius: 16px; padding: 40px; margin-top: 30px; display: flex; gap: 40px; align-items: center;">
-        <div style="flex: 1;">
-            <p style="color: #a0a5b1; margin-bottom: 10px;"><strong>Naam:</strong> Bespreker Test</p>
-            <p style="color: #a0a5b1; margin-bottom: 30px;"><strong>Email:</strong> bespreker@shift.be</p>
-            <a href="/bespreker" style="color: #6333ea; text-decoration: none; font-weight: 800;">« TERUG</a>
+    <h2 style="font-size: 32px; font-weight: 900; color: #6333ea; font-family: 'Barlow';">Mijn Account</h2>
+    
+    <div style="background: rgba(26,31,46,0.8); border-radius: 16px; padding: 30px; border: 1px solid rgba(99,51,234,0.2); margin-top: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; margin-bottom: 20px;">
+            <div>
+                <p style="margin: 0; color: #a0a5b1; font-size: 12px;">INGELOGD ALS</p>
+                <h4 style="margin: 5px 0 0 0; font-size: 20px;">Bespreker Test</h4>
+            </div>
+            <a href="/bespreker/account/edit" style="color: #6333ea; font-weight: 800; text-decoration: none; font-size: 12px;">BEWERK PROFIEL</a>
         </div>
-        <div style="background: white; padding: 15px; border-radius: 12px; text-align: center;">
-            <div style="width: 150px; height: 150px; background: #000;"></div>
-            <p style="color: black; font-size: 10px; margin-top: 10px; font-weight: 900;">SCAN VOOR TOEGANG</p>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <a href="/bespreker/account/qr" style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; text-decoration: none; color: white;">
+                <p style="margin: 0; font-weight: 700;">Mijn QR Code →</p>
+                <p style="margin: 5px 0 0 0; color: #a0a5b1; font-size: 12px;">Toegang tot de sprekersruimte.</p>
+            </a>
+            <a href="/bespreker/account/betalingen" style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; text-decoration: none; color: white;">
+                <p style="margin: 0; font-weight: 700;">Financiën →</p>
+                <p style="margin: 5px 0 0 0; color: #a0a5b1; font-size: 12px;">Onkosten en vergoedingen.</p>
+            </a>
         </div>
     </div>
+    <br>
+    <a href="/bespreker" style="color: #a0a5b1; text-decoration: none; font-size: 14px;">« Terug naar Dashboard</a>
 </div>

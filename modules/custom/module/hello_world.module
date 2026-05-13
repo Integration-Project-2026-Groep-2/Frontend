@@ -63,9 +63,16 @@ function hello_world_user_delete(\Drupal\user\UserInterface $account) {
 function hello_world_theme($existing, $type, $theme, $path) {
   return [
     'bespreker_dashboard' => ['variables' => ['user_name' => NULL]],
-    'bespreker_account'   => ['variables' => ['user_data' => NULL]],
-    'bespreker_sessies'   => ['variables' => ['sessies' => NULL]],
-    'bespreker_feedback'  => ['variables' => ['feedback_data' => NULL]],
-    'bespreker_logistiek' => ['variables' => ['materialen' => NULL]],
+    'bespreker_account' => ['variables' => []],
+    'bespreker_sessies' => ['variables' => []],
+    'bespreker_feedback' => ['variables' => []],
+    'bespreker_logistiek' => ['variables' => []],
+    'bespreker_account_edit' => ['variables' => []],
+    'bespreker_qr' => ['variables' => []],
+    'bespreker_betalingen' => ['variables' => []],
+    'bespreker_feedback_summary' => ['variables' => []],
+    'bespreker_materialen_gehuurd' => ['variables' => []],
+    'bespreker_sessie_details' => ['variables' => []],
+    'bespreker_bezoekers_details' => ['variables' => []],
   ];
 }
