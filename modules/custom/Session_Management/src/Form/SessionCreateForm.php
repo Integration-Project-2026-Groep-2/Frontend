@@ -7,6 +7,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
 use Drupal\hello_world\RabbitMQ\Message\Planning\PlanningSessionCreatedMessage;
 use Drupal\hello_world\RabbitMQ\RabbitMQClient;
+use Drupal\hello_world\Service\ControlRoomLoggerService;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
@@ -283,17 +284,29 @@ class SessionCreateForm extends FormBase {
       $this->messenger->addStatus($this->t('Session "@title" sent to planning.', [
         '@title' => $title,
       ]));
+      $this->crLogger()->info('frontend-session', sprintf(
+        'Sessie aangemaakt: "%s" op %s %s–%s (capacity: %d)',
+        $title, $date, $startTime, $endTime,
+        (int) $form_state->getValue('capacity')
+      ));
       $form_state->setRedirect('session_management.list');
     }
     catch (\RuntimeException $e) {
       \Drupal::logger('session_management')->error(
         'RabbitMQ session publish failed: @err', ['@err' => $e->getMessage()]
       );
+      $this->crLogger()->error('frontend-session', sprintf(
+        'Sessie aanmaken mislukt ("%s"): %s', $title, $e->getMessage()
+      ));
       $this->messenger->addError($this->t('Session could not be sent to planning. Please try again.'));
     }
     finally {
       $client->disconnect();
     }
+  }
+
+  private function crLogger(): ControlRoomLoggerService {
+    return \Drupal::service('hello_world.controlroom_logger');
   }
 
 }
