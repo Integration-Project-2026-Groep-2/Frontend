@@ -70,7 +70,7 @@ class LoginRedirectionSubscriberTest extends UnitTestCase {
       $subscriber->onRespond($event);
       $this->assertInstanceOf(RedirectResponse::class, $event->getResponse());
     }
-    catch (\Throwable $e) {
+    catch (\RuntimeException $e) {
       // Drupal URL-generatie vereist een container — niet beschikbaar in unit tests.
       // De subscriber heeft wel de redirect-logica bereikt, wat voldoende is.
       $this->addToAssertionCount(1);
@@ -85,7 +85,7 @@ class LoginRedirectionSubscriberTest extends UnitTestCase {
       $subscriber->onRespond($event);
       $this->assertInstanceOf(RedirectResponse::class, $event->getResponse());
     }
-    catch (\Throwable $e) {
+    catch (\RuntimeException $e) {
       $this->addToAssertionCount(1);
     }
   }
@@ -98,7 +98,7 @@ class LoginRedirectionSubscriberTest extends UnitTestCase {
       $subscriber->onRespond($event);
       $this->assertInstanceOf(RedirectResponse::class, $event->getResponse());
     }
-    catch (\Throwable $e) {
+    catch (\RuntimeException $e) {
       $this->addToAssertionCount(1);
     }
   }
