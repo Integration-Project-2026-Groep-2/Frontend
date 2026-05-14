@@ -14,8 +14,7 @@ final class RegistrationCreatedMessage extends Planning {
   public function __construct(
     private readonly string $registrationId,
     private readonly string $sessionId,
-    private readonly string $participantId,
-    private readonly string $crmMasterId,
+    private readonly string $userId,
     private readonly bool   $isActive,
     private readonly ?string $timestamp = NULL,
   ) {}
@@ -24,8 +23,7 @@ final class RegistrationCreatedMessage extends Planning {
     $xml = new SimpleXMLElement('<RegistrationCreated/>');
     $xml->addChild('registrationId', $this->registrationId);
     $xml->addChild('sessionId',      $this->sessionId);
-    $xml->addChild('participantId',  $this->participantId);
-    $xml->addChild('crmMasterId',    $this->crmMasterId);
+    $xml->addChild('userId',         $this->userId);
     $xml->addChild('isActive',       $this->isActive ? 'true' : 'false');
     
     if ($this->timestamp) {
