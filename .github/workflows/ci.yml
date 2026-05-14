@@ -78,8 +78,8 @@ jobs:
         uses: actions/cache@v4.2.3
         with:
           path: ~/.composer/cache
-          key: composer-drupal11-${{ github.run_id }}
-          restore-keys: composer-drupal11-
+          key: composer-drupal11-${{ runner.os }}-php83-${{ hashFiles('**/composer.json') }}
+          restore-keys: composer-drupal11-${{ runner.os }}-php83-
 
       - name: Maak Drupal testomgeving
         run: |
@@ -140,8 +140,8 @@ jobs:
         uses: actions/cache@v4.2.3
         with:
           path: ~/.composer/cache
-          key: composer-drupal11-${{ github.run_id }}
-          restore-keys: composer-drupal11-
+          key: composer-drupal11-${{ runner.os }}-php83-${{ hashFiles('**/composer.json') }}
+          restore-keys: composer-drupal11-${{ runner.os }}-php83-
 
       - name: Maak Drupal testomgeving
         run: |
