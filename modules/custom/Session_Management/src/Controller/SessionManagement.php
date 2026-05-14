@@ -24,51 +24,78 @@ class SessionManagement extends ControllerBase {
       foreach ($results as $session) {
         $edit_url = Url::fromRoute('session_management.edit', ['sessionId' => $session->session_id]);
         
+        $status_class = 'status-' . strtolower($session->status);
+        $status_label = ucfirst($session->status);
+
         $rows[] = [
-          $session->title,
-          $session->date . ' ' . $session->start_time,
-          $session->end_time,
-          $session->room_name ?: '-',
-          '-',
-          $session->capacity,
-          [
-            'data' => [
-              '#type' => 'link',
-              '#title' => $this->t('Edit'),
-              '#url' => $edit_url,
-              '#attributes' => ['class' => ['button', 'button--small']],
+          'data' => [
+            $session->title,
+            $session->date . ' ' . $session->start_time,
+            $session->end_time,
+            $session->room_name ?: '-',
+            $session->capacity,
+            [
+              'data' => [
+                '#type' => 'html_tag',
+                '#tag' => 'span',
+                '#value' => $status_label,
+                '#attributes' => ['class' => ['status-badge', $status_class]],
+              ],
+            ],
+            [
+              'data' => [
+                '#type' => 'link',
+                '#title' => $this->t('Edit'),
+                '#url' => $edit_url,
+                '#attributes' => ['class' => ['action-link', 'edit']],
+              ],
             ],
           ],
         ];
       }
     }
     catch (\Exception $e) {
-      $this->messenger()->addError($this->t('Could not load sessions: @msg', ['@msg' => $e->getMessage()]));
+      $this->messenger()->addError($this->t('Could not load sessions: @err', ['@err' => $e->getMessage()]));
     }
 
-    $create_url = Url::fromRoute('session_management.create');
+    $header = [
+      $this->t('Title'),
+      $this->t('Start'),
+      $this->t('End'),
+      $this->t('Location'),
+      $this->t('Capacity'),
+      $this->t('Status'),
+      $this->t('Actions'),
+    ];
 
     return [
       '#type' => 'container',
+      '#attributes' => ['class' => ['session-management-container']],
+      '#attached' => [
+        'library' => ['session_management/admin-styles'],
+      ],
       '#cache' => [
         'max-age' => 0,
       ],
-      'title' => [
-        '#markup' => '<h1>Sessions</h1>',
-      ],
-      'create_button' => [
-        '#type' => 'link',
-        '#title' => $this->t('Create new session'),
-        '#url' => $create_url,
-        '#attributes' => [
-          'class' => ['button', 'button--primary'],
+      'header' => [
+        '#type' => 'container',
+        '#attributes' => ['class' => ['session-management-header']],
+        'title' => [
+          '#markup' => '<h1>' . $this->t('Sessions') . '</h1>',
+        ],
+        'add_button' => [
+          '#type' => 'link',
+          '#title' => $this->t('Add Session'),
+          '#url' => Url::fromRoute('session_management.create'),
+          '#attributes' => ['class' => ['button', 'button--primary']],
         ],
       ],
       'table' => [
         '#type' => 'table',
-        '#header' => ['Title', 'Start', 'End', 'Location', 'Speaker', 'Capacity', 'Actions'],
+        '#header' => $header,
         '#rows' => $rows,
         '#empty' => $this->t('No sessions found in the database.'),
+        '#attributes' => ['class' => ['session-management-table']],
       ],
     ];
   }

@@ -1,0 +1,115 @@
+/* Session Management Admin Styles */
+
+.session-management-container {
+  max-width: 1200px;
+  margin: 20px auto;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.session-management-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.session-management-header h1 {
+  font-size: 2rem;
+  color: #1a202c;
+  margin: 0;
+}
+
+.session-management-header .button {
+  background-color: #4a5568;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: background-color 0.2s;
+}
+
+.session-management-header .button:hover {
+  background-color: #2d3748;
+}
+
+/* Table Styles */
+.session-management-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 12px;
+  margin-top: -12px; /* Offset for spacing */
+}
+
+.session-management-table thead th {
+  padding: 12px 20px;
+  text-align: left;
+  font-weight: 600;
+  color: #718096;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  border: none;
+}
+
+.session-management-table tbody tr {
+  background: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  border-radius: 12px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.session-management-table tbody tr:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.session-management-table td {
+  padding: 20px;
+  border: none;
+}
+
+.session-management-table td:first-child {
+  border-top-left-radius: 12px;
+  border-bottom-left-radius: 12px;
+  font-weight: 600;
+  color: #2d3748;
+}
+
+.session-management-table td:last-child {
+  border-top-right-radius: 12px;
+  border-bottom-right-radius: 12px;
+  text-align: right;
+}
+
+/* Status Badges */
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.status-beschikbaar { background-color: #c6f6d5; color: #22543d; }
+.status-bezet { background-color: #fed7d7; color: #822727; }
+.status-onderhoud { background-color: #feebc8; color: #744210; }
+.status-gepland { background-color: #ebf8ff; color: #2a4365; }
+.status-geannuleerd { background-color: #edf2f7; color: #4a5568; }
+
+/* Action Links */
+.action-link {
+  color: #4299e1;
+  text-decoration: none;
+  font-weight: 600;
+  margin-left: 15px;
+  transition: color 0.2s;
+}
+
+.action-link:hover {
+  color: #2b6cb0;
+  text-decoration: underline;
+}
+
+.action-link.edit { color: #3182ce; }
+.action-link.delete { color: #e53e3e; }
