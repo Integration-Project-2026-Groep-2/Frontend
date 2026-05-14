@@ -6,6 +6,7 @@ global-styling:
       css/navbar.css: {}
       css/forms.css: {}
       css/session.css: {}
+      css/admin.css: {}
 
 companies-page:
   css:
