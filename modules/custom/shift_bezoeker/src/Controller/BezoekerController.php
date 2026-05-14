@@ -59,7 +59,11 @@ class BezoekerController extends ControllerBase {
 
     // 5. Formatteer sessies voor de grid
     $uid = (int) $this->currentUser()->id();
-    $user_id = \Drupal\user\Entity\User::load($uid)?->uuid();
+    $account = \Drupal\user\Entity\User::load($uid);
+    $user_id = $account && $account->hasField('field_crm_id') && !$account->get('field_crm_id')->isEmpty()
+      ? $account->get('field_crm_id')->value
+      : NULL;
+
     $active_registrations = [];
     if ($user_id) {
       $active_registrations = \Drupal::database()->select('registration', 'r')
@@ -142,11 +146,15 @@ class BezoekerController extends ControllerBase {
     $db = \Drupal::database();
     $userData = \Drupal::service('user.data');
 
-    // 1. Haal gegevens op
-    $user_id = $account->uuid();
-    $crm_master_id  = $account->hasField('field_crm_id') && !$account->get('field_crm_id')->isEmpty() 
+    // 1. Haal gegevens op (Gebruik CRM ID als userId voor Planning)
+    $user_id = $account->hasField('field_crm_id') && !$account->get('field_crm_id')->isEmpty() 
       ? $account->get('field_crm_id')->value 
       : NULL;
+
+    if (!$user_id) {
+      $this->messenger()->addError($this->t('Geen CRM Master ID gevonden voor uw account. Neem contact op met de beheerder.'));
+      return $this->redirect('shift_bezoeker.sessions');
+    }
 
     // 2. Controleer of de gebruiker al is ingeschreven (actief)
     $existing_active = $db->select('registration', 'r')
@@ -182,7 +190,6 @@ class BezoekerController extends ControllerBase {
           'registration_id' => $registration_id,
           'session_id'      => $session_id,
           'user_id'         => $user_id,
-          'crm_master_id'   => $crm_master_id,
           'registration_time' => date('Y-m-d H:i:s'),
           'is_active'       => 1,
         ])
@@ -199,7 +206,6 @@ class BezoekerController extends ControllerBase {
       registrationId: $registration_id,
       sessionId:      $session_id,
       userId:         $user_id,
-      crmMasterId:    $crm_master_id ?: '00000000-0000-0000-0000-000000000000',
       isActive:       TRUE,
       timestamp:      $timestamp,
     );
@@ -232,10 +238,12 @@ class BezoekerController extends ControllerBase {
   public function uitschrijven($session_id) {
     $uid = (int) $this->currentUser()->id();
     $account = \Drupal\user\Entity\User::load($uid);
-    $user_id = $account?->uuid();
+    $user_id = $account && $account->hasField('field_crm_id') && !$account->get('field_crm_id')->isEmpty()
+      ? $account->get('field_crm_id')->value
+      : NULL;
 
     if (!$user_id) {
-      $this->messenger()->addError($this->t('User not found.'));
+      $this->messenger()->addError($this->t('User CRM ID not found.'));
       return $this->redirect('shift_bezoeker.sessions');
     }
 
@@ -243,7 +251,7 @@ class BezoekerController extends ControllerBase {
 
     // 1. Zoek de actieve inschrijving
     $registration = $db->select('registration', 'r')
-      ->fields('r', ['registration_id', 'crm_master_id'])
+      ->fields('r', ['registration_id'])
       ->condition('session_id', $session_id)
       ->condition('user_id', $user_id)
       ->condition('is_active', 1)
@@ -279,7 +287,6 @@ class BezoekerController extends ControllerBase {
       registrationId: $registration_id,
       sessionId:      $session_id,
       userId:         $user_id,
-      crmMasterId:    $crm_master_id ?: '00000000-0000-0000-0000-000000000000',
       isActive:       FALSE,
       timestamp:      $timestamp,
     );

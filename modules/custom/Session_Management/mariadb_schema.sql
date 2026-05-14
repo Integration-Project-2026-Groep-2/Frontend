@@ -81,7 +81,6 @@ CREATE TABLE {registration} (
     registration_id   VARCHAR(36)  PRIMARY KEY,
     session_id        VARCHAR(36)  NOT NULL,
     user_id           VARCHAR(36)  NOT NULL,
-    crm_master_id     VARCHAR(36),
     registration_time TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     is_active         BOOLEAN      NOT NULL DEFAULT true,
     FOREIGN KEY (session_id) REFERENCES {session}(session_id) ON DELETE CASCADE
