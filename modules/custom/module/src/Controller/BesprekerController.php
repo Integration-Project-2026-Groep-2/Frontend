@@ -162,9 +162,20 @@ public function account(): array {
   /**
    * Lijst met bezoekers voor de sessie.
    */
-  public function bezoekersDetails(): array {
+public function bezoekersDetails(): array {
+    // In een latere fase halen we dit uit de database.
+    // Voor nu maken we een dynamische lijst voor de PR.
+    $bezoekers = [
+      ['naam' => 'Jan Janssen', 'type' => 'Student (EHB)'],
+      ['naam' => 'Sara Peeters', 'type' => 'Bedrijf (Tech solutions)'],
+      ['naam' => 'Mark de Vries', 'type' => 'Docent (KUL)'],
+    ];
+
     return [
       '#theme' => 'bespreker_bezoekers_details',
+      '#bezoekers' => $bezoekers,
+      '#totaal' => count($bezoekers),
+      '#max_capaciteit' => 50,
     ];
   }
 
