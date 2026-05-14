@@ -108,9 +108,31 @@ public function account(): array {
   /**
    * Overzicht van alle sessies van de spreker.
    */
-  public function sessies(): array {
+public function sessies(): array {
+    // In een echt systeem haal je dit op via de database/User ID.
+    $mijn_sessies = [
+      [
+        'titel' => 'Drupal 11 Masterclass',
+        'status' => 'BEVESTIGD',
+        'locatie' => 'De Aula',
+        'tijd' => '14:00',
+        'status_kleur' => '#00ff88',
+      ],
+      [
+        'titel' => 'Headless Drupal & Next.js',
+        'status' => 'IN AFWACHTING',
+        'locatie' => 'Zaal 2',
+        'tijd' => '16:30',
+        'status_kleur' => '#ffcc00',
+      ],
+    ];
+
     return [
       '#theme' => 'bespreker_sessies',
+      '#sessies' => $mijn_sessies,
+      '#cache' => [
+        'contexts' => ['user'],
+      ],
     ];
   }
 
