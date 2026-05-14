@@ -1,0 +1,3 @@
+services:
+  hello_world.controlroom_logger:
+    class: Drupal\hello_world\Service\ControlRoomLoggerService
