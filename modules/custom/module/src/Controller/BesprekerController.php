@@ -61,9 +61,11 @@ class BesprekerController extends ControllerBase {
   /**
    * Toont de account hoofdpagina.
    */
-  public function account(): array {
+public function account(): array {
     return [
       '#theme' => 'bespreker_account',
+      '#user_name' => $this->currentUser->getDisplayName(),
+      '#user_email' => $this->currentUser->getEmail(),
       '#cache' => [
         'contexts' => ['user'],
       ],
