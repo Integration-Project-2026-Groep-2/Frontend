@@ -3,7 +3,7 @@ name: Build & Deploy Image to Dev
 env:
   IMAGE: ghcr.io/integration-project-2026-groep-2/frontend
 
-# Deployt pas NA succesvolle CI — zelfde aanpak als Facturatie en CRM
+# Deployt pas NA succesvolle CI
 on:
   workflow_run:
     workflows: ["CI"]
@@ -38,12 +38,13 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build & push image
+        env:
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
-          SHORT_SHA=$(git rev-parse --short HEAD)
-          docker build -t ${{ env.IMAGE }}:sha-${SHORT_SHA} .
-          docker tag ${{ env.IMAGE }}:sha-${SHORT_SHA} ${{ env.IMAGE }}:latest-dev
-          docker push ${{ env.IMAGE }}:sha-${SHORT_SHA}
-          docker push ${{ env.IMAGE }}:latest-dev
+          SHA=${HEAD_SHA:0:7}
+          docker build -t "${{ env.IMAGE }}:sha-${SHA}" -t "${{ env.IMAGE }}:latest-dev" .
+          docker push "${{ env.IMAGE }}:sha-${SHA}"
+          docker push "${{ env.IMAGE }}:latest-dev"
 
   deploy-dev:
     name: Deploy naar Dev
