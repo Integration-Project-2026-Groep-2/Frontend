@@ -6,10 +6,30 @@ use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Session\AccountInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
-class BesprekerController extends ControllerBase {
 /**
-   * We gebruiken de create methode om services (zoals de huidige gebruiker)
-   * netjes in de controller te injecteren volgens de Drupal-standaard.
+ * Controller voor de sprekers-sectie van het Shift Festival.
+ */
+class BesprekerController extends ControllerBase {
+
+  /**
+   * De huidige ingelogde gebruiker.
+   *
+   * @var \Drupal\Core\Session\AccountInterface
+   */
+  protected $currentUser;
+
+  /**
+   * BesprekerController constructor.
+   *
+   * @param \Drupal\Core\Session\AccountInterface $current_user
+   * De huidige gebruiker service.
+   */
+  public function __construct(AccountInterface $current_user) {
+    $this->currentUser = $current_user;
+  }
+
+  /**
+   * {@inheritdoc}
    */
   public static function create(ContainerInterface $container) {
     return new static(
@@ -18,90 +38,132 @@ class BesprekerController extends ControllerBase {
   }
 
   /**
-   * De huidige ingelogde gebruiker.
-   */
-  protected $currentUser;
-
-  public function __construct(AccountInterface $current_user) {
-    $this->currentUser = $current_user;
-  }
-  /**
-   * SPREKERS (HOME)
-   * De centrale hub volgens de sitemap.
+   * SPREKERS (HOME) - De centrale hub.
+   *
+   * @return array
+   * Een render array voor het dashboard.
    */
   public function home(): array {
-    // Haal de echte weergavenaam op van de ingelogde gebruiker.
-    $display_name = $this->currentUser->getDisplayName();
-  return [
-    '#theme' => 'bespreker_dashboard',
-    '#user_name' => $display_name,
-    // Dit zorgt dat de CSS van het thema echt geladen wordt!
-    '#attached' => [
-      'library' => [
-        'shift_theme/global-styling', 
+    return [
+      '#theme' => 'bespreker_dashboard',
+      '#user_name' => $this->currentUser->getDisplayName(),
+      '#attached' => [
+        'library' => [
+          'shift_theme/global-styling',
+        ],
       ],
-    ],
-    // CRUCIAAL: Dit vertelt Drupal dat de inhoud van deze pagina
-      // afhankelijk is van de ingelogde gebruiker ('user' context).
       '#cache' => [
         'contexts' => ['user'],
       ],
-  ];
-}
+    ];
+  }
 
   /**
-   * ACCOUNT GEGEVENS
-   * Bevat links naar "Bewerken" en "QR" zoals in de sitemap.
+   * Toont de account hoofdpagina.
    */
-public function account() {
+  public function account(): array {
     return [
       '#theme' => 'bespreker_account',
-      '#cache' => ['contexts' => ['user']],
+      '#cache' => [
+        'contexts' => ['user'],
+      ],
     ];
   }
 
   /**
-   * BEWERKEN ACCOUNT
+   * Pagina om accountgegevens te bewerken.
    */
-public function accountEdit() { 
+  public function accountEdit(): array {
     return [
       '#theme' => 'bespreker_account_edit',
-      '#cache' => ['contexts' => ['user']],
-    ]; 
-  }  /**
-   * QR (Sub-onderdeel van Account)
-   */
-public function qr() { return ['#theme' => 'bespreker_qr']; }
-
-  /**
-   * BETALINGSGESCHIEDENIS
-   */
-public function betalingen() {
-    return [
-      '#theme' => 'bespreker_betalingen',
-      '#cache' => ['contexts' => ['user']],
+      '#cache' => [
+        'contexts' => ['user'],
+      ],
     ];
   }
+
   /**
-   * SESSIES
-   * Inclusief "Status sessie" en "Aantal bezoekers" zoals in sitemap.
+   * Toont de persoonlijke QR-code voor toegang.
    */
-public function sessies() {
-    return ['#theme' => 'bespreker_sessies'];
+  public function qr(): array {
+    return [
+      '#theme' => 'bespreker_qr',
+    ];
   }
 
-public function feedback() {
-    return ['#theme' => 'bespreker_feedback'];
+  /**
+   * Overzicht van betalingen en onkosten.
+   */
+  public function betalingen(): array {
+    return [
+      '#theme' => 'bespreker_betalingen',
+      '#cache' => [
+        'contexts' => ['user'],
+      ],
+    ];
   }
 
-public function feedbackSummary() { return ['#theme' => 'bespreker_feedback_summary']; }
-
-public function materialen() {
-    return ['#theme' => 'bespreker_logistiek'];
+  /**
+   * Overzicht van alle sessies van de spreker.
+   */
+  public function sessies(): array {
+    return [
+      '#theme' => 'bespreker_sessies',
+    ];
   }
 
-public function materialenGehuurd() { return ['#theme' => 'bespreker_materialen_gehuurd']; }
+  /**
+   * Algemene feedback pagina.
+   */
+  public function feedback(): array {
+    return [
+      '#theme' => 'bespreker_feedback',
+    ];
+  }
 
-public function sessieDetails() { return ['#theme' => 'bespreker_sessie_details']; }
-public function bezoekersDetails() { return ['#theme' => 'bespreker_bezoekers_details']; }  
+  /**
+   * Gedetailleerde analyse van de feedback.
+   */
+  public function feedbackSummary(): array {
+    return [
+      '#theme' => 'bespreker_feedback_summary',
+    ];
+  }
+
+  /**
+   * Overzicht van logistieke zaken.
+   */
+  public function materialen(): array {
+    return [
+      '#theme' => 'bespreker_logistiek',
+    ];
+  }
+
+  /**
+   * Details van gehuurde materialen.
+   */
+  public function materialenGehuurd(): array {
+    return [
+      '#theme' => 'bespreker_materialen_gehuurd',
+    ];
+  }
+
+  /**
+   * Specifieke details per sessie.
+   */
+  public function sessieDetails(): array {
+    return [
+      '#theme' => 'bespreker_sessie_details',
+    ];
+  }
+
+  /**
+   * Lijst met bezoekers voor de sessie.
+   */
+  public function bezoekersDetails(): array {
+    return [
+      '#theme' => 'bespreker_bezoekers_details',
+    ];
+  }
+
 }
