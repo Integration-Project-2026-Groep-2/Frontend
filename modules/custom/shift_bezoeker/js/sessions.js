@@ -32,19 +32,23 @@
       });
 
       // Handle registratie knop
-      $('.register-btn').on('click', function() {
-        const sessionId = $(this).data('session-id');
-        if (sessionId) {
-          window.location.href = `/sessie/inschrijven/${sessionId}`;
-        }
+      once('register-click', '.register-btn', context).forEach(function (element) {
+        $(element).on('click', function() {
+          const sessionId = $(this).data('session-id');
+          if (sessionId) {
+            window.location.href = `/sessie/inschrijven/${sessionId}`;
+          }
+        });
       });
 
       // Handle uitschrijven knop
-      $('.cancel-btn').on('click', function() {
-        const sessionId = $(this).data('session-id');
-        if (sessionId && confirm('Weet je zeker dat je je wilt uitschrijven voor deze sessie?')) {
-          window.location.href = `/sessie/uitschrijven/${sessionId}`;
-        }
+      once('cancel-click', '.cancel-btn', context).forEach(function (element) {
+        $(element).on('click', function() {
+          const sessionId = $(this).data('session-id');
+          if (sessionId && confirm('Weet je zeker dat je je wilt uitschrijven voor deze sessie?')) {
+            window.location.href = `/sessie/uitschrijven/${sessionId}`;
+          }
+        });
       });
 
       once('location-click', '.clickable-location', context).forEach(function (element) {
