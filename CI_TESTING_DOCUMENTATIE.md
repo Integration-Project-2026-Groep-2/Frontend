@@ -154,9 +154,10 @@ Als je snel twee commits pusht, wordt de eerste CI-run automatisch geannuleerd. 
 
 ### Timeouts (zelfde als CRM en Facturatie):
 ```yaml
-timeout-minutes: 10
+timeout-minutes: 10   # lint
+timeout-minutes: 25   # unit-tests en integration
 ```
-Elke job stopt na 10 minuten als hij vastloopt. Zo raken de CI-minuten niet op door een stuk test dat eeuwig hangt.
+Elke job stopt als hij vastloopt: lint na 10 minuten, tests na 25 minuten. Zo raken de CI-minuten niet op door een stuk test dat eeuwig hangt.
 
 ### Permissions (zelfde als CRM):
 ```yaml
@@ -177,21 +178,14 @@ Beperkt de rechten tot het minimum. De job mag alleen code lezen, niets schrijve
 
 ```yaml
 - name: Controleer coding standards (Drupal standaard)
-  run: |
-    ./vendor/bin/phpcs \
-      --standard=Drupal \
-      --extensions=php \
-      --warning-severity=0 \
-      modules/custom/
+  run: ./vendor/bin/phpcs --standard=phpcs.xml
 ```
 
-**`--standard=Drupal`** — gebruikt de officiële Drupal codeerstandaard  
-**`--extensions=php`** — alleen PHP-bestanden controleren  
-**`--warning-severity=0`** — waarschuwingen tonen maar build faalt alleen op echte **fouten**
+**`--standard=phpcs.xml`** — gebruikt de projectconfiguratie in `phpcs.xml` (Drupal standaard + uitgesloten regels)
 
 ```yaml
 - name: Beveiligingsaudit van PHP dependencies
-  run: composer audit
+  run: composer audit --no-dev
   continue-on-error: true
 ```
 
@@ -203,8 +197,8 @@ Beperkt de rechten tot het minimum. De job mag alleen code lezen, niets schrijve
 ### Job 2: Unit Tests
 
 - Draait **na** lint (`needs: lint`)
-- Gebruikt `drupal:11` Docker container
-- Installeert PHPUnit + Prophecy
+- Gebruikt `ubuntu-latest` runner met `composer create-project drupal/recommended-project:^11`
+- Installeert PHPUnit via `drupal/core-dev:^11`
 - Kopieert custom modules en XSD schemas naar Drupal
 - Voert alle unit tests uit (geen database nodig)
 
@@ -213,7 +207,7 @@ Beperkt de rechten tot het minimum. De job mag alleen code lezen, niets schrijve
 ### Job 3: Kernel Tests
 
 - Draait **parallel** met unit tests, ook na lint
-- Gebruikt `drupal:11` Docker container
+- Gebruikt `ubuntu-latest` runner met `composer create-project drupal/recommended-project:^11`
 - SQLite als tijdelijke database (`SIMPLETEST_DB`)
 - RabbitMQ uitgeschakeld (`SHIFT_BEZOEKER_DISABLE_AMQP=1`)
 - Voert alle kernel tests uit
@@ -292,7 +286,7 @@ De CD job controleert expliciet:
 </testsuite>
 ```
 
-Dit bestand vertelt PHPUnit **waar** de tests staan en **hoe** ze uitgevoerd moeten worden. De CI kopieert dit bestand naar `/opt/drupal/phpunit.xml` in de Drupal container.
+Dit bestand vertelt PHPUnit **waar** de tests staan en **hoe** ze uitgevoerd moeten worden. De CI kopieert dit bestand naar `$HOME/drupal/phpunit.xml` op de ubuntu-latest runner.
 
 ---
 
@@ -368,8 +362,8 @@ RabbitMQ bericht dat naar de planning-service vraagt: *"Geef mij alle sessies."*
 | `testRoutingKeyIsCorrect` | Routing key is `session.list.request` |
 | `testGetTypeIsCorrect` | Type is `SessionListRequest` |
 | `testToXmlProducesValidXml` | Geproduceerde XML is geldig en heeft correct root element |
-| `testToXmlBevattRequestId` | XML bevat `<requestId>` dat begint met `req_` |
-| `testToXmlBevattTimestamp` | XML bevat een `<timestamp>` element |
+| `testToXmlBevatRequestId` | XML bevat `<requestId>` dat begint met `req_` |
+| `testToXmlBevatTimestamp` | XML bevat een `<timestamp>` element |
 | `testRequestIdIsUniekPerAanroep` | Elke aanroep genereert een ander uniek ID |
 
 ---
@@ -404,7 +398,7 @@ Stuurt gebruikers na inloggen naar de juiste pagina op basis van hun rol:
 - Speaker → `/bespreker`
 - Andere rollen → `/`
 
-### Tests (5 stuks):
+### Tests (6 stuks):
 
 | Test | Wat wordt getest |
 |------|-----------------|
@@ -413,6 +407,7 @@ Stuurt gebruikers na inloggen naar de juiste pagina op basis van hun rol:
 | `testIngelogdeGebruikerOpAndereRouteWordtNietOmgeleid` | Ingelogd maar op andere pagina → geen redirect |
 | `testAdministratorWordtOmgeleidNaLogin` | Administrator op login route → redirect |
 | `testSpeakerWordtOmgeleidNaLogin` | Speaker op login route → redirect |
+| `testVisitorWordtOmgeleidNaLogin` | Visitor op login route → redirect |
 
 ---
 
@@ -436,8 +431,8 @@ GITHUB ACTIONS — leest .github/workflows/ci.yml
          ▼                    ▼
 ┌──────────────────┐  ┌──────────────────┐
 │ Job 2: UNIT TEST │  │ Job 3: KERNEL    │
-│ (drupal:11)      │  │ TEST (drupal:11) │
-│ ✓ PHPUnit unit   │  │ ✓ PHPUnit kernel │
+│ (ubuntu-latest)  │  │ TEST             │
+│ ✓ PHPUnit unit   │  │ (ubuntu-latest)  │
 │ ✓ 9+ test klassen│  │ ✓ SQLite DB      │
 └──────────────────┘  └──────────────────┘
          │                    │
