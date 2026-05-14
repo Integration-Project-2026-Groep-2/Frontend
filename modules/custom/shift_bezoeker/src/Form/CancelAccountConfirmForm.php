@@ -20,7 +20,7 @@ class CancelAccountConfirmForm extends ConfirmFormBase {
   }
 
   public function getDescription() {
-    return $this->t('Je account wordt gedeactiveerd en je wordt uitgelogd. Je kunt niet meer inloggen met deze gegevens. Dit kan niet ongedaan worden gemaakt.');
+    return $this->t('Je account wordt verwijderd en je wordt uitgelogd. Je kunt niet meer inloggen met deze gegevens. Dit kan niet ongedaan worden gemaakt.');
   }
 
   public function getCancelUrl() {

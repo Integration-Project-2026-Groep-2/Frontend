@@ -82,7 +82,6 @@ class BezoekerController extends ControllerBase {
   public function accountVerwijderdPage() {
     return [
       '#theme' => 'account_verwijderd',
-      '#cache' => ['max-age' => 0],
     ];
   }
 
