@@ -5,23 +5,26 @@
     <div style="background: rgba(26,31,46,0.8); border-radius: 16px; padding: 30px; border: 1px solid rgba(99,51,234,0.2); margin-top: 20px;">
         <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 20px; margin-bottom: 20px;">
             <div>
-                <p style="margin: 0; color: #a0a5b1; font-size: 12px;">INGELOGD ALS</p>
-                <h4 style="margin: 5px 0 0 0; font-size: 20px;">Bespreker Test</h4>
+                <p style="margin: 0; color: #a0a5b1; font-size: 12px; letter-spacing: 1px;">INGELOGD ALS</p>
+                {# Hier komt de dynamische naam #}
+                <h4 style="margin: 5px 0 0 0; font-size: 20px; font-weight: 700;">{{ user_name }}</h4>
+                {# Optioneel: toon ook het e-mailadres #}
+                <p style="margin: 5px 0 0 0; color: #6333ea; font-size: 14px;">{{ user_email }}</p>
             </div>
-            <a href="/bespreker/account/edit" style="color: #6333ea; font-weight: 800; text-decoration: none; font-size: 12px;">BEWERK PROFIEL</a>
+            <a href="/bespreker/account/edit" style="color: #6333ea; font-weight: 800; text-decoration: none; font-size: 12px; letter-spacing: 1px;">BEWERK PROFIEL</a>
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-            <a href="/bespreker/account/qr" style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; text-decoration: none; color: white;">
+            <a href="/bespreker/account/qr" style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; text-decoration: none; color: white; transition: 0.3s; border: 1px solid transparent;" onmouseover="this.style.borderColor='rgba(99,51,234,0.5)'" onmouseout="this.style.borderColor='transparent'">
                 <p style="margin: 0; font-weight: 700;">Mijn QR Code →</p>
                 <p style="margin: 5px 0 0 0; color: #a0a5b1; font-size: 12px;">Toegang tot de sprekersruimte.</p>
             </a>
-            <a href="/bespreker/account/betalingen" style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; text-decoration: none; color: white;">
+            <a href="/bespreker/account/betalingen" style="background: rgba(255,255,255,0.05); padding: 20px; border-radius: 12px; text-decoration: none; color: white; transition: 0.3s; border: 1px solid transparent;" onmouseover="this.style.borderColor='rgba(99,51,234,0.5)'" onmouseout="this.style.borderColor='transparent'">
                 <p style="margin: 0; font-weight: 700;">Financiën →</p>
                 <p style="margin: 5px 0 0 0; color: #a0a5b1; font-size: 12px;">Onkosten en vergoedingen.</p>
             </a>
         </div>
     </div>
     <br>
-    <a href="/bespreker" style="color: #a0a5b1; text-decoration: none; font-size: 14px;">« Terug naar Dashboard</a>
+    <a href="/bespreker" style="color: #a0a5b1; text-decoration: none; font-size: 14px; font-weight: 600;">« Terug naar Dashboard</a>
 </div>
