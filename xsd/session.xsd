@@ -11,14 +11,15 @@
   <xs:element name="SessionCreated">
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="sessionId"  type="xs:string"   minOccurs="0"/>
+        <xs:element name="sessionId"  type="uuid"/>
         <xs:element name="title"      type="xs:string"/>
+        <xs:element name="description" type="xs:string"  minOccurs="0"/>
         <xs:element name="date"       type="xs:string"/>
         <xs:element name="startTime"  type="xs:string"/>
         <xs:element name="endTime"    type="xs:string"   minOccurs="0"/>
         <xs:element name="capacity"   type="xs:int"      minOccurs="0"/>
-        <xs:element name="locationId" type="xs:string"   minOccurs="0"/>
-        <xs:element name="speakerId"  type="xs:string"   minOccurs="0"/>
+        <xs:element name="locationId" type="uuid"        minOccurs="0"/>
+        <xs:element name="speakerId"  type="uuid"        minOccurs="0"/>
         <xs:element name="location"   type="xs:string"   minOccurs="0"/>
         <xs:element name="status"     type="xs:string"   minOccurs="0"/>
         <xs:element name="icsData"    type="xs:string"   minOccurs="0"/>
@@ -35,15 +36,21 @@
   <xs:element name="SessionUpdated">
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="sessionId"   type="xs:string"/>
+        <xs:element name="sessionId"   type="uuid"/>
         <xs:element name="sessionName" type="xs:string"/>
+        <xs:element name="newDescription" type="xs:string" minOccurs="0"/>
         <xs:element name="changeType"  type="xs:string"/>
         <xs:element name="newTime"     type="xs:string"   minOccurs="0"/>
+        <xs:element name="newStartTime" type="xs:time"    minOccurs="0"/>
+        <xs:element name="newEndTime"   type="xs:time"    minOccurs="0"/>
         <xs:element name="newLocation" type="xs:string"   minOccurs="0"/>
+        <xs:element name="newLocationId" type="uuid"      minOccurs="0"/>
+        <xs:element name="newCapacity"   type="xs:int"    minOccurs="0"/>
+        <xs:element name="newStatus"     type="xs:string" minOccurs="0"/>
         <xs:element name="participantIds" minOccurs="0">
           <xs:complexType>
             <xs:sequence>
-              <xs:element name="participantId" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+              <xs:element name="participantId" type="uuid" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
           </xs:complexType>
         </xs:element>
@@ -61,14 +68,14 @@
   <xs:element name="SessionCancelled">
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="sessionId"   type="xs:string"/>
+        <xs:element name="sessionId"   type="uuid"/>
         <xs:element name="sessionName" type="xs:string"/>
         <xs:element name="status"      type="xs:string"   minOccurs="0"/>
         <xs:element name="reason"      type="xs:string"   minOccurs="0"/>
         <xs:element name="participantIds" minOccurs="0">
           <xs:complexType>
             <xs:sequence>
-              <xs:element name="participantId" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+              <xs:element name="participantId" type="uuid" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
           </xs:complexType>
         </xs:element>
@@ -86,20 +93,20 @@
   <xs:element name="SessionRescheduled">
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="sessionId"    type="xs:string"/>
+        <xs:element name="sessionId"    type="uuid"/>
         <xs:element name="sessionName"  type="xs:string"/>
         <xs:element name="oldDate"      type="xs:string"/>
         <xs:element name="oldStartTime" type="xs:string"/>
         <xs:element name="oldEndTime"   type="xs:string"   minOccurs="0"/>
         <xs:element name="newDate"      type="xs:string"/>
-        <xs:element name="newStartTime" type="xs:string"/>
-        <xs:element name="newEndTime"   type="xs:string"   minOccurs="0"/>
+        <xs:element name="newStartTime" type="xs:time"/>
+        <xs:element name="newEndTime"   type="xs:time"    minOccurs="0"/>
         <xs:element name="newLocation"  type="xs:string"   minOccurs="0"/>
         <xs:element name="reason"       type="xs:string"   minOccurs="0"/>
         <xs:element name="participantIds" minOccurs="0">
           <xs:complexType>
             <xs:sequence>
-              <xs:element name="participantId" type="xs:string" minOccurs="0" maxOccurs="unbounded"/>
+              <xs:element name="participantId" type="uuid" minOccurs="0" maxOccurs="unbounded"/>
             </xs:sequence>
           </xs:complexType>
         </xs:element>
@@ -117,10 +124,10 @@
   <xs:element name="SessionFull">
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="sessionId"            type="xs:string"/>
+        <xs:element name="sessionId"            type="uuid"/>
         <xs:element name="currentRegistrations" type="xs:int"      minOccurs="0"/>
         <xs:element name="capacity"             type="xs:int"      minOccurs="0"/>
-        <xs:element name="crmMasterId"          type="xs:string"   minOccurs="0"/>
+        <xs:element name="crmMasterId"          type="uuid"        minOccurs="0"/>
         <xs:element name="timestamp"            type="xs:dateTime" minOccurs="0"/>
       </xs:sequence>
     </xs:complexType>
@@ -134,8 +141,8 @@
   <xs:element name="ParticipantRegistered">
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="sessionId"            type="xs:string"/>
-        <xs:element name="crmMasterId"          type="xs:string"   minOccurs="0"/>
+        <xs:element name="sessionId"            type="uuid"/>
+        <xs:element name="crmMasterId"          type="uuid"        minOccurs="0"/>
         <xs:element name="currentRegistrations" type="xs:int"/>
         <xs:element name="capacity"             type="xs:int"      minOccurs="0"/>
         <xs:element name="registrationTime"     type="xs:dateTime" minOccurs="0"/>
@@ -169,14 +176,14 @@
               <xs:element name="session" minOccurs="0" maxOccurs="unbounded">
                 <xs:complexType>
                   <xs:sequence>
-                    <xs:element name="sessionId"  type="xs:string"/>
+                    <xs:element name="sessionId"  type="uuid"/>
                     <xs:element name="title"      type="xs:string"/>
                     <xs:element name="date"       type="xs:string"/>
-                    <xs:element name="startTime"  type="xs:string"/>
-                    <xs:element name="endTime"    type="xs:string"   minOccurs="0"/>
+                    <xs:element name="startTime"  type="xs:time"/>
+                    <xs:element name="endTime"    type="xs:time"     minOccurs="0"/>
                     <xs:element name="location"   type="xs:string"   minOccurs="0"/>
-                    <xs:element name="locationId" type="xs:string"   minOccurs="0"/>
-                    <xs:element name="speakerId"  type="xs:string"   minOccurs="0"/>
+                    <xs:element name="locationId" type="uuid"        minOccurs="0"/>
+                    <xs:element name="speakerId"  type="uuid"        minOccurs="0"/>
                     <xs:element name="status"     type="xs:string"   minOccurs="0"/>
                     <xs:element name="capacity"   type="xs:int"      minOccurs="0"/>
                     <xs:element name="icsData"    type="xs:string"   minOccurs="0"/>
@@ -201,8 +208,8 @@
   <xs:element name="RegistrationCreated">
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="sessionId"   type="xs:string"/>
-        <xs:element name="crmMasterId" type="xs:string"/>
+        <xs:element name="sessionId"   type="uuid"/>
+        <xs:element name="crmMasterId" type="uuid"/>
       </xs:sequence>
     </xs:complexType>
   </xs:element>
@@ -215,12 +222,18 @@
   <xs:element name="RegistrationConfirmed">
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="registrationId" type="xs:string"/>
-        <xs:element name="sessionId"      type="xs:string"/>
-        <xs:element name="crmMasterId"    type="xs:string"/>
+        <xs:element name="registrationId" type="uuid"/>
+        <xs:element name="sessionId"      type="uuid"/>
+        <xs:element name="crmMasterId"    type="uuid"/>
         <xs:element name="timestamp"      type="xs:dateTime" minOccurs="0"/>
       </xs:sequence>
     </xs:complexType>
   </xs:element>
+  
+  <xs:simpleType name="uuid">
+    <xs:restriction base="xs:string">
+      <xs:pattern value="[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff"/>
+    </xs:restriction>
+  </xs:simpleType>
 
 </xs:schema>

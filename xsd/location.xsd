@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <!-- ========================================================= -->
+  <!-- LocationCreated -->
+  <!-- Planning → Frontend -->
+  <!-- ========================================================= -->
+
+  <xs:element name="LocationCreated">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="locationId" type="xs:string"/>
+        <xs:element name="roomName"   type="xs:string"/>
+        <xs:element name="capacity"   type="xs:int"/>
+        <xs:element name="address"    type="xs:string"   minOccurs="0"/>
+        <xs:element name="status"     type="xs:string"   minOccurs="0"/>
+        <xs:element name="timestamp"  type="xs:dateTime" minOccurs="0"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- ========================================================= -->
+  <!-- LocationUpdated -->
+  <!-- Planning → Frontend -->
+  <!-- ========================================================= -->
+
+  <xs:element name="LocationUpdated">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="locationId" type="xs:string"/>
+        <xs:element name="roomName"   type="xs:string"/>
+        <xs:element name="capacity"   type="xs:int"/>
+        <xs:element name="address"    type="xs:string"   minOccurs="0"/>
+        <xs:element name="status"     type="xs:string"   minOccurs="0"/>
+        <xs:element name="timestamp"  type="xs:dateTime" minOccurs="0"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- ========================================================= -->
+  <!-- LocationDeleted -->
+  <!-- Planning → Frontend -->
+  <!-- ========================================================= -->
+
+  <xs:element name="LocationDeleted">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="locationId" type="xs:string"/>
+        <xs:element name="timestamp"  type="xs:dateTime" minOccurs="0"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- ========================================================= -->
+  <!-- LocationsRequested -->
+  <!-- Frontend → Planning (request-reply) -->
+  <!-- ========================================================= -->
+
+  <xs:element name="LocationsRequested">
+    <xs:complexType>
+      <xs:sequence/>
+    </xs:complexType>
+  </xs:element>
+
+  <!-- ========================================================= -->
+  <!-- LocationsAll -->
+  <!-- Planning → Frontend (request-reply response) -->
+  <!-- ========================================================= -->
+
+  <xs:element name="LocationsAll">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="locations">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="location" minOccurs="0" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="locationId" type="xs:string"/>
+                    <xs:element name="roomName"   type="xs:string"/>
+                    <xs:element name="capacity"   type="xs:int"/>
+                    <xs:element name="address"    type="xs:string"   minOccurs="0"/>
+                    <xs:element name="status"     type="xs:string"   minOccurs="0"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+</xs:schema>

@@ -37,6 +37,12 @@ class SessionCreateForm extends FormBase {
       '#maxlength' => 255,
     ];
 
+    $form['description'] = [
+      '#type'  => 'textarea',
+      '#title' => $this->t('Description'),
+      '#rows'  => 4,
+    ];
+
     $form['date'] = [
       '#type'     => 'date',
       '#title'    => $this->t('Date'),
@@ -44,15 +50,19 @@ class SessionCreateForm extends FormBase {
     ];
 
     $form['startTime'] = [
-      '#type'     => 'time',
-      '#title'    => $this->t('Start Time'),
-      '#required' => TRUE,
+      '#type'          => 'textfield',
+      '#title'         => $this->t('Start Time'),
+      '#required'      => TRUE,
+      '#default_value' => '12:00',
+      '#attributes'    => ['placeholder' => 'HH:mm'],
     ];
 
     $form['endTime'] = [
-      '#type'     => 'time',
-      '#title'    => $this->t('End Time'),
-      '#required' => TRUE,
+      '#type'          => 'textfield',
+      '#title'         => $this->t('End Time'),
+      '#required'      => TRUE,
+      '#default_value' => '13:00',
+      '#attributes'    => ['placeholder' => 'HH:mm'],
     ];
 
     $form['location_wrapper'] = [
@@ -130,11 +140,22 @@ class SessionCreateForm extends FormBase {
    * @return array<string, string>
    */
   protected function getLocationOptions(): array {
-    return [
-      'campus_kaai_c_1_1' => $this->t('Campus Kaai, blok C, verdieping 1, lokaal 1'),
-      'campus_kaai_c_1_2' => $this->t('Campus Kaai, blok C, verdieping 1, lokaal 2'),
-      'campus_kaai_c_1_3' => $this->t('Campus Kaai, blok C, verdieping 1, lokaal 3'),
-    ];
+    $options = [];
+    try {
+      $results = \Drupal::database()->select('location', 'l')
+        ->fields('l', ['location_id', 'room_name'])
+        ->orderBy('room_name', 'ASC')
+        ->execute()
+        ->fetchAll();
+
+      foreach ($results as $location) {
+        $options[$location->location_id] = $location->room_name;
+      }
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('session_management')->error('Failed to load location options: @err', ['@err' => $e->getMessage()]);
+    }
+    return $options;
   }
 
   /**
@@ -160,22 +181,54 @@ class SessionCreateForm extends FormBase {
   }
 
   public function validateForm(array &$form, FormStateInterface $form_state): void {
-    $startTime = $form_state->getValue('startTime');
-    $endTime   = $form_state->getValue('endTime');
+    $startTime = $this->extractTime($form_state->getValue('startTime'));
+    $endTime   = $this->extractTime($form_state->getValue('endTime'));
+
+    if (!$startTime) {
+      $raw = var_export($form_state->getValue('startTime'), TRUE);
+      $form_state->setErrorByName('startTime', $this->t('Start time is required (Received: @val).', ['@val' => $raw]));
+    }
+    if (!$endTime) {
+      $raw = var_export($form_state->getValue('endTime'), TRUE);
+      $form_state->setErrorByName('endTime', $this->t('End time is required (Received: @val).', ['@val' => $raw]));
+    }
 
     if ($startTime && $endTime && $startTime >= $endTime) {
       $form_state->setErrorByName('endTime', $this->t('End time must be after start time.'));
     }
   }
 
-  public function submitForm(array &$form, FormStateInterface $form_state): void {
-    $date      = $form_state->getValue('date');
-    $startTime = $form_state->getValue('startTime');
-    $endTime   = $form_state->getValue('endTime');
-    $speakerId = $form_state->getValue('speaker') ?: NULL;
+  /**
+   * Helper to extract time string from Drupal form value (handles string or array).
+   */
+  private function extractTime($value): ?string {
+    if (is_string($value) && !empty($value)) {
+      return $value;
+    }
+    if (is_array($value)) {
+      if (isset($value['time']) && is_string($value['time'])) {
+        return $value['time'];
+      }
+      if (isset($value['hour'], $value['minute'])) {
+        return sprintf('%02d:%02d', $value['hour'], $value['minute']);
+      }
+    }
+    return NULL;
+  }
 
-    // Resolve speaker UUID — planning verwacht een UUID, niet een e-mail.
-    // TODO: vervang door echte planning UUID als die beschikbaar is.
+  public function submitForm(array &$form, FormStateInterface $form_state): void {
+    $this->messenger->addStatus($this->t('Processing session creation...'));
+    $date      = $form_state->getValue('date');
+    $startTime = $this->extractTime($form_state->getValue('startTime'));
+    if ($startTime && strlen($startTime) === 5) {
+      $startTime .= ':00';
+    }
+    $endTime = $this->extractTime($form_state->getValue('endTime'));
+    if ($endTime && strlen($endTime) === 5) {
+      $endTime .= ':00';
+    }
+
+    $speakerId = $form_state->getValue('speaker') ?: NULL;
     $speakerUuid = NULL;
     if ($speakerId) {
       $speaker = \Drupal::entityTypeManager()->getStorage('user')->load($speakerId);
@@ -184,13 +237,49 @@ class SessionCreateForm extends FormBase {
       }
     }
 
+    $locationId = $form_state->getValue('location') ?: NULL;
+    $locationOptions = $this->getLocationOptions();
+    $locationLabel = $locationId && isset($locationOptions[$locationId]) ? $locationOptions[$locationId] : NULL;
+
+    $sessionUuid = \Drupal::service('uuid')->generate();
+    $title = $form_state->getValue('title');
+
+    try {
+      \Drupal::database()->insert('session')
+        ->fields([
+          'session_id'   => $sessionUuid,
+          'title'        => $title,
+          'description'  => $form_state->getValue('description'),
+          'date'         => $date,
+          'start_time'   => $startTime,
+          'end_time'     => $endTime,
+          'location_id'  => $locationId,
+          'capacity'     => (int) $form_state->getValue('capacity'),
+          'status'       => $form_state->getValue('status'),
+          'sync_status'  => 'pending',
+        ])
+        ->execute();
+      
+      $this->messenger->addStatus($this->t('Session "@title" saved to database (Location ID: @loc).', [
+        '@title' => $title,
+        '@loc' => $locationId ?: 'None',
+      ]));
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('session_management')->error('Failed to save session to DB: @err', ['@err' => $e->getMessage()]);
+      $this->messenger->addError($this->t('Failed to save session locally.'));
+    }
+
     $message = new PlanningSessionCreatedMessage(
-      title:      $form_state->getValue('title'),
+      sessionId:  $sessionUuid,
+      title:      $title,
+      description: $form_state->getValue('description'),
       date:       $date,
-      startTime:  $startTime . ':00',
-      endTime:    $endTime . ':00',
+      startTime:  $startTime,
+      endTime:    $endTime,
       capacity:   (int) $form_state->getValue('capacity'),
-      locationId: $form_state->getValue('location') ?: NULL,
+      locationId: $locationId,
+      location:   $locationLabel,
       speakerId:  $speakerUuid,
       status:     $form_state->getValue('status'),
       timestamp:  (new \DateTime())->format(\DateTime::ATOM),
@@ -199,8 +288,8 @@ class SessionCreateForm extends FormBase {
     $client = RabbitMQClient::fromEnv();
     try {
       $client->publish($message);
-      $this->messenger->addStatus($this->t('Session "@title" created and sent to planning.', [
-        '@title' => $form_state->getValue('title'),
+      $this->messenger->addStatus($this->t('Session "@title" sent to planning.', [
+        '@title' => $title,
       ]));
       $form_state->setRedirect('session_management.list');
     }

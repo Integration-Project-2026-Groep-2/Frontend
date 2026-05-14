@@ -128,9 +128,11 @@ class RabbitMQClient {
       $this->connect();
 
       $xml = $message->toXml();
+      \Drupal::logger('rabbitmq')->info('Attempting to publish message type "@type"', ['@type' => $message->getType()]);
 
       // Validate before we touch the broker.
       $this->validator->validate($xml, $message->getType());
+      \Drupal::logger('rabbitmq')->info('XSD validation successful for "@type"', ['@type' => $message->getType()]);
 
       $exchange = $this->resolveExchange($message->getRoutingKey());
 

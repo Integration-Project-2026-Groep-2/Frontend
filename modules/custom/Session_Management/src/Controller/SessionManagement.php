@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\Session_Management\Controller;
+namespace Drupal\session_management\Controller;
 
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Url;
@@ -8,30 +8,94 @@ use Drupal\Core\Url;
 class SessionManagement extends ControllerBase {
 
   public function content() {
-    // TODO: In the future, fetch all sessions from Planning via RabbitMQ
-    // For now, show placeholder message
-    $this->messenger()->addStatus($this->t('Session list will be loaded from Planning.'));
+    $rows = [];
+    try {
+      $database = \Drupal::database();
+      
+      $query = $database->select('session', 's');
+      $query->leftJoin('location', 'l', 's.location_id = l.location_id');
+      $query->fields('s', ['session_id', 'title', 'date', 'start_time', 'end_time', 'capacity', 'status'])
+        ->fields('l', ['room_name'])
+        ->orderBy('s.date', 'ASC')
+        ->orderBy('s.start_time', 'ASC');
+      
+      $results = $query->execute()->fetchAll();
 
-    $create_url = Url::fromRoute('session_management.create');
+      foreach ($results as $session) {
+        $edit_url = Url::fromRoute('session_management.edit', ['sessionId' => $session->session_id]);
+        
+        $status_class = 'status-' . strtolower($session->status);
+        $status_label = ucfirst($session->status);
+
+        $rows[] = [
+          'data' => [
+            $session->title,
+            $session->date . ' ' . $session->start_time,
+            $session->end_time,
+            $session->room_name ?: '-',
+            $session->capacity,
+            [
+              'data' => [
+                '#type' => 'html_tag',
+                '#tag' => 'span',
+                '#value' => $status_label,
+                '#attributes' => ['class' => ['status-badge', $status_class]],
+              ],
+            ],
+            [
+              'data' => [
+                '#type' => 'link',
+                '#title' => $this->t('Edit'),
+                '#url' => $edit_url,
+                '#attributes' => ['class' => ['action-link', 'edit']],
+              ],
+            ],
+          ],
+        ];
+      }
+    }
+    catch (\Exception $e) {
+      $this->messenger()->addError($this->t('Could not load sessions: @err', ['@err' => $e->getMessage()]));
+    }
+
+    $header = [
+      $this->t('Title'),
+      $this->t('Start'),
+      $this->t('End'),
+      $this->t('Location'),
+      $this->t('Capacity'),
+      $this->t('Status'),
+      $this->t('Actions'),
+    ];
 
     return [
       '#type' => 'container',
-      'title' => [
-        '#markup' => '<h1>Sessions</h1>',
+      '#attributes' => ['class' => ['session-management-container']],
+      '#attached' => [
+        'library' => ['session_management/admin-styles'],
       ],
-      'create_button' => [
-        '#type' => 'link',
-        '#title' => $this->t('Create new session'),
-        '#url' => $create_url,
-        '#attributes' => [
-          'class' => ['button', 'button--primary'],
+      '#cache' => [
+        'max-age' => 0,
+      ],
+      'header' => [
+        '#type' => 'container',
+        '#attributes' => ['class' => ['session-management-header']],
+        'title' => [
+          '#markup' => '<h1>' . $this->t('Sessions') . '</h1>',
+        ],
+        'add_button' => [
+          '#type' => 'link',
+          '#title' => $this->t('Add Session'),
+          '#url' => Url::fromRoute('session_management.create'),
+          '#attributes' => ['class' => ['button', 'button--primary']],
         ],
       ],
       'table' => [
         '#type' => 'table',
-        '#header' => ['Title', 'Start', 'End', 'Location', 'Speaker', 'Capacity', 'Actions'],
-        '#rows' => [],
-        '#empty' => $this->t('No sessions loaded yet.'),
+        '#header' => $header,
+        '#rows' => $rows,
+        '#empty' => $this->t('No sessions found in the database.'),
+        '#attributes' => ['class' => ['session-management-table']],
       ],
     ];
   }

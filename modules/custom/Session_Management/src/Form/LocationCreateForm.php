@@ -59,17 +59,48 @@ class LocationCreateForm extends FormBase {
   }
 
   public function submitForm(array &$form, FormStateInterface $form_state): void {
+    $locationId = \Drupal\Component\Utility\Crypt::randomBytesBase64(16);
+    // Use a standard UUID format if possible, or just a unique string.
+    // Drupal's uuid service is better.
+    $locationUuid = \Drupal::service('uuid')->generate();
+
+    $roomName = $form_state->getValue('roomName');
+    $capacity = (int) $form_state->getValue('capacity');
+    $address  = $form_state->getValue('address') ?: NULL;
+
+    try {
+      \Drupal::database()->insert('location')
+        ->fields([
+          'location_id' => $locationUuid,
+          'room_name'   => $roomName,
+          'capacity'    => $capacity,
+          'address'     => $address,
+          'status'      => 'beschikbaar',
+        ])
+        ->execute();
+
+      $this->messenger()->addStatus($this->t('Location "@name" saved to database with ID: @id', [
+        '@name' => $roomName,
+        '@id' => $locationUuid,
+      ]));
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('session_management')->error('Failed to save location to DB: @err', ['@err' => $e->getMessage()]);
+      $this->messenger()->addError($this->t('Failed to save location locally.'));
+    }
+
     $message = new PlanningLocationCreatedMessage(
-      roomName: $form_state->getValue('roomName'),
-      capacity: (int) $form_state->getValue('capacity'),
-      address:  $form_state->getValue('address') ?: NULL,
+      locationId: $locationUuid,
+      roomName: $roomName,
+      capacity: $capacity,
+      address:  $address,
     );
 
     $client = RabbitMQClient::fromEnv();
     try {
       $client->publish($message);
-      $this->messenger()->addStatus($this->t('Location "@name" created and sent to planning.', [
-        '@name' => $form_state->getValue('roomName'),
+      $this->messenger()->addStatus($this->t('Location "@name" sent to planning.', [
+        '@name' => $roomName,
       ]));
       $form_state->setRedirect('session_management.location.list');
     }
