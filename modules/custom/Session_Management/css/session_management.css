@@ -69,14 +69,14 @@
 .session-management-table td {
   padding: 20px;
   border: none;
-  color: #1a202c;
+  color: #f1f5f9;
 }
 
 .session-management-table td:first-child {
   border-top-left-radius: 12px;
   border-bottom-left-radius: 12px;
   font-weight: 600;
-  color: #1a202c;
+  color: #f1f5f9;
 }
 
 .session-management-table td:last-child {

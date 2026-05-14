@@ -239,6 +239,8 @@ class SessionEditForm extends FormBase {
       newEndTime:   $endTime,
       newLocation:   $locationLabel,
       newLocationId: $locationId,
+      newCapacity:   (int) $form_state->getValue('capacity'),
+      newStatus:     $form_state->getValue('status'),
       timestamp:     (new \DateTime())->format(\DateTime::ATOM),
     );
 
