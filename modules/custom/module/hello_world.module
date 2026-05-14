@@ -63,7 +63,10 @@ function hello_world_user_delete(\Drupal\user\UserInterface $account) {
 function hello_world_theme($existing, $type, $theme, $path) {
   return [
     'bespreker_dashboard' => ['variables' => ['user_name' => NULL]],
-    'bespreker_account' => ['variables' => []],
+    'bespreker_account' => ['variables' => [
+        'user_name' => NULL,
+        'user_email' => NULL,
+      ],],
     'bespreker_sessies' => ['variables' => []],
     'bespreker_feedback' => ['variables' => []],
     'bespreker_logistiek' => ['variables' => []],
