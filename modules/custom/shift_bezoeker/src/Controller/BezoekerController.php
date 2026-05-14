@@ -60,9 +60,14 @@ class BezoekerController extends ControllerBase {
     // 5. Formatteer sessies voor de grid
     $uid = (int) $this->currentUser()->id();
     $account = \Drupal\user\Entity\User::load($uid);
-    $user_id = $account && $account->hasField('field_crm_id') && !$account->get('field_crm_id')->isEmpty()
-      ? $account->get('field_crm_id')->value
-      : NULL;
+    
+    // Gebruik CRM ID als primary, fallback op Drupal UUID voor compatibiliteit/testing
+    $user_id = NULL;
+    if ($account) {
+      $user_id = $account->hasField('field_crm_id') && !$account->get('field_crm_id')->isEmpty()
+        ? $account->get('field_crm_id')->value
+        : $account->uuid();
+    }
 
     $active_registrations = [];
     if ($user_id) {
@@ -144,15 +149,19 @@ class BezoekerController extends ControllerBase {
     }
 
     $db = \Drupal::database();
-    $userData = \Drupal::service('user.data');
 
-    // 1. Haal gegevens op (Gebruik CRM ID als userId voor Planning)
+    // 1. Haal gegevens op (Gebruik CRM ID als userId voor Planning, fallback op Drupal UUID)
     $user_id = $account->hasField('field_crm_id') && !$account->get('field_crm_id')->isEmpty() 
       ? $account->get('field_crm_id')->value 
-      : NULL;
+      : $account->uuid();
+
+    \Drupal::logger('shift_bezoeker')->debug('Inschrijven started. Session: @session, User ID (CRM/UUID): @user', [
+      '@session' => $session_id,
+      '@user' => $user_id,
+    ]);
 
     if (!$user_id) {
-      $this->messenger()->addError($this->t('Geen CRM Master ID gevonden voor uw account. Neem contact op met de beheerder.'));
+      $this->messenger()->addError($this->t('Geen geldig gebruikers-ID gevonden. Neem contact op met de beheerder.'));
       return $this->redirect('shift_bezoeker.sessions');
     }
 
@@ -185,6 +194,7 @@ class BezoekerController extends ControllerBase {
     $timestamp = (new \DateTime())->format(\DateTime::ATOM);
 
     try {
+      \Drupal::logger('shift_bezoeker')->debug('Inserting registration @id into database.', ['@id' => $registration_id]);
       $db->insert('registration')
         ->fields([
           'registration_id' => $registration_id,
@@ -194,6 +204,7 @@ class BezoekerController extends ControllerBase {
           'is_active'       => 1,
         ])
         ->execute();
+      \Drupal::logger('shift_bezoeker')->debug('Registration @id successfully inserted.', ['@id' => $registration_id]);
     }
     catch (\Exception $e) {
       \Drupal::logger('shift_bezoeker')->error('Failed to save registration: @err', ['@err' => $e->getMessage()]);
@@ -212,6 +223,7 @@ class BezoekerController extends ControllerBase {
 
     $client = \Drupal\hello_world\RabbitMQ\RabbitMQClient::fromEnv();
     try {
+      \Drupal::logger('shift_bezoeker')->debug('Attempting to publish RegistrationCreated message.');
       $client->publish($message);
       \Drupal::logger('shift_bezoeker')->info('RegistrationCreated message sent for session @session', ['@session' => $session_id]);
     }
@@ -238,12 +250,17 @@ class BezoekerController extends ControllerBase {
   public function uitschrijven($session_id) {
     $uid = (int) $this->currentUser()->id();
     $account = \Drupal\user\Entity\User::load($uid);
-    $user_id = $account && $account->hasField('field_crm_id') && !$account->get('field_crm_id')->isEmpty()
-      ? $account->get('field_crm_id')->value
-      : NULL;
+    
+    // Gebruik CRM ID als primary, fallback op Drupal UUID
+    $user_id = NULL;
+    if ($account) {
+      $user_id = $account->hasField('field_crm_id') && !$account->get('field_crm_id')->isEmpty()
+        ? $account->get('field_crm_id')->value
+        : $account->uuid();
+    }
 
     if (!$user_id) {
-      $this->messenger()->addError($this->t('User CRM ID not found.'));
+      $this->messenger()->addError($this->t('Gebruikers-ID niet gevonden.'));
       return $this->redirect('shift_bezoeker.sessions');
     }
 
@@ -264,8 +281,12 @@ class BezoekerController extends ControllerBase {
     }
 
     $registration_id = $registration['registration_id'];
-    $crm_master_id = $registration['crm_master_id'];
     $timestamp = (new \DateTime())->format(\DateTime::ATOM);
+
+    \Drupal::logger('shift_bezoeker')->debug('Uitschrijven started. Session: @session, Registration: @reg', [
+      '@session' => $session_id,
+      '@reg' => $registration_id,
+    ]);
 
     // 2. Zet op inactief in DB
     try {
