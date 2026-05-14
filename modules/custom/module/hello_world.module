@@ -76,6 +76,12 @@ function hello_world_theme($existing, $type, $theme, $path) {
     'bespreker_feedback_summary' => ['variables' => []],
     'bespreker_materialen_gehuurd' => ['variables' => []],
     'bespreker_sessie_details' => ['variables' => []],
-    'bespreker_bezoekers_details' => ['variables' => []],
+    'bespreker_bezoekers_details' => [
+      'variables' => [
+        'bezoekers' => [],
+        'totaal' => 0,
+        'max_capaciteit' => 0,
+      ],
+    ],
   ];
 }
