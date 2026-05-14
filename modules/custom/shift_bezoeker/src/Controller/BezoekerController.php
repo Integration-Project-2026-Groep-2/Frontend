@@ -129,9 +129,11 @@ class BezoekerController extends ControllerBase {
   public function accountPage() {
     return $this->formBuilder()->getForm(EditAccountForm::class);
   }
+
   public function inschrijven($session_id) {
     $uid = (int) $this->currentUser()->id();
     $account = \Drupal\user\Entity\User::load($uid);
+
     if (!$account) {
       $this->messenger()->addError($this->t('User not found.'));
       return $this->redirect('shift_bezoeker.sessions');
@@ -169,8 +171,6 @@ class BezoekerController extends ControllerBase {
     }
 
     $email   = $account->getEmail();
-    $company = (string) ($userData->get('shift_bezoeker', $uid, 'company_name') ?? '');
-    $gdpr    = (bool) ($userData->get('shift_bezoeker', $uid, 'gdpr_consent') ?? FALSE);
 
     // 2. Zorg dat de participant bestaat in de lokale tabel
     try {
@@ -180,15 +180,12 @@ class BezoekerController extends ControllerBase {
           'first_name'    => $first_name,
           'last_name'     => $last_name,
           'email'         => $email,
-          'company'       => $company,
           'crm_master_id' => $crm_master_id,
-          'gdpr_consent'  => $gdpr ? 1 : 0,
         ])
         ->execute();
     }
     catch (\Exception $e) {
       \Drupal::logger('shift_bezoeker')->error('Failed to sync participant: @err', ['@err' => $e->getMessage()]);
-      // We gaan toch door, want misschien bestond de participant al.
     }
 
     // 3. Controleer of de gebruiker al is ingeschreven (actief)
@@ -253,11 +250,7 @@ class BezoekerController extends ControllerBase {
       \Drupal::logger('shift_bezoeker')->info('RegistrationCreated message sent for session @session', ['@session' => $session_id]);
     }
     catch (\Exception $e) {
-      // De eis was: do not send if it fails, log validation errors. 
-      // RabbitMQClient::publish doet de validatie en gooit RuntimeException met details.
       \Drupal::logger('shift_bezoeker')->error('RabbitMQ publish failed: @err', ['@err' => $e->getMessage()]);
-      // We hebben de database al geupdate, maar het bericht is niet verstuurd.
-      // In dit geval laten we de gebruiker toch de bevestiging zien, maar loggen de fout.
     }
     finally {
       $client->disconnect();
@@ -352,84 +345,9 @@ class BezoekerController extends ControllerBase {
   }
 
   public function bedrijvenPage() {
-    $bedrijven = $this->getBedrijven();
-
     return [
-      '#theme' => 'bezoeker_bedrijven',
-      '#bedrijven' => $bedrijven,
-      '#attached' => [
-        'library' => [
-          'shift_theme/global-styling',
-          'shift_theme/companies-page',
-        ],
-      ],
+      '#theme' => 'bedrijven_overzicht_template',
     ];
   }
 
-  /**
-   * Helper to load groups of type 'company' (optimized: load files in bulk).
-   */
-  private function getBedrijven() {
-    $query = \Drupal::entityQuery('group')
-      ->accessCheck(false)// zorgt dat ook niet ingelogde gebruikers de bedrijven kunnen zien op de onze partners pagina
-      ->condition('type', 'company');//checked op groepeen met type company
-
-    $gids = $query->execute();
-    $groepen = \Drupal::entityTypeManager()->getStorage('group')->loadMultiple($gids);
-
-    // Verzamel alle fids eerst.
-    $fids = [];
-    foreach ($groepen as $groep) {
-      if ($groep->hasField('field_logo')) {
-        $field = $groep->get('field_logo');
-        if (!$field->isEmpty()) {
-          $fid = $field->target_id ?? NULL;
-          if ($fid) {
-            $fids[$fid] = $fid;
-          }
-        }
-      }
-    }
-
-    // Laad bestanden in één keer.
-    $files = [];
-    if (!empty($fids)) {
-      $files = File::loadMultiple($fids);
-    }
-
-    $result = [];
-    $url_generator = \Drupal::service('file_url_generator');
-
-    foreach ($groepen as $groep) {
-      $naam = $groep->label();
-
-      $beschrijving = '';
-      if ($groep->hasField('field_description')) {
-        $desc_field = $groep->get('field_description');
-        if (!$desc_field->isEmpty()) {
-          $beschrijving = $desc_field->value ?? '';
-        }
-      }
-
-      $logo_url = NULL;
-      if ($groep->hasField('field_logo')) {
-        $logo_field = $groep->get('field_logo');
-        if (!$logo_field->isEmpty()) {
-          $fid = $logo_field->target_id ?? NULL;
-          if ($fid && isset($files[$fid])) {
-            $file = $files[$fid];
-            $logo_url = $url_generator->generateAbsoluteString($file->getFileUri());
-          }
-        }
-      }
-
-      $result[] = [
-        'naam' => $naam,
-        'beschrijving' => $beschrijving,
-        'logo' => $logo_url,
-      ];
-    }
-
-    return $result;
-  }
 }

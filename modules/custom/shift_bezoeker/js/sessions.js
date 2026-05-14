@@ -1,4 +1,4 @@
-(function ($, Drupal) {
+(function ($, Drupal, once) {
   Drupal.behaviors.sessionOverview = {
     attach: function (context, settings) {
       once('session-click', '.grid-session', context).forEach(function (element) {
@@ -69,6 +69,7 @@
           $('#modal-time').hide();
           $('#modal-location').hide();
           $('.register-btn').hide();
+          $('.cancel-btn').hide();
 
           $('.session-modal-overlay').addClass('active');
           $('body').css('overflow', 'hidden');
@@ -83,4 +84,4 @@
       });
     }
   };
-})(jQuery, Drupal);
+})(jQuery, Drupal, once);

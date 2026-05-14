@@ -25,7 +25,7 @@ services:
     volumes:
       - drupal_sites:/opt/drupal/web/sites
       - ./modules/custom:/opt/drupal/web/modules/custom
-      - ./themes:/opt/drupal/web/themes/custom
+      - ./themes/custom:/opt/drupal/web/themes/custom
       - ./xsd:/opt/drupal/xsd:ro
     restart: unless-stopped
     depends_on:
