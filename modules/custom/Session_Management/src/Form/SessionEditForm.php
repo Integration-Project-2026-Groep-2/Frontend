@@ -7,6 +7,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\hello_world\RabbitMQ\Message\Planning\PlanningSessionUpdatedMessage;
 use Drupal\hello_world\RabbitMQ\RabbitMQClient;
+use Drupal\hello_world\Service\ControlRoomLoggerService;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Drupal\Core\Url;
 
@@ -248,17 +249,28 @@ class SessionEditForm extends FormBase {
       $this->messenger->addStatus($this->t('Update for "@title" sent to planning.', [
         '@title' => $title,
       ]));
+      $this->crLogger()->info('frontend-session', sprintf(
+        'Sessie gewijzigd: "%s" (id: %s) → %s %s–%s',
+        $title, $sessionId, $date, $startTime, $endTime
+      ));
       $form_state->setRedirect('session_management.list');
     }
     catch (\RuntimeException $e) {
       \Drupal::logger('session_management')->error(
         'RabbitMQ session update failed: @err', ['@err' => $e->getMessage()]
       );
+      $this->crLogger()->error('frontend-session', sprintf(
+        'Sessie wijzigen mislukt ("%s", id: %s): %s', $title, $sessionId, $e->getMessage()
+      ));
       $this->messenger->addError($this->t('Update could not be sent to planning. Please try again.'));
     }
     finally {
       $client->disconnect();
     }
+  }
+
+  private function crLogger(): ControlRoomLoggerService {
+    return \Drupal::service('hello_world.controlroom_logger');
   }
 
   /**
