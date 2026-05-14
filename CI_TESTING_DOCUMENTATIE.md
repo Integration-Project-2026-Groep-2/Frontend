@@ -204,13 +204,13 @@ Beperkt de rechten tot het minimum. De job mag alleen code lezen, niets schrijve
 
 ---
 
-### Job 3: Kernel Tests
+### Job 3: Integration Tests
 
 - Draait **parallel** met unit tests, ook na lint
 - Gebruikt `ubuntu-latest` runner met `composer create-project drupal/recommended-project:^11`
 - SQLite als tijdelijke database (`SIMPLETEST_DB`)
 - RabbitMQ uitgeschakeld (`SHIFT_BEZOEKER_DISABLE_AMQP=1`)
-- Voert alle kernel tests uit
+- Voert alle kernel (integration) tests uit
 
 ---
 
@@ -227,7 +227,7 @@ on:
     branches: [main]   # Deployde bij ELKE push, ook als tests faalden!
 ```
 
-**Nu** (zelfde als Facturatie en CRM):
+**Nu**:
 ```yaml
 on:
   workflow_run:
