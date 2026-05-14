@@ -15,21 +15,9 @@ use Drupal\Core\Url;
  */
 class SessionEditForm extends FormBase {
 
-  /**
-   * The messenger service.
-   *
-   * @var \Drupal\Core\Messenger\MessengerInterface
-   */
-  protected MessengerInterface $messenger;
 
-  /**
-   * {@inheritdoc}
-   */
-  public static function create(ContainerInterface $container): static {
-    $instance = parent::create($container);
-    $instance->messenger = $container->get('messenger');
-    return $instance;
-  }
+
+
 
   /**
    * {@inheritdoc}
@@ -52,12 +40,12 @@ class SessionEditForm extends FormBase {
           ->fetchAssoc();
       }
       catch (\Exception $e) {
-        $this->messenger->addError($this->t('Could not load session data.'));
+        $this->messenger()->addError($this->t('Could not load session data.'));
       }
     }
 
     if (empty($sessionData)) {
-      $this->messenger->addError($this->t('Session not found.'));
+      $this->messenger()->addError($this->t('Session not found.'));
       return ['#markup' => $this->t('Session not found.')];
     }
 
@@ -220,11 +208,11 @@ class SessionEditForm extends FormBase {
         ->condition('session_id', $sessionId)
         ->execute();
       
-      $this->messenger->addStatus($this->t('Session "@title" updated in database.', ['@title' => $title]));
+      $this->messenger()->addStatus($this->t('Session "@title" updated in database.', ['@title' => $title]));
     }
     catch (\Exception $e) {
       \Drupal::logger('session_management')->error('Failed to update session in DB: @err', ['@err' => $e->getMessage()]);
-      $this->messenger->addError($this->t('Failed to update session locally.'));
+      $this->messenger()->addError($this->t('Failed to update session locally.'));
     }
     
     $locationOptions = $this->getLocationOptions();
@@ -247,7 +235,7 @@ class SessionEditForm extends FormBase {
     $client = RabbitMQClient::fromEnv();
     try {
       $client->publish($message);
-      $this->messenger->addStatus($this->t('Update for "@title" sent to planning.', [
+      $this->messenger()->addStatus($this->t('Update for "@title" sent to planning.', [
         '@title' => $title,
       ]));
       $form_state->setRedirect('session_management.list');
@@ -256,7 +244,7 @@ class SessionEditForm extends FormBase {
       \Drupal::logger('session_management')->error(
         'RabbitMQ session update failed: @err', ['@err' => $e->getMessage()]
       );
-      $this->messenger->addError($this->t('Update could not be sent to planning. Please try again.'));
+      $this->messenger()->addError($this->t('Update could not be sent to planning. Please try again.'));
     }
     finally {
       $client->disconnect();
