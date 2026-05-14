@@ -1,17 +1,41 @@
 {{ attach_library('shift_theme/global-styling') }}
+
 <div style="background: #0d121f; padding: 60px 5%; min-height: 100vh; color: white; font-family: 'Inter', sans-serif;">
     <h2 style="font-size: 32px; font-weight: 900; color: #6333ea; font-family: 'Barlow';">Mijn Sessies</h2>
 
-    <div style="background: rgba(26,31,46,0.8); border-radius: 16px; padding: 30px; border: 1px solid rgba(99,51,234,0.2); margin-top: 20px;">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h3 style="margin: 0;">Drupal 11 Masterclass</h3>
-            <span style="color: #00ff88; font-size: 12px; font-weight: 800;">STATUS: BEVESTIGD</span>
+    {% if sessies is not empty %}
+        <div style="display: flex; flex-direction: column; gap: 20px; margin-top: 20px;">
+            {% for sessie in sessies %}
+                <div style="background: rgba(26,31,46,0.8); border-radius: 16px; padding: 30px; border: 1px solid rgba(99,51,234,0.2);">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <h3 style="margin: 0; font-family: 'Barlow'; font-size: 24px;">{{ sessie.titel }}</h3>
+                        <span style="color: {{ sessie.status_kleur }}; font-size: 12px; font-weight: 800; letter-spacing: 1px;">
+                            STATUS: {{ sessie.status }}
+                        </span>
+                    </div>
+                    
+                    <p style="color: #a0a5b1; margin: 10px 0 25px 0; font-size: 15px;">
+                        <strong>Locatie:</strong> {{ sessie.locatie }} | <strong>Tijd:</strong> {{ sessie.tijd }}
+                    </p>
+                    
+                    <div style="display: flex; gap: 20px;">
+                        <a href="/bespreker/sessies/details" style="background: #6333ea; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 800; transition: 0.3s;" onmouseover="this.style.opacity='0.8'" onmouseout="this.style.opacity='1'">
+                            ZAAL DETAILS
+                        </a>
+                        <a href="/bespreker/sessies/bezoekers" style="border: 1px solid #6333ea; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 800; transition: 0.3s;" onmouseover="this.style.background='rgba(99,51,234,0.1)'" onmouseout="this.style.background='transparent'">
+                            BEZOEKERSLIJST
+                        </a>
+                    </div>
+                </div>
+            {% endfor %}
         </div>
-        <p style="color: #a0a5b1; margin: 10px 0 25px 0;">Locatie: De Aula | Tijd: 14:00</p>
-        
-        <div style="display: flex; gap: 20px;">
-            <a href="/bespreker/sessies/details" style="background: #6333ea; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 800;">ZAAL DETAILS</a>
-            <a href="/bespreker/sessies/bezoekers" style="border: 1px solid #6333ea; color: white; padding: 10px 20px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 800;">BEZOEKERSLIJST</a>
+    {% else %}
+        <div style="background: rgba(26,31,46,0.8); border-radius: 16px; padding: 40px; border: 1px solid rgba(99,51,234,0.2); margin-top: 20px; text-align: center;">
+            <p style="color: #a0a5b1;">Je bent momenteel niet ingepland voor sessies.</p>
         </div>
-    </div>
+    {% endif %}
+
+    <p style="margin-top: 40px;">
+        <a href="/bespreker" style="color: #a0a5b1; text-decoration: none; font-weight: 600;">« Terug naar Dashboard</a>
+    </p>
 </div>
