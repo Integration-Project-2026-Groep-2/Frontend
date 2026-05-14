@@ -13,7 +13,7 @@ class BezoekerController extends ControllerBase {
 
     // 1. Haal locaties op die minstens één sessie hebben
     $location_query = $db->select('location', 'l');
-    $location_query->fields('l', ['location_id', 'room_name']);
+    $location_query->fields('l', ['location_id', 'room_name', 'address', 'capacity', 'status']);
     $location_query->join('session', 's', 's.location_id = l.location_id');
     $location_query->distinct();
     $location_query->orderBy('l.room_name', 'ASC');
@@ -114,9 +114,146 @@ class BezoekerController extends ControllerBase {
     return $this->formBuilder()->getForm(EditAccountForm::class);
   }
   public function inschrijven($session_id) {
+    $uid = (int) $this->currentUser()->id();
+    $account = \Drupal\user\Entity\User::load($uid);
+    if (!$account) {
+      $this->messenger()->addError($this->t('User not found.'));
+      return $this->redirect('shift_bezoeker.sessions');
+    }
+
+    $db = \Drupal::database();
+    $userData = \Drupal::service('user.data');
+
+    // 1. Haal gegevens op
+    $participant_id = $account->uuid();
+    $crm_master_id  = $account->hasField('field_crm_id') && !$account->get('field_crm_id')->isEmpty() 
+      ? $account->get('field_crm_id')->value 
+      : NULL;
+
+    // Probeer eerst Drupal velden, dan user.data, dan display name/email
+    $first_name = $account->hasField('field_first_name') && !$account->get('field_first_name')->isEmpty()
+      ? $account->get('field_first_name')->value
+      : (string) ($userData->get('shift_bezoeker', $uid, 'first_name') ?? '');
+    
+    $last_name = $account->hasField('field_surname') && !$account->get('field_surname')->isEmpty()
+      ? $account->get('field_surname')->value
+      : (string) ($userData->get('shift_bezoeker', $uid, 'last_name') ?? '');
+
+    if ($first_name === '' && $last_name === '') {
+      $display_name = $account->getDisplayName();
+      $parts = explode(' ', $display_name, 2);
+      $first_name = $parts[0];
+      $last_name = $parts[1] ?? 'Bezoeker';
+    }
+    elseif ($first_name === '') {
+      $first_name = 'Bezoeker';
+    }
+    elseif ($last_name === '') {
+      $last_name = 'Bezoeker';
+    }
+
+    $email   = $account->getEmail();
+    $company = (string) ($userData->get('shift_bezoeker', $uid, 'company_name') ?? '');
+    $gdpr    = (bool) ($userData->get('shift_bezoeker', $uid, 'gdpr_consent') ?? FALSE);
+
+    // 2. Zorg dat de participant bestaat in de lokale tabel
+    try {
+      $db->merge('participant')
+        ->key('participant_id', $participant_id)
+        ->fields([
+          'first_name'    => $first_name,
+          'last_name'     => $last_name,
+          'email'         => $email,
+          'company'       => $company,
+          'crm_master_id' => $crm_master_id,
+          'gdpr_consent'  => $gdpr ? 1 : 0,
+        ])
+        ->execute();
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('shift_bezoeker')->error('Failed to sync participant: @err', ['@err' => $e->getMessage()]);
+      // We gaan toch door, want misschien bestond de participant al.
+    }
+
+    // 3. Controleer of de gebruiker al is ingeschreven
+    $existing = $db->select('registration', 'r')
+      ->fields('r', ['registration_id'])
+      ->condition('session_id', $session_id)
+      ->condition('participant_id', $participant_id)
+      ->execute()
+      ->fetchField();
+
+    if ($existing) {
+      $session_title = $db->select('session', 's')
+        ->fields('s', ['title'])
+        ->condition('session_id', $session_id)
+        ->execute()
+        ->fetchField() ?: $session_id;
+
+      $this->messenger()->addWarning($this->t('Je bent al ingeschreven voor deze sessie.'));
+      return [
+        '#theme' => 'inschrijving_bevestigd',
+        '#session_id' => $session_id,
+        '#session_title' => $session_title,
+      ];
+    }
+
+    // 4. Maak de inschrijving aan
+    $registration_id = \Drupal::service('uuid')->generate();
+    $timestamp = (new \DateTime())->format(\DateTime::ATOM);
+
+    try {
+      $db->insert('registration')
+        ->fields([
+          'registration_id' => $registration_id,
+          'session_id'      => $session_id,
+          'participant_id'  => $participant_id,
+          'crm_master_id'   => $crm_master_id,
+          'registration_time' => date('Y-m-d H:i:s'),
+        ])
+        ->execute();
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('shift_bezoeker')->error('Failed to save registration: @err', ['@err' => $e->getMessage()]);
+      $this->messenger()->addError($this->t('Er ging iets mis bij het opslaan van je inschrijving.'));
+      return $this->redirect('shift_bezoeker.sessions');
+    }
+
+    // 5. Stuur XML bericht naar RabbitMQ
+    $message = new \Drupal\hello_world\RabbitMQ\Message\Planning\RegistrationCreatedMessage(
+      registrationId: $registration_id,
+      sessionId:      $session_id,
+      participantId:  $participant_id,
+      crmMasterId:    $crm_master_id ?: '00000000-0000-0000-0000-000000000000',
+      timestamp:      $timestamp,
+    );
+
+    $client = \Drupal\hello_world\RabbitMQ\RabbitMQClient::fromEnv();
+    try {
+      $client->publish($message);
+      \Drupal::logger('shift_bezoeker')->info('RegistrationCreated message sent for session @session', ['@session' => $session_id]);
+    }
+    catch (\Exception $e) {
+      // De eis was: do not send if it fails, log validation errors. 
+      // RabbitMQClient::publish doet de validatie en gooit RuntimeException met details.
+      \Drupal::logger('shift_bezoeker')->error('RabbitMQ publish failed: @err', ['@err' => $e->getMessage()]);
+      // We hebben de database al geupdate, maar het bericht is niet verstuurd.
+      // In dit geval laten we de gebruiker toch de bevestiging zien, maar loggen de fout.
+    }
+    finally {
+      $client->disconnect();
+    }
+
+    $session_title = $db->select('session', 's')
+      ->fields('s', ['title'])
+      ->condition('session_id', $session_id)
+      ->execute()
+      ->fetchField() ?: $session_id;
+
     return [
       '#theme' => 'inschrijving_bevestigd',
       '#session_id' => $session_id,
+      '#session_title' => $session_title,
     ];
   }
 

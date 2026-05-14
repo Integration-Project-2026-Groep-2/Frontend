@@ -1,7 +1,7 @@
 
 <div class="session-grid-wrapper" style="
     background: linear-gradient(rgba(13, 18, 31, 0.95), rgba(13, 18, 31, 0.95)),
-                url('/themes/custom/custom/shift_theme/images/event-bg.jpg');
+                url('/themes/custom/shift_theme/images/event-bg.jpg');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -31,7 +31,7 @@
   {# 2. Titels #}
   <div style="margin-bottom: 50px; text-align: center;">
     <h1 style="font-size: 56px; font-weight: 900; margin: 0; line-height: 1.1; font-family: 'Barlow', sans-serif;">
-      {% if logged_in %} Mijn Programma {% else %} Programma Overzicht {% endif %}
+      {% if logged_in %} Programma {% else %} Programma Overzicht {% endif %}
     </h1>
     <p style="color: #a0a5b1; font-size: 19px; margin-top: 12px; font-family: 'Inter', sans-serif;">Beleef het Shift Festival 2026.</p>
   </div>
@@ -42,7 +42,13 @@
     {# Headers #}
     <div class="time-header" style="grid-column: 1; grid-row: 1;"></div>
     {% for location in locations %}
-      <div class="timeline-header" style="grid-column: {{ loop.index + 1 }};">
+      <div class="timeline-header clickable-location" 
+           style="grid-column: {{ loop.index + 1 }}; cursor: pointer;"
+           data-id="{{ location.location_id }}"
+           data-name="{{ location.room_name }}"
+           data-address="{{ location.address }}"
+           data-capacity="{{ location.capacity }}"
+           data-status="{{ location.status }}">
         {{ location.room_name }}
       </div>
     {% endfor %}
@@ -98,4 +104,4 @@
     </div>
   </div>
 
-</div>
+</div>
