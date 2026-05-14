@@ -7,6 +7,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Url;
 use Drupal\hello_world\RabbitMQ\Message\Registration\RegistrationChangeMessage;
 use Drupal\hello_world\RabbitMQ\RabbitMQClient;
+use Drupal\hello_world\Service\ControlRoomLoggerService;
 use Drupal\user\Entity\User;
 
 class CancelAccountConfirmForm extends ConfirmFormBase {
@@ -52,6 +53,8 @@ class CancelAccountConfirmForm extends ConfirmFormBase {
 
     $this->publishCancelEvent($uid, $email);
 
+    $this->crLogger()->info('frontend-account', sprintf('Account geannuleerd: %s (uid: %d)', $email, $uid));
+
     \Drupal::messenger()->addStatus($this->t('Je account is verwijderd.'));
 
     user_logout();
@@ -86,10 +89,17 @@ class CancelAccountConfirmForm extends ConfirmFormBase {
         'AMQP publish failed for account cancel (@email): @msg',
         ['@email' => $email, '@msg' => $e->getMessage()],
       );
+      $this->crLogger()->error('frontend-account', sprintf(
+        'AMQP publish mislukt voor account annulering (%s): %s', $email, $e->getMessage()
+      ));
     }
     finally {
       $client->disconnect();
     }
+  }
+
+  private function crLogger(): ControlRoomLoggerService {
+    return \Drupal::service('hello_world.controlroom_logger');
   }
 
 }
