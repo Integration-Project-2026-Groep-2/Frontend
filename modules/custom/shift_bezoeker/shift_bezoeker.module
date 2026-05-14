@@ -7,6 +7,20 @@ use Drupal\Core\Form\FormStateInterface;
  */
 function shift_bezoeker_theme($existing, $type, $theme, $path) {
   return [
+    'qr_code' => [
+      'variables' => [
+        'qr_image' => '',
+        'user_name' => '',
+        'user_uuid' => '',
+        'error' => FALSE,
+      ],
+      'template' => 'qr-code',
+      'path' => $path . '/templates',
+      'libraries' => [
+        'shift_theme/global-styling',
+        'shift_theme/fonts',
+      ],
+    ],
     'bezoeker_bedrijven' => [
       'variables' => ['bedrijven' => NULL],
       'template' => 'bezoeker-bedrijven',
