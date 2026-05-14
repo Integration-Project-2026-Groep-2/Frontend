@@ -66,41 +66,33 @@ class LoginRedirectionSubscriberTest extends UnitTestCase {
     $subscriber = $this->makeSubscriber(TRUE, ['administrator', 'authenticated']);
     $event = $this->makeEvent('user.login');
 
-    try {
-      $subscriber->onRespond($event);
-      $this->assertInstanceOf(RedirectResponse::class, $event->getResponse());
-    }
-    catch (\RuntimeException $e) {
-      // Drupal URL-generatie vereist een container — niet beschikbaar in unit tests.
-      // De subscriber heeft wel de redirect-logica bereikt, wat voldoende is.
-      $this->addToAssertionCount(1);
-    }
+    $subscriber->onRespond($event);
+
+    $response = $event->getResponse();
+    $this->assertInstanceOf(RedirectResponse::class, $response);
+    $this->assertSame('/hello/admin', $response->getTargetUrl());
   }
 
   public function testSpeakerWordtOmgeleidNaLogin(): void {
     $subscriber = $this->makeSubscriber(TRUE, ['speaker', 'authenticated']);
     $event = $this->makeEvent('user.login');
 
-    try {
-      $subscriber->onRespond($event);
-      $this->assertInstanceOf(RedirectResponse::class, $event->getResponse());
-    }
-    catch (\RuntimeException $e) {
-      $this->addToAssertionCount(1);
-    }
+    $subscriber->onRespond($event);
+
+    $response = $event->getResponse();
+    $this->assertInstanceOf(RedirectResponse::class, $response);
+    $this->assertSame('/bespreker', $response->getTargetUrl());
   }
 
   public function testVisitorWordtOmgeleidNaLogin(): void {
     $subscriber = $this->makeSubscriber(TRUE, ['visitor', 'authenticated']);
     $event = $this->makeEvent('user.login');
 
-    try {
-      $subscriber->onRespond($event);
-      $this->assertInstanceOf(RedirectResponse::class, $event->getResponse());
-    }
-    catch (\RuntimeException $e) {
-      $this->addToAssertionCount(1);
-    }
+    $subscriber->onRespond($event);
+
+    $response = $event->getResponse();
+    $this->assertInstanceOf(RedirectResponse::class, $response);
+    $this->assertSame('/', $response->getTargetUrl());
   }
 
 }

@@ -396,18 +396,21 @@ Zet het XML-antwoord van de planning-service om naar een PHP array van sessies.
 Stuurt gebruikers na inloggen naar de juiste pagina op basis van hun rol:
 - Administrator → `/hello/admin`
 - Speaker → `/bespreker`
-- Andere rollen → `/`
+- Andere rollen (visitor, kassa, ...) → `/`
+
+### Technische implementatie
+De subscriber gebruikt gewone padstrings (`/hello/admin`, `/bespreker`, `/`) in plaats van `Url::fromUri()->toString()`. Dit vermijdt een Drupal container-afhankelijkheid en maakt de klasse volledig testbaar als unit test — geen try/catch nodig.
 
 ### Tests (6 stuks):
 
 | Test | Wat wordt getest |
 |------|-----------------|
 | `testGetSubscribedEventsRegistreertResponseEvent` | Subscriber luistert naar `KernelEvents::RESPONSE` |
-| `testNietIngelogdeGebruikerWordtNietOmgeleid` | Anonieme gebruiker → geen redirect |
-| `testIngelogdeGebruikerOpAndereRouteWordtNietOmgeleid` | Ingelogd maar op andere pagina → geen redirect |
-| `testAdministratorWordtOmgeleidNaLogin` | Administrator op login route → redirect |
-| `testSpeakerWordtOmgeleidNaLogin` | Speaker op login route → redirect |
-| `testVisitorWordtOmgeleidNaLogin` | Visitor op login route → redirect |
+| `testNietIngelogdeGebruikerWordtNietOmgeleid` | Anonieme gebruiker → geen redirect, response ongewijzigd |
+| `testIngelogdeGebruikerOpAndereRouteWordtNietOmgeleid` | Ingelogd maar op andere route dan `user.login` → geen redirect |
+| `testAdministratorWordtOmgeleidNaLogin` | Administrator op login route → `RedirectResponse` naar `/hello/admin` |
+| `testSpeakerWordtOmgeleidNaLogin` | Speaker op login route → `RedirectResponse` naar `/bespreker` |
+| `testVisitorWordtOmgeleidNaLogin` | Visitor op login route → `RedirectResponse` naar `/` |
 
 ---
 
