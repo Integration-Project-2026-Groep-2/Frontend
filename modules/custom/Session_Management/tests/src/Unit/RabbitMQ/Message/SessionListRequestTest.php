@@ -32,7 +32,7 @@ class SessionListRequestTest extends UnitTestCase {
     $this->assertSame('SessionListRequest', $dom->documentElement->localName);
   }
 
-  public function testToXmlBevattRequestId(): void {
+  public function testToXmlBevatRequestId(): void {
     $msg = new SessionListRequest();
     $dom = new \DOMDocument();
     $dom->loadXML($msg->toXml());
@@ -42,7 +42,7 @@ class SessionListRequestTest extends UnitTestCase {
     $this->assertStringStartsWith('req_', $requestId->textContent);
   }
 
-  public function testToXmlBevattTimestamp(): void {
+  public function testToXmlBevatTimestamp(): void {
     $msg = new SessionListRequest();
     $dom = new \DOMDocument();
     $dom->loadXML($msg->toXml());
