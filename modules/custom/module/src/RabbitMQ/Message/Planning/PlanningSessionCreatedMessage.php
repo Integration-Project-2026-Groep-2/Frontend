@@ -37,6 +37,8 @@ final class PlanningSessionCreatedMessage extends Planning {
       $xml->addChild('endTime', $this->endTime);
     }
 
+    $xml->addChild('capacity', (string) $this->capacity);
+
     if ($this->locationId !== NULL && self::isValidUuid($this->locationId)) {
       $xml->addChild('locationId', $this->locationId);
     }
@@ -49,8 +51,6 @@ final class PlanningSessionCreatedMessage extends Planning {
     if ($this->status !== NULL) {
       $xml->addChild('status', $this->status);
     }
-
-    $xml->addChild('capacity', (string) $this->capacity);
 
     if ($this->timestamp !== NULL) {
       $xml->addChild('timestamp', $this->timestamp);
