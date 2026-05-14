@@ -16,9 +16,9 @@ function shift_bezoeker_theme($existing, $type, $theme, $path) {
       'variables' => [
         'current_date' => NULL,
         'day_number' => NULL,
-        'time_slots' => [],
-        'stages' => [],
-        'grid_data' => [],
+        'locations' => [],
+        'time_labels' => [],
+        'grid_sessions' => [],
       ],
     ],
     'account_gegevens_template' => [
@@ -29,6 +29,7 @@ function shift_bezoeker_theme($existing, $type, $theme, $path) {
     'inschrijving_bevestigd' => [
       'variables' => [
         'session_id' => NULL,
+        'session_title' => NULL,
       ],
     ],
     'home_template' => [

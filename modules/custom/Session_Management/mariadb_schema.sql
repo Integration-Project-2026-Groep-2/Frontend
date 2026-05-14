@@ -83,6 +83,7 @@ CREATE TABLE {registration} (
     participant_id    VARCHAR(36)  NOT NULL,
     crm_master_id     VARCHAR(36),
     registration_time TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    is_active         BOOLEAN      NOT NULL DEFAULT true,
     FOREIGN KEY (session_id) REFERENCES {session}(session_id) ON DELETE CASCADE,
     FOREIGN KEY (participant_id) REFERENCES {participant}(participant_id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -77,8 +77,14 @@
 }
 
 .grid-session.registered {
-  background: rgba(var(--session-primary-rgb), 0.85);
-  border-color: transparent;
+  background: rgba(34, 197, 94, 0.2) !important;
+  border: 1px solid #22c55e !important;
+  border-left: 4px solid #22c55e !important;
+}
+
+.grid-session.registered h3, 
+.grid-session.registered .time-span {
+  color: white;
 }
 
 .grid-session h3 {
