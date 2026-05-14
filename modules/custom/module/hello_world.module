@@ -67,7 +67,11 @@ function hello_world_theme($existing, $type, $theme, $path) {
         'user_name' => NULL,
         'user_email' => NULL,
       ],],
-    'bespreker_sessies' => ['variables' => []],
+    'bespreker_sessies' => [
+      'variables' => [
+        'sessies' => [],
+      ],
+    ],
     'bespreker_feedback' => ['variables' => []],
     'bespreker_logistiek' => ['variables' => []],
     'bespreker_account_edit' => ['variables' => []],
