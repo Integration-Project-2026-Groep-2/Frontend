@@ -71,12 +71,10 @@ CREATE TABLE {participant} (
 CREATE TABLE {registration} (
     registration_id   VARCHAR(36)  PRIMARY KEY,
     session_id        VARCHAR(36)  NOT NULL,
-    participant_id    VARCHAR(36)  NOT NULL,
-    crm_master_id     VARCHAR(36),
+    user_id           VARCHAR(36)  NOT NULL,
     registration_time TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
     is_active         BOOLEAN      NOT NULL DEFAULT true,
-    FOREIGN KEY (session_id) REFERENCES {session}(session_id) ON DELETE CASCADE,
-    FOREIGN KEY (participant_id) REFERENCES {participant}(participant_id) ON DELETE CASCADE
+    FOREIGN KEY (session_id) REFERENCES {session}(session_id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE {session_change_log} (

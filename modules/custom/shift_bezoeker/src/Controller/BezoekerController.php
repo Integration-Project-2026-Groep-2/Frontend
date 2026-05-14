@@ -59,12 +59,16 @@ class BezoekerController extends ControllerBase {
 
     // 5. Formatteer sessies voor de grid
     $uid = (int) $this->currentUser()->id();
-    $participant_id = \Drupal\user\Entity\User::load($uid)?->uuid();
+    $account = \Drupal\user\Entity\User::load($uid);
+    $user_id = $account && $account->hasField('field_crm_id') && !$account->get('field_crm_id')->isEmpty()
+      ? $account->get('field_crm_id')->value
+      : NULL;
+
     $active_registrations = [];
-    if ($participant_id) {
+    if ($user_id) {
       $active_registrations = \Drupal::database()->select('registration', 'r')
         ->fields('r', ['session_id'])
-        ->condition('participant_id', $participant_id)
+        ->condition('user_id', $user_id)
         ->condition('is_active', 1)
         ->execute()
         ->fetchCol();
@@ -142,57 +146,21 @@ class BezoekerController extends ControllerBase {
     $db = \Drupal::database();
     $userData = \Drupal::service('user.data');
 
-    // 1. Haal gegevens op
-    $participant_id = $account->uuid();
-    $crm_master_id  = $account->hasField('field_crm_id') && !$account->get('field_crm_id')->isEmpty() 
+    // 1. Haal gegevens op (Gebruik CRM ID als userId voor Planning)
+    $user_id = $account->hasField('field_crm_id') && !$account->get('field_crm_id')->isEmpty() 
       ? $account->get('field_crm_id')->value 
       : NULL;
 
-    // Probeer eerst Drupal velden, dan user.data, dan display name/email
-    $first_name = $account->hasField('field_first_name') && !$account->get('field_first_name')->isEmpty()
-      ? $account->get('field_first_name')->value
-      : (string) ($userData->get('shift_bezoeker', $uid, 'first_name') ?? '');
-    
-    $last_name = $account->hasField('field_surname') && !$account->get('field_surname')->isEmpty()
-      ? $account->get('field_surname')->value
-      : (string) ($userData->get('shift_bezoeker', $uid, 'last_name') ?? '');
-
-    if ($first_name === '' && $last_name === '') {
-      $display_name = $account->getDisplayName();
-      $parts = explode(' ', $display_name, 2);
-      $first_name = $parts[0];
-      $last_name = $parts[1] ?? 'Bezoeker';
-    }
-    elseif ($first_name === '') {
-      $first_name = 'Bezoeker';
-    }
-    elseif ($last_name === '') {
-      $last_name = 'Bezoeker';
+    if (!$user_id) {
+      $this->messenger()->addError($this->t('Geen CRM Master ID gevonden voor uw account. Neem contact op met de beheerder.'));
+      return $this->redirect('shift_bezoeker.sessions');
     }
 
-    $email   = $account->getEmail();
-
-    // 2. Zorg dat de participant bestaat in de lokale tabel
-    try {
-      $db->merge('participant')
-        ->key('participant_id', $participant_id)
-        ->fields([
-          'first_name'    => $first_name,
-          'last_name'     => $last_name,
-          'email'         => $email,
-          'crm_master_id' => $crm_master_id,
-        ])
-        ->execute();
-    }
-    catch (\Exception $e) {
-      \Drupal::logger('shift_bezoeker')->error('Failed to sync participant: @err', ['@err' => $e->getMessage()]);
-    }
-
-    // 3. Controleer of de gebruiker al is ingeschreven (actief)
+    // 2. Controleer of de gebruiker al is ingeschreven (actief)
     $existing_active = $db->select('registration', 'r')
       ->fields('r', ['registration_id'])
       ->condition('session_id', $session_id)
-      ->condition('participant_id', $participant_id)
+      ->condition('user_id', $user_id)
       ->condition('is_active', 1)
       ->execute()
       ->fetchField();
@@ -221,8 +189,7 @@ class BezoekerController extends ControllerBase {
         ->fields([
           'registration_id' => $registration_id,
           'session_id'      => $session_id,
-          'participant_id'  => $participant_id,
-          'crm_master_id'   => $crm_master_id,
+          'user_id'         => $user_id,
           'registration_time' => date('Y-m-d H:i:s'),
           'is_active'       => 1,
         ])
@@ -238,8 +205,7 @@ class BezoekerController extends ControllerBase {
     $message = new \Drupal\hello_world\RabbitMQ\Message\Planning\RegistrationCreatedMessage(
       registrationId: $registration_id,
       sessionId:      $session_id,
-      participantId:  $participant_id,
-      crmMasterId:    $crm_master_id ?: '00000000-0000-0000-0000-000000000000',
+      userId:         $user_id,
       isActive:       TRUE,
       timestamp:      $timestamp,
     );
@@ -272,10 +238,12 @@ class BezoekerController extends ControllerBase {
   public function uitschrijven($session_id) {
     $uid = (int) $this->currentUser()->id();
     $account = \Drupal\user\Entity\User::load($uid);
-    $participant_id = $account?->uuid();
+    $user_id = $account && $account->hasField('field_crm_id') && !$account->get('field_crm_id')->isEmpty()
+      ? $account->get('field_crm_id')->value
+      : NULL;
 
-    if (!$participant_id) {
-      $this->messenger()->addError($this->t('User not found.'));
+    if (!$user_id) {
+      $this->messenger()->addError($this->t('User CRM ID not found.'));
       return $this->redirect('shift_bezoeker.sessions');
     }
 
@@ -283,9 +251,9 @@ class BezoekerController extends ControllerBase {
 
     // 1. Zoek de actieve inschrijving
     $registration = $db->select('registration', 'r')
-      ->fields('r', ['registration_id', 'crm_master_id'])
+      ->fields('r', ['registration_id'])
       ->condition('session_id', $session_id)
-      ->condition('participant_id', $participant_id)
+      ->condition('user_id', $user_id)
       ->condition('is_active', 1)
       ->execute()
       ->fetchAssoc();
@@ -318,8 +286,7 @@ class BezoekerController extends ControllerBase {
     $message = new \Drupal\hello_world\RabbitMQ\Message\Planning\RegistrationCreatedMessage(
       registrationId: $registration_id,
       sessionId:      $session_id,
-      participantId:  $participant_id,
-      crmMasterId:    $crm_master_id ?: '00000000-0000-0000-0000-000000000000',
+      userId:         $user_id,
       isActive:       FALSE,
       timestamp:      $timestamp,
     );
