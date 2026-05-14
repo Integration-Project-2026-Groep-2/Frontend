@@ -64,6 +64,13 @@ class SessionEditForm extends FormBase {
       '#default_value' => $sessionData['title'],
     ];
 
+    $form['description'] = [
+      '#type'  => 'textarea',
+      '#title' => $this->t('Description'),
+      '#rows'  => 4,
+      '#default_value' => $sessionData['description'] ?? '',
+    ];
+
     $form['date'] = [
       '#type' => 'date',
       '#title' => $this->t('Date'),
@@ -197,13 +204,14 @@ class SessionEditForm extends FormBase {
     try {
       \Drupal::database()->update('session')
         ->fields([
-          'title'       => $title,
-          'date'        => $date,
-          'start_time'  => $startTime,
-          'end_time'    => $endTime,
-          'location_id' => $locationId,
-          'capacity'    => (int) $form_state->getValue('capacity'),
-          'status'      => $form_state->getValue('status'),
+          'title'        => $title,
+          'description'  => $form_state->getValue('description'),
+          'date'         => $date,
+          'start_time'   => $startTime,
+          'end_time'     => $endTime,
+          'location_id'  => $locationId,
+          'capacity'     => (int) $form_state->getValue('capacity'),
+          'status'       => $form_state->getValue('status'),
         ])
         ->condition('session_id', $sessionId)
         ->execute();
@@ -221,6 +229,7 @@ class SessionEditForm extends FormBase {
     $message = new PlanningSessionUpdatedMessage(
       sessionId:    $sessionId,
       sessionName:  $title,
+      newDescription: $form_state->getValue('description'),
       changeType:   'updated',
       newTime:      $date . ' ' . $startTime,
       newStartTime: $startTime,

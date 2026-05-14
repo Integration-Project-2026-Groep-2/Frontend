@@ -37,6 +37,12 @@ class SessionCreateForm extends FormBase {
       '#maxlength' => 255,
     ];
 
+    $form['description'] = [
+      '#type'  => 'textarea',
+      '#title' => $this->t('Description'),
+      '#rows'  => 4,
+    ];
+
     $form['date'] = [
       '#type'     => 'date',
       '#title'    => $this->t('Date'),
@@ -243,6 +249,7 @@ class SessionCreateForm extends FormBase {
         ->fields([
           'session_id'   => $sessionUuid,
           'title'        => $title,
+          'description'  => $form_state->getValue('description'),
           'date'         => $date,
           'start_time'   => $startTime,
           'end_time'     => $endTime,
@@ -266,6 +273,7 @@ class SessionCreateForm extends FormBase {
     $message = new PlanningSessionCreatedMessage(
       sessionId:  $sessionUuid,
       title:      $title,
+      description: $form_state->getValue('description'),
       date:       $date,
       startTime:  $startTime,
       endTime:    $endTime,
