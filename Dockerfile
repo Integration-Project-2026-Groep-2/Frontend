@@ -10,7 +10,8 @@ RUN composer require \
     "php-amqplib/php-amqplib" \
     "drupal/group:^3.0" \
     "drupal/ginvite" \
-    "drush/drush"
+    "drush/drush" \
+    "endroid/qr-code:^6.0"
 
 # Copy the custom modules and theme
 COPY ./modules/custom /opt/drupal/web/modules/custom

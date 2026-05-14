@@ -11,7 +11,7 @@ services:
       - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS}
       - RABBITMQ_ERLANG_COOKIE=securecookie
     healthcheck:
-      test: ["CMD-SHELL", "rabbitmq-diagnostics -q check_running && rabbitmq-diagnostics -q check_local_alarms"]
+      test: [ "CMD-SHELL", "rabbitmq-diagnostics -q check_running && rabbitmq-diagnostics -q check_local_alarms" ]
       interval: 10s
       timeout: 10s
       retries: 5
@@ -24,9 +24,9 @@ services:
     container_name: frontend_drupal
     volumes:
       - drupal_sites:/opt/drupal/web/sites
-      - ./modules/custom:/opt/drupal/web/modules/custom
-      - ./themes:/opt/drupal/web/themes/custom
-      - ./xsd:/opt/drupal/xsd:ro
+      - ./modules/custom:/opt/drupal/web/modules/custom:z
+      - ./themes:/opt/drupal/web/themes/custom:z
+      - ./xsd:/opt/drupal/xsd:ro,z
     restart: unless-stopped
     depends_on:
       frontend_db:
