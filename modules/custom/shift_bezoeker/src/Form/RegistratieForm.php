@@ -8,6 +8,7 @@ use Drupal\Core\Url;
 use Drupal\hello_world\RabbitMQ\Message\Company\CompanyCreatedMessage;
 use Drupal\hello_world\RabbitMQ\Message\Registration\RegistrationMessage;
 use Drupal\hello_world\RabbitMQ\RabbitMQClient;
+use Drupal\hello_world\Service\ControlRoomLoggerService;
 use Drupal\user\Entity\User;
 
 class RegistratieForm extends FormBase {
@@ -234,6 +235,9 @@ class RegistratieForm extends FormBase {
     catch (\Exception $e) {
       \Drupal::logger('shift_bezoeker')->error('Registratie failed: @msg', ['@msg' => $e->getMessage()]);
       \Drupal::messenger()->addError($this->t('Er ging iets mis bij het aanmaken van je account. Probeer opnieuw of contacteer support.'));
+      $this->crLogger()->error('frontend-registratie', sprintf(
+        'Registratie mislukt voor %s: %s', $values['email'] ?? '?', $e->getMessage()
+      ));
       return;
     }
 
@@ -260,6 +264,13 @@ class RegistratieForm extends FormBase {
     user_login_finalize($account);
 
     $this->publishRegistrationEvents($values);
+
+    $this->crLogger()->info('frontend-registratie', sprintf(
+      'Nieuw account aangemaakt: %s (%s, rol: %s)',
+      $values['email'],
+      $type,
+      self::mapRole($values)
+    ));
 
     \Drupal::messenger()->addStatus($this->t('Welkom! Je account is aangemaakt en je bent ingelogd.'));
 
@@ -311,7 +322,17 @@ class RegistratieForm extends FormBase {
           '@msg'   => $e->getMessage(),
         ],
       );
+      $this->crLogger()->error('frontend-registratie', sprintf(
+        'AMQP publish mislukt voor %s registratie (%s): %s',
+        $values['registratie_type'] ?? '?',
+        $values['email'] ?? '?',
+        $e->getMessage()
+      ));
     }
+  }
+
+  private function crLogger(): ControlRoomLoggerService {
+    return \Drupal::service('hello_world.controlroom_logger');
   }
 
   /**
