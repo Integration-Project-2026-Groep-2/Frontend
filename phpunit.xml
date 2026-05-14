@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
   PHPUnit configuratie voor lokaal gebruik.
-  In CI wordt dit bestand gekopieerd naar /opt/drupal/phpunit.xml.
-  Voer lokaal uit vanuit /opt/drupal: ./vendor/bin/phpunit -c phpunit.xml
+  In CI wordt dit bestand gekopieerd naar $HOME/drupal/phpunit.xml.
+  Voer lokaal uit vanuit $HOME/drupal: ./vendor/bin/phpunit -c phpunit.xml
 -->
 <phpunit
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
