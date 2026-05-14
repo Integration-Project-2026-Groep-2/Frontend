@@ -1,26 +1,17 @@
 -- MariaDB Schema for Frontend Service (Lowercase Version)
 -- Converted from PostgreSQL schema.sql and normalized to lowercase
 
--- Drop existing tables (commented out to prevent data loss after initial migration)
--- DROP TABLE IF EXISTS {session_speaker};
--- DROP TABLE IF EXISTS {SessionSpeaker};
--- DROP TABLE IF EXISTS {registration};
--- DROP TABLE IF EXISTS {Registration};
--- DROP TABLE IF EXISTS {session_change_log};
--- DROP TABLE IF EXISTS {SessionChangeLog};
--- DROP TABLE IF EXISTS {session};
--- DROP TABLE IF EXISTS {Session};
--- DROP TABLE IF EXISTS {location};
--- DROP TABLE IF EXISTS {Location};
--- DROP TABLE IF EXISTS {speaker};
--- DROP TABLE IF EXISTS {Speaker};
--- DROP TABLE IF EXISTS {participant};
--- DROP TABLE IF EXISTS {Participant};
--- DROP TABLE IF EXISTS {processed_messages};
--- DROP TABLE IF EXISTS {ProcessedMessages};
--- DROP TABLE IF EXISTS {frontend_user};
--- DROP TABLE IF EXISTS {FrontendUser};
--- DROP TABLE IF EXISTS {User};
+-- Drop existing tables
+DROP TABLE IF EXISTS {session_speaker};
+DROP TABLE IF EXISTS {registration};
+DROP TABLE IF EXISTS {Registration};
+DROP TABLE IF EXISTS {session_change_log};
+DROP TABLE IF EXISTS {session};
+DROP TABLE IF EXISTS {location};
+DROP TABLE IF EXISTS {speaker};
+DROP TABLE IF EXISTS {participant};
+DROP TABLE IF EXISTS {processed_messages};
+DROP TABLE IF EXISTS {frontend_user};
 
 CREATE TABLE IF NOT EXISTS {location} (
     location_id VARCHAR(36)  PRIMARY KEY,
