@@ -58,6 +58,18 @@ class BezoekerController extends ControllerBase {
     }
 
     // 5. Formatteer sessies voor de grid
+    $uid = (int) $this->currentUser()->id();
+    $participant_id = \Drupal\user\Entity\User::load($uid)?->uuid();
+    $active_registrations = [];
+    if ($participant_id) {
+      $active_registrations = \Drupal::database()->select('registration', 'r')
+        ->fields('r', ['session_id'])
+        ->condition('participant_id', $participant_id)
+        ->condition('is_active', 1)
+        ->execute()
+        ->fetchCol();
+    }
+
     $grid_sessions = [];
     foreach ($session_results as $s) {
       $start_parts = explode(':', $s->start_time);
@@ -91,6 +103,7 @@ class BezoekerController extends ControllerBase {
           'row_span' => $row_span,
           'col_index' => $col_index,
           'status' => $s->status,
+          'registered' => in_array($s->session_id, $active_registrations),
         ];
       }
     }
@@ -102,6 +115,9 @@ class BezoekerController extends ControllerBase {
       '#locations' => $locations,
       '#time_labels' => $time_labels,
       '#grid_sessions' => $grid_sessions,
+      '#cache' => [
+        'contexts' => ['user'],
+      ],
       '#attached' => [
         'library' => [
           'shift_bezoeker/sessions',
@@ -175,15 +191,16 @@ class BezoekerController extends ControllerBase {
       // We gaan toch door, want misschien bestond de participant al.
     }
 
-    // 3. Controleer of de gebruiker al is ingeschreven
-    $existing = $db->select('registration', 'r')
+    // 3. Controleer of de gebruiker al is ingeschreven (actief)
+    $existing_active = $db->select('registration', 'r')
       ->fields('r', ['registration_id'])
       ->condition('session_id', $session_id)
       ->condition('participant_id', $participant_id)
+      ->condition('is_active', 1)
       ->execute()
       ->fetchField();
 
-    if ($existing) {
+    if ($existing_active) {
       $session_title = $db->select('session', 's')
         ->fields('s', ['title'])
         ->condition('session_id', $session_id)
@@ -210,6 +227,7 @@ class BezoekerController extends ControllerBase {
           'participant_id'  => $participant_id,
           'crm_master_id'   => $crm_master_id,
           'registration_time' => date('Y-m-d H:i:s'),
+          'is_active'       => 1,
         ])
         ->execute();
     }
@@ -225,6 +243,7 @@ class BezoekerController extends ControllerBase {
       sessionId:      $session_id,
       participantId:  $participant_id,
       crmMasterId:    $crm_master_id ?: '00000000-0000-0000-0000-000000000000',
+      isActive:       TRUE,
       timestamp:      $timestamp,
     );
 
@@ -258,6 +277,71 @@ class BezoekerController extends ControllerBase {
   }
 
   public function uitschrijven($session_id) {
+    $uid = (int) $this->currentUser()->id();
+    $account = \Drupal\user\Entity\User::load($uid);
+    $participant_id = $account?->uuid();
+
+    if (!$participant_id) {
+      $this->messenger()->addError($this->t('User not found.'));
+      return $this->redirect('shift_bezoeker.sessions');
+    }
+
+    $db = \Drupal::database();
+
+    // 1. Zoek de actieve inschrijving
+    $registration = $db->select('registration', 'r')
+      ->fields('r', ['registration_id', 'crm_master_id'])
+      ->condition('session_id', $session_id)
+      ->condition('participant_id', $participant_id)
+      ->condition('is_active', 1)
+      ->execute()
+      ->fetchAssoc();
+
+    if (!$registration) {
+      $this->messenger()->addWarning($this->t('Geen actieve inschrijving gevonden voor deze sessie.'));
+      return $this->redirect('shift_bezoeker.sessions');
+    }
+
+    $registration_id = $registration['registration_id'];
+    $crm_master_id = $registration['crm_master_id'];
+    $timestamp = (new \DateTime())->format(\DateTime::ATOM);
+
+    // 2. Zet op inactief in DB
+    try {
+      $db->update('registration')
+        ->fields(['is_active' => 0])
+        ->condition('registration_id', $registration_id)
+        ->execute();
+      
+      $this->messenger()->addStatus($this->t('Je bent succesvol uitgeschreven.'));
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('shift_bezoeker')->error('Failed to cancel registration: @err', ['@err' => $e->getMessage()]);
+      $this->messenger()->addError($this->t('Er ging iets mis bij het annuleren van je inschrijving.'));
+      return $this->redirect('shift_bezoeker.sessions');
+    }
+
+    // 3. Stuur bericht naar RabbitMQ
+    $message = new \Drupal\hello_world\RabbitMQ\Message\Planning\RegistrationCreatedMessage(
+      registrationId: $registration_id,
+      sessionId:      $session_id,
+      participantId:  $participant_id,
+      crmMasterId:    $crm_master_id ?: '00000000-0000-0000-0000-000000000000',
+      isActive:       FALSE,
+      timestamp:      $timestamp,
+    );
+
+    $client = \Drupal\hello_world\RabbitMQ\RabbitMQClient::fromEnv();
+    try {
+      $client->publish($message);
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('shift_bezoeker')->error('RabbitMQ cancellation publish failed: @err', ['@err' => $e->getMessage()]);
+    }
+    finally {
+      $client->disconnect();
+    }
+
     return $this->redirect('shift_bezoeker.sessions');
   }
 

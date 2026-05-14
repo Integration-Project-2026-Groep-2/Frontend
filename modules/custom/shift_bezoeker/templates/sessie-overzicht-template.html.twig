@@ -1,7 +1,7 @@
 
 <div class="session-grid-wrapper" style="
     background: linear-gradient(rgba(13, 18, 31, 0.95), rgba(13, 18, 31, 0.95)),
-                url('/themes/custom/shift_theme/images/event-bg.jpg');
+                url('/themes/custom/custom/shift_theme/images/event-bg.jpg');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -63,13 +63,15 @@
 
     {# Sessies #}
     {% for session in grid_sessions %}
-      <div class="grid-session {{ session.status }}" 
-           style="grid-row: {{ session.row_start }} / span {{ session.row_span }}; grid-column: {{ session.col_index }};"
+      <div class="grid-session {{ session.status }} {{ session.registered ? 'registered' : '' }}" 
+           style="grid-row: {{ session.row_start }} / span {{ session.row_span }}; 
+                  grid-column: {{ session.col_index }};"
            data-id="{{ session.id }}"
            data-title="{{ session.title }}"
            data-description="{{ session.description }}"
            data-time="{{ session.time }}"
-           data-location="{{ locations[session.col_index - 2].room_name }}">
+           data-location="{{ locations[session.col_index - 2].room_name }}"
+           data-registered="{{ session.registered ? 'true' : 'false' }}">
         
         <div>
           <h3 title="{{ session.title }}">{{ session.title }}</h3>
@@ -100,6 +102,7 @@
       </div>
       <div class="modal-actions">
         <button class="register-btn">Registreer voor deze sessie</button>
+        <button class="cancel-btn" style="display: none; background: #ef4444; color: white; border: none; padding: 12px 25px; border-radius: 10px; cursor: pointer; font-weight: bold;">Uitschrijven</button>
       </div>
     </div>
   </div>

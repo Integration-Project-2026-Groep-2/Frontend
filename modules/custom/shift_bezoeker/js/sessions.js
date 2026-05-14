@@ -15,9 +15,16 @@
           $('#modal-time').show().text(time);
           $('#modal-location').show().text(location);
           
-          $('.register-btn')
-            .show()
-            .data('session-id', id);
+          const registered = $this.data('registered') === true || $this.data('registered') === 'true';
+          if (registered) {
+            $('.register-btn').hide();
+            $('.cancel-btn').show().data('session-id', id);
+          } else {
+            $('.cancel-btn').hide();
+            $('.register-btn')
+              .show()
+              .data('session-id', id);
+          }
 
           $('.session-modal-overlay').addClass('active');
           $('body').css('overflow', 'hidden');
@@ -29,6 +36,14 @@
         const sessionId = $(this).data('session-id');
         if (sessionId) {
           window.location.href = `/sessie/inschrijven/${sessionId}`;
+        }
+      });
+
+      // Handle uitschrijven knop
+      $('.cancel-btn').on('click', function() {
+        const sessionId = $(this).data('session-id');
+        if (sessionId && confirm('Weet je zeker dat je je wilt uitschrijven voor deze sessie?')) {
+          window.location.href = `/sessie/uitschrijven/${sessionId}`;
         }
       });
 

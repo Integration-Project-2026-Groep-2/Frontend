@@ -16,6 +16,7 @@ final class RegistrationCreatedMessage extends Planning {
     private readonly string $sessionId,
     private readonly string $participantId,
     private readonly string $crmMasterId,
+    private readonly bool   $isActive,
     private readonly ?string $timestamp = NULL,
   ) {}
 
@@ -25,6 +26,7 @@ final class RegistrationCreatedMessage extends Planning {
     $xml->addChild('sessionId',      $this->sessionId);
     $xml->addChild('participantId',  $this->participantId);
     $xml->addChild('crmMasterId',    $this->crmMasterId);
+    $xml->addChild('isActive',       $this->isActive ? 'true' : 'false');
     
     if ($this->timestamp) {
       $xml->addChild('timestamp', $this->timestamp);

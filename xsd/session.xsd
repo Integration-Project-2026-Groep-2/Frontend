@@ -212,6 +212,7 @@
         <xs:element name="sessionId"      type="uuid"/>
         <xs:element name="participantId"  type="uuid"/>
         <xs:element name="crmMasterId"    type="uuid"/>
+        <xs:element name="isActive"       type="xs:boolean"/>
         <xs:element name="timestamp"      type="xs:dateTime" minOccurs="0"/>
       </xs:sequence>
     </xs:complexType>
