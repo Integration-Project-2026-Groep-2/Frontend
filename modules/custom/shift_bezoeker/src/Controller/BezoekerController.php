@@ -9,53 +9,104 @@ use Drupal\shift_bezoeker\Form\EditAccountForm;
 class BezoekerController extends ControllerBase {
 
   public function sessionsPage() {
-    // 1. Haal alle sessies op die Team Planning heeft aangemaakt
-    $query = \Drupal::entityQuery('node')
-      ->accessCheck(TRUE)
-      ->condition('status', 1)
-      ->condition('type', 'session'); // Check of ze het 'session' of 'sessie' hebben genoemd!
+    $db = \Drupal::database();
 
-    $nids = $query->execute();
-    $nodes = \Drupal\node\Entity\Node::loadMultiple($nids);
+    // 1. Haal locaties op die minstens één sessie hebben
+    $location_query = $db->select('location', 'l');
+    $location_query->fields('l', ['location_id', 'room_name']);
+    $location_query->join('session', 's', 's.location_id = l.location_id');
+    $location_query->distinct();
+    $location_query->orderBy('l.room_name', 'ASC');
+    $locations = $location_query->execute()->fetchAll();
 
-    $grid_data = [];
-
-    // 2. Loop door de database resultaten
-    foreach ($nodes as $node) {
-      // Haal de waarden op uit de velden van Team Planning
-      // Let op: vervang 'field_...' door de echte machine-namen van hun velden!
-      $start_time = $node->get('field_start_time')->value; // Bijv: '10:00'
-      $end_time = $node->get('field_end_time')->value;     // Bijv: '11:30'
-      $stage_key = $node->get('field_stage')->value;      // Bijv: 'main', 'zaal_a', 'zaal_b'
-
-      // Vul de grid_data array dynamisch
-      $grid_data[$stage_key][$start_time] = [
-        'id'    => $node->id(),
-        'title' => $node->getTitle(),
-        'time'  => $start_time . ' - ' . $end_time,
-        'type'  => 'open', // Dit kun je later linken aan inschrijvingen
+    if (empty($locations)) {
+      return [
+        '#markup' => '<div style="padding: 100px; text-align: center; color: white;">Geen sessies gepland op dit moment.</div>',
       ];
     }
 
-    // De definities van je grid blijven hier staan
-    $time_slots = [
-      '10:00' => '10:00', '11:00' => '11:00', '12:00' => '12:00',
-      '13:00' => '13:00', '14:00' => '14:00', '15:00' => '15:00', '16:00' => '16:00',
-    ];
+    // 2. Haal alle sessies op
+    $session_results = $db->select('session', 's')
+      ->fields('s')
+      ->orderBy('start_time', 'ASC')
+      ->execute()
+      ->fetchAll();
 
-    $stages = [
-      'main' => 'Main Stage',
-      'zaal_a' => 'Zaal A',
-      'zaal_b' => 'Zaal B',
-    ];
+    // 3. Bepaal tijdspanne voor de grid
+    $min_hour = 24;
+    $max_hour = 0;
+
+    foreach ($session_results as $s) {
+      $start = (int) substr($s->start_time, 0, 2);
+      $end = (int) substr($s->end_time, 0, 2);
+      if ($start < $min_hour) $min_hour = $start;
+      if ($end > $max_hour) $max_hour = $end;
+    }
+
+    // Buffer van 1 uur aan beide kanten
+    $min_hour = max(0, $min_hour - 1);
+    $max_hour = min(23, $max_hour + 1);
+
+    // 4. Bouw tijdslots (elke 15 min)
+    $interval = 15; // minuten
+    $time_labels = [];
+    for ($h = $min_hour; $h <= $max_hour; $h++) {
+      $time_labels[] = sprintf('%02d:00', $h);
+      $time_labels[] = sprintf('%02d:15', $h);
+      $time_labels[] = sprintf('%02d:30', $h);
+      $time_labels[] = sprintf('%02d:45', $h);
+    }
+
+    // 5. Formatteer sessies voor de grid
+    $grid_sessions = [];
+    foreach ($session_results as $s) {
+      $start_parts = explode(':', $s->start_time);
+      $end_parts = explode(':', $s->end_time);
+
+      $start_m = (int)$start_parts[0] * 60 + (int)$start_parts[1];
+      $end_m = (int)$end_parts[0] * 60 + (int)$end_parts[1];
+      $grid_start_m = $min_hour * 60;
+
+      // Bereken grid rij (Rij 1 = Header, dus +2)
+      $row_start = (($start_m - $grid_start_m) / $interval) + 2;
+      $row_span = ($end_m - $start_m) / $interval;
+
+      // Zoek kolom index van locatie
+      $col_index = 0;
+      foreach ($locations as $idx => $loc) {
+        if ($loc->location_id == $s->location_id) {
+          $col_index = $idx + 2; // +1 voor tijdlabel kolom, +1 voor 1-based index
+          break;
+        }
+      }
+
+      if ($col_index > 0) {
+        $grid_sessions[] = [
+          'id' => $s->session_id,
+          'title' => $s->title,
+          'description' => $s->description,
+          'time' => substr($s->start_time, 0, 5) . ' - ' . substr($s->end_time, 0, 5),
+          'location' => '', // Wordt in template gezet of hier gezocht
+          'row_start' => $row_start,
+          'row_span' => $row_span,
+          'col_index' => $col_index,
+          'status' => $s->status,
+        ];
+      }
+    }
 
     return [
       '#theme' => 'sessie_overzicht_template',
       '#current_date' => '22 April 2026',
       '#day_number' => '01',
-      '#time_slots' => $time_slots,
-      '#stages' => $stages,
-      '#grid_data' => $grid_data,
+      '#locations' => $locations,
+      '#time_labels' => $time_labels,
+      '#grid_sessions' => $grid_sessions,
+      '#attached' => [
+        'library' => [
+          'shift_bezoeker/sessions',
+        ],
+      ],
     ];
   }
 

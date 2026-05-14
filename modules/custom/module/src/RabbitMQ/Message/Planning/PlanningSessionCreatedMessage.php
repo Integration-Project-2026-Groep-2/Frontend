@@ -14,6 +14,7 @@ final class PlanningSessionCreatedMessage extends Planning {
   public function __construct(
     private readonly string  $sessionId,
     private readonly string  $title,
+    private readonly ?string $description,
     private readonly string  $date,       // Y-m-d
     private readonly ?string $startTime,  // H:i:s
     private readonly ?string $endTime,    // H:i:s
@@ -29,6 +30,9 @@ final class PlanningSessionCreatedMessage extends Planning {
     $xml = new SimpleXMLElement('<SessionCreated/>');
     $xml->addChild('sessionId',  $this->sessionId);
     $xml->addChild('title',      htmlspecialchars($this->title));
+    if ($this->description !== NULL) {
+      $xml->addChild('description', htmlspecialchars($this->description));
+    }
     $xml->addChild('date',       $this->date);
     if ($this->startTime !== NULL) {
       $xml->addChild('startTime', $this->startTime);

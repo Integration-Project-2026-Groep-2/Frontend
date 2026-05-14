@@ -14,6 +14,7 @@ final class PlanningSessionUpdatedMessage extends Planning {
   public function __construct(
     private readonly string  $sessionId,
     private readonly string  $sessionName,
+    private readonly ?string $newDescription = NULL,
     private readonly string  $changeType,
     private readonly ?string $newTime      = NULL,
     private readonly ?string $newStartTime = NULL,
@@ -32,6 +33,9 @@ final class PlanningSessionUpdatedMessage extends Planning {
     }
     $xml->addChild('sessionId',   $this->sessionId);
     $xml->addChild('sessionName', htmlspecialchars($this->sessionName));
+    if ($this->newDescription !== NULL) {
+      $xml->addChild('newDescription', htmlspecialchars($this->newDescription));
+    }
     $xml->addChild('changeType',  $this->changeType);
 
     if ($this->newTime !== NULL) {

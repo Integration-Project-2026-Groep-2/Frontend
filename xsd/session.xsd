@@ -13,6 +13,7 @@
       <xs:sequence>
         <xs:element name="sessionId"  type="uuid"/>
         <xs:element name="title"      type="xs:string"/>
+        <xs:element name="description" type="xs:string"  minOccurs="0"/>
         <xs:element name="date"       type="xs:string"/>
         <xs:element name="startTime"  type="xs:string"/>
         <xs:element name="endTime"    type="xs:string"   minOccurs="0"/>
@@ -37,6 +38,7 @@
       <xs:sequence>
         <xs:element name="sessionId"   type="uuid"/>
         <xs:element name="sessionName" type="xs:string"/>
+        <xs:element name="newDescription" type="xs:string" minOccurs="0"/>
         <xs:element name="changeType"  type="xs:string"/>
         <xs:element name="newTime"     type="xs:string"   minOccurs="0"/>
         <xs:element name="newStartTime" type="xs:time"    minOccurs="0"/>
