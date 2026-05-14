@@ -152,7 +152,7 @@ Voert snelle PHP unit tests uit die **geen** database of Drupal kernel nodig heb
 
 ### Waarom `composer create-project` in CI?
 
-Het project heeft geen `composer.lock` of `vendor/` in de repository. Een verse Drupal installatie in CI garandeert:
+De `vendor/` directory is niet getrackt in de repository. Een verse Drupal installatie in CI garandeert:
 - Schrijfrechten in `$HOME/drupal` (geen permissieproblemen)
 - Schone staat zonder conflicten met bestaande dependencies
 - Deterministische omgeving (altijd dezelfde Drupal 11 versie)
