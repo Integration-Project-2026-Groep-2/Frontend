@@ -22,6 +22,14 @@ shift_bezoeker.account_cancel:
   requirements:
     _user_is_logged_in: 'TRUE'
 
+shift_bezoeker.account_verwijderd:
+  path: '/bezoeker/account/verwijderd'
+  defaults:
+    _controller: '\Drupal\shift_bezoeker\Controller\BezoekerController::accountVerwijderdPage'
+    _title: 'Account verwijderd'
+  requirements:
+    _access: 'TRUE'
+
 shift_bezoeker.inschrijven:
   path: '/sessie/inschrijven/{session_id}'
   defaults:

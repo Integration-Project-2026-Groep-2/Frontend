@@ -14,13 +14,16 @@ final class PlanningSessionUpdatedMessage extends Planning {
   public function __construct(
     private readonly string  $sessionId,
     private readonly string  $sessionName,
+    private readonly ?string $newDescription = NULL,
     private readonly string  $changeType,
     private readonly ?string $newTime      = NULL,
     private readonly ?string $newStartTime = NULL,
     private readonly ?string $newEndTime   = NULL,
     private readonly ?string $newLocation  = NULL,
     private readonly ?string $newLocationId = NULL,
-    private readonly ?string $timestamp    = NULL,
+    private readonly ?int    $newCapacity   = NULL,
+    private readonly ?string $newStatus     = NULL,
+    private readonly ?string $timestamp     = NULL,
   ) {}
 
   public function toXml(): string {
@@ -30,6 +33,9 @@ final class PlanningSessionUpdatedMessage extends Planning {
     }
     $xml->addChild('sessionId',   $this->sessionId);
     $xml->addChild('sessionName', htmlspecialchars($this->sessionName));
+    if ($this->newDescription !== NULL) {
+      $xml->addChild('newDescription', htmlspecialchars($this->newDescription));
+    }
     $xml->addChild('changeType',  $this->changeType);
 
     if ($this->newTime !== NULL) {
@@ -45,7 +51,13 @@ final class PlanningSessionUpdatedMessage extends Planning {
       $xml->addChild('newLocation', htmlspecialchars($this->newLocation));
     }
     if ($this->newLocationId !== NULL && self::isValidUuid($this->newLocationId)) {
-      $xml->addChild('locationId', $this->newLocationId);
+      $xml->addChild('newLocationId', $this->newLocationId);
+    }
+    if ($this->newCapacity !== NULL) {
+      $xml->addChild('newCapacity', (string) $this->newCapacity);
+    }
+    if ($this->newStatus !== NULL) {
+      $xml->addChild('newStatus', $this->newStatus);
     }
     if ($this->timestamp !== NULL) {
       $xml->addChild('timestamp', $this->timestamp);

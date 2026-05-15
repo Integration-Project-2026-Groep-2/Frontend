@@ -31,15 +31,15 @@ class EditAccountFormTest extends KernelTestBase {
     $account = $this->createUser([], 'tester', FALSE, ['mail' => 'tester@example.com']);
     $userData = \Drupal::service('user.data');
     $userData->set('shift_bezoeker', $account->id(), 'first_name', 'OldFirst');
-    $userData->set('shift_bezoeker', $account->id(), 'last_name',  'OldLast');
-    $userData->set('shift_bezoeker', $account->id(), 'phone',      '+32400000000');
+    $userData->set('shift_bezoeker', $account->id(), 'last_name', 'OldLast');
+    $userData->set('shift_bezoeker', $account->id(), 'phone', '+32400000000');
 
     $this->setCurrentUser($account);
 
     $form_state = (new FormState())->setValues([
-      'firstName'   => 'NewFirst',
-      'lastName'    => 'OldLast',
-      'phone'       => '+32400000000',
+      'firstName' => 'NewFirst',
+      'lastName' => 'OldLast',
+      'phone' => '+32400000000',
       'companyName' => '',
     ]);
 
@@ -48,7 +48,7 @@ class EditAccountFormTest extends KernelTestBase {
     $form->submitForm($form_array, $form_state);
 
     $this->assertSame('NewFirst', $userData->get('shift_bezoeker', $account->id(), 'first_name'));
-    $this->assertSame('OldLast',  $userData->get('shift_bezoeker', $account->id(), 'last_name'));
+    $this->assertSame('OldLast', $userData->get('shift_bezoeker', $account->id(), 'last_name'));
     $this->assertSame('+32400000000', $userData->get('shift_bezoeker', $account->id(), 'phone'));
   }
 
@@ -56,14 +56,14 @@ class EditAccountFormTest extends KernelTestBase {
     $account = $this->createUser([], 'tester2', FALSE, ['mail' => 'tester2@example.com']);
     $userData = \Drupal::service('user.data');
     $userData->set('shift_bezoeker', $account->id(), 'first_name', 'Same');
-    $userData->set('shift_bezoeker', $account->id(), 'last_name',  'Same');
+    $userData->set('shift_bezoeker', $account->id(), 'last_name', 'Same');
 
     $this->setCurrentUser($account);
 
     $form_state = (new FormState())->setValues([
-      'firstName'   => 'Same',
-      'lastName'    => 'Same',
-      'phone'       => '',
+      'firstName' => 'Same',
+      'lastName' => 'Same',
+      'phone' => '',
       'companyName' => '',
     ]);
 

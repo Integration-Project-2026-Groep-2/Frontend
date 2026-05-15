@@ -12,14 +12,23 @@ use SimpleXMLElement;
 final class RegistrationCreatedMessage extends Planning {
 
   public function __construct(
+    private readonly string $registrationId,
     private readonly string $sessionId,
-    private readonly string $crmMasterId,
+    private readonly string $userId,
+    private readonly bool   $isActive,
+    private readonly ?string $timestamp = NULL,
   ) {}
 
   public function toXml(): string {
     $xml = new SimpleXMLElement('<RegistrationCreated/>');
-    $xml->addChild('sessionId',   $this->sessionId);
-    $xml->addChild('crmMasterId', $this->crmMasterId);
+    $xml->addChild('registrationId', $this->registrationId);
+    $xml->addChild('sessionId',      $this->sessionId);
+    $xml->addChild('userId',         $this->userId);
+    $xml->addChild('isActive',       $this->isActive ? 'true' : 'false');
+    
+    if ($this->timestamp) {
+      $xml->addChild('timestamp', $this->timestamp);
+    }
 
     return $xml->asXML();
   }

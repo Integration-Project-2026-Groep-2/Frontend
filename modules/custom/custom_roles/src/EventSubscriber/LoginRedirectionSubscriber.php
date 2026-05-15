@@ -7,7 +7,6 @@ use Symfony\Component\HttpKernel\Event\ResponseEvent;
 use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Drupal\Core\Session\AccountInterface;
-use Drupal\Core\Url;
 
 class LoginRedirectionSubscriber implements EventSubscriberInterface {
 
@@ -38,16 +37,15 @@ class LoginRedirectionSubscriber implements EventSubscriberInterface {
     if ($this->currentUser->isAuthenticated() && $request->attributes->get('_route') === 'user.login') {
       
       $roles = $this->currentUser->getRoles();
-      $url = '/user'; 
 
       if (in_array('administrator', $roles)) {
-        $url = Url::fromUri('internal:/hello/admin')->setAbsolute()->toString();
-      } 
+        $url = '/hello/admin';
+      }
       elseif (in_array('speaker', $roles)) {
-        $url = Url::fromUri('internal:/bespreker')->setAbsolute()->toString();
+        $url = '/bespreker';
       }
       else {
-      $url = Url::fromUri('internal:/')->setAbsolute()->toString();
+        $url = '/';
       }
 
       $event->setResponse(new RedirectResponse($url));

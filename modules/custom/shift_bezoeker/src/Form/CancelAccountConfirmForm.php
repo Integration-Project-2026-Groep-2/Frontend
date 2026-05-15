@@ -20,7 +20,7 @@ class CancelAccountConfirmForm extends ConfirmFormBase {
   }
 
   public function getDescription() {
-    return $this->t('Je account wordt geblokkeerd en je wordt uitgelogd. Je kunt niet meer inloggen met deze gegevens.');
+    return $this->t('Je account wordt verwijderd en je wordt uitgelogd. Je kunt niet meer inloggen met deze gegevens. Dit kan niet ongedaan worden gemaakt.');
   }
 
   public function getCancelUrl() {
@@ -47,30 +47,33 @@ class CancelAccountConfirmForm extends ConfirmFormBase {
 
     $email = $account->getEmail();
 
+    $crmId = ($account->hasField('field_crm_id') && !$account->get('field_crm_id')->isEmpty())
+      ? (string) $account->get('field_crm_id')->value
+      : NULL;
+
     $account->block();
     $account->save();
 
-    $this->publishCancelEvent($uid, $email);
-
-    \Drupal::messenger()->addStatus($this->t('Je account is verwijderd.'));
+    $this->publishCancelEvent($uid, $email, $crmId);
 
     user_logout();
-    $form_state->setRedirectUrl(Url::fromUri('internal:/'));
+    $form_state->setRedirectUrl(Url::fromRoute('shift_bezoeker.account_verwijderd'));
   }
 
   /**
    * Soft-fails on broker downtime — account block proceeds regardless.
    * Mirrors RegistratieForm::publishRegistrationEvents pattern.
    */
-  private function publishCancelEvent(int $uid, string $email): void {
+  private function publishCancelEvent(int $uid, string $email, ?string $crmId): void {
     if (!empty($_ENV['SHIFT_BEZOEKER_DISABLE_AMQP']) || getenv('SHIFT_BEZOEKER_DISABLE_AMQP')) {
       return;
     }
 
     $message = new RegistrationChangeMessage(
-      email:      $email,
-      sessionId:  (string) $uid,
-      changeType: 'cancelled',
+      email:          $email,
+      sessionId:      (string) $uid,
+      changeType:     'cancelled',
+      registrationId: $crmId,
     );
 
     $client = RabbitMQClient::fromEnv();

@@ -1,7 +1,7 @@
 
 <section class="hero-section dark-theme" style="
     background: linear-gradient(rgba(49, 19, 57, 0.85), rgba(26, 31, 46, 0.95)),
-                url('{{ base_path }}themes/custom/shift_theme/images/event-bg.jpg');
+                url('/themes/custom/shift_theme/images/event-bg.jpg');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -16,7 +16,7 @@
         <div style="font-size: 80px; color: #6333ea; margin-bottom: 20px;">✓</div>
         <h1 style="font-size: 48px; font-weight: 900; text-transform: uppercase;">Je bent erbij!</h1>
         <p style="font-size: 20px; color: #d1d5db; margin-bottom: 40px;">
-            We hebben sessie <strong>#{{ session_id }}</strong> succesvol gereserveerd.
+            We hebben sessie <strong>{{ session_title }}</strong> succesvol gereserveerd.
         </p>
         <a href="{{ path('shift_bezoeker.sessions') }}" style="
             display: inline-block;

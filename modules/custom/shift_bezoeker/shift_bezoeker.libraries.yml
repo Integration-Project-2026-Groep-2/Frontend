@@ -1,0 +1,12 @@
+sessions:
+    version: 1.4
+    css:
+        theme:
+            css/sessions.css: {}
+    js:
+        js/sessions.js: {}
+    dependencies:
+        - core/jquery
+        - core/drupal
+        - core/once
+        - core/drupal.dialog.ajax

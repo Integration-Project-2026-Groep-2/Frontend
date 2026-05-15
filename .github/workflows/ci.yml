@@ -1,0 +1,174 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+# Annuleer vorige runs als er een nieuwe push binnenkomt (zelfde als CRM)
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  # ─────────────────────────────────────────────────────────────
+  # JOB 1: Lint & Code Standards
+  # Controleert codekwaliteit VOOR de tests draaien
+  # ─────────────────────────────────────────────────────────────
+  lint:
+    name: Lint & Code Standards
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+
+      - name: Installeer phpcs en Drupal coder
+        run: |
+          composer config allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
+          composer require --dev \
+            "squizlabs/php_codesniffer:^3" \
+            "drupal/coder:^8" \
+            "slevomat/coding-standard:^8" \
+            --no-interaction --no-progress --quiet
+
+      - name: Controleer coding standards (Drupal standaard)
+        run: ./vendor/bin/phpcs --standard=phpcs.xml
+
+      - name: Beveiligingsaudit van PHP dependencies
+        run: composer audit --no-dev
+        continue-on-error: true
+
+  # ─────────────────────────────────────────────────────────────
+  # JOB 2: Unit Tests
+  # Drupal project in $HOME — gegarandeerde schrijfrechten
+  # drupal/core-dev brengt PHPUnit en alle test-infrastructuur mee
+  # ─────────────────────────────────────────────────────────────
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: lint
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+          extensions: pdo_sqlite, sqlite3, gd, xml, mbstring, intl
+
+      - name: Cache Composer downloads
+        uses: actions/cache@v4.2.3
+        with:
+          path: ~/.composer/cache
+          key: composer-drupal11-${{ runner.os }}-php83-${{ hashFiles('**/composer.json') }}
+          restore-keys: composer-drupal11-${{ runner.os }}-php83-
+
+      - name: Maak Drupal testomgeving
+        run: |
+          composer create-project drupal/recommended-project:^11 $HOME/drupal \
+            --no-dev --no-interaction --no-progress --prefer-dist
+          cd $HOME/drupal && composer require --dev \
+            "drupal/core-dev:^11" \
+            --no-interaction --no-progress -W
+
+      - name: Kopieer custom modules
+        run: |
+          mkdir -p $HOME/drupal/web/modules/custom
+          cp -r $GITHUB_WORKSPACE/modules/custom/. $HOME/drupal/web/modules/custom/
+
+      - name: Kopieer XSD schemas
+        run: cp -r $GITHUB_WORKSPACE/xsd $HOME/drupal/xsd
+
+      - name: Kopieer phpunit.xml en bootstrap
+        run: |
+          cp $GITHUB_WORKSPACE/phpunit.xml $HOME/drupal/phpunit.xml
+          cp $GITHUB_WORKSPACE/tests_bootstrap.php $HOME/drupal/tests_bootstrap.php
+
+      - name: Voer unit tests uit
+        working-directory: /home/runner/drupal
+        env:
+          XSD_ROOT: /home/runner/drupal/xsd
+        run: |
+          ./vendor/bin/phpunit \
+            --configuration phpunit.xml \
+            --testsuite unit \
+            --colors=always \
+            --testdox
+
+  # ─────────────────────────────────────────────────────────────
+  # JOB 3: Integration Tests
+  # Zelfde aanpak als unit-tests maar met SQLite kernel testsuite
+  # ─────────────────────────────────────────────────────────────
+  integration:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    needs: lint
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4.2.2
+
+      - name: Setup PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          tools: composer:v2
+          extensions: pdo_sqlite, sqlite3, gd, xml, mbstring, intl
+
+      - name: Cache Composer downloads
+        uses: actions/cache@v4.2.3
+        with:
+          path: ~/.composer/cache
+          key: composer-drupal11-${{ runner.os }}-php83-${{ hashFiles('**/composer.json') }}
+          restore-keys: composer-drupal11-${{ runner.os }}-php83-
+
+      - name: Maak Drupal testomgeving
+        run: |
+          composer create-project drupal/recommended-project:^11 $HOME/drupal \
+            --no-dev --no-interaction --no-progress --prefer-dist
+          cd $HOME/drupal && composer require --dev \
+            "drupal/core-dev:^11" \
+            --no-interaction --no-progress -W
+
+      - name: Kopieer custom modules
+        run: |
+          mkdir -p $HOME/drupal/web/modules/custom
+          cp -r $GITHUB_WORKSPACE/modules/custom/. $HOME/drupal/web/modules/custom/
+
+      - name: Kopieer phpunit.xml en bootstrap
+        run: |
+          cp $GITHUB_WORKSPACE/phpunit.xml $HOME/drupal/phpunit.xml
+          cp $GITHUB_WORKSPACE/tests_bootstrap.php $HOME/drupal/tests_bootstrap.php
+
+      - name: Voer integration tests uit
+        working-directory: /home/runner/drupal
+        env:
+          SHIFT_BEZOEKER_DISABLE_AMQP: "1"
+          SIMPLETEST_DB: "sqlite://localhost//tmp/drupal_ci_test.sqlite"
+        run: |
+          ./vendor/bin/phpunit \
+            --configuration phpunit.xml \
+            --testsuite kernel \
+            --colors=always \
+            --testdox
