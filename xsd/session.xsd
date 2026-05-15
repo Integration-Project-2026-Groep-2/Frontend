@@ -13,6 +13,7 @@
       <xs:sequence>
         <xs:element name="sessionId"  type="uuid"/>
         <xs:element name="title"      type="xs:string"/>
+        <xs:element name="description" type="xs:string"  minOccurs="0"/>
         <xs:element name="date"       type="xs:string"/>
         <xs:element name="startTime"  type="xs:string"/>
         <xs:element name="endTime"    type="xs:string"   minOccurs="0"/>
@@ -37,11 +38,15 @@
       <xs:sequence>
         <xs:element name="sessionId"   type="uuid"/>
         <xs:element name="sessionName" type="xs:string"/>
+        <xs:element name="newDescription" type="xs:string" minOccurs="0"/>
         <xs:element name="changeType"  type="xs:string"/>
         <xs:element name="newTime"     type="xs:string"   minOccurs="0"/>
         <xs:element name="newStartTime" type="xs:time"    minOccurs="0"/>
         <xs:element name="newEndTime"   type="xs:time"    minOccurs="0"/>
         <xs:element name="newLocation" type="xs:string"   minOccurs="0"/>
+        <xs:element name="newLocationId" type="uuid"      minOccurs="0"/>
+        <xs:element name="newCapacity"   type="xs:int"    minOccurs="0"/>
+        <xs:element name="newStatus"     type="xs:string" minOccurs="0"/>
         <xs:element name="participantIds" minOccurs="0">
           <xs:complexType>
             <xs:sequence>
@@ -203,23 +208,10 @@
   <xs:element name="RegistrationCreated">
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="sessionId"   type="uuid"/>
-        <xs:element name="crmMasterId" type="uuid"/>
-      </xs:sequence>
-    </xs:complexType>
-  </xs:element>
-
-  <!-- ========================================================= -->
-  <!-- RegistrationConfirmed -->
-  <!-- Planning → Frontend -->
-  <!-- ========================================================= -->
-
-  <xs:element name="RegistrationConfirmed">
-    <xs:complexType>
-      <xs:sequence>
         <xs:element name="registrationId" type="uuid"/>
         <xs:element name="sessionId"      type="uuid"/>
-        <xs:element name="crmMasterId"    type="uuid"/>
+        <xs:element name="userId"        type="uuid"/>
+        <xs:element name="isActive"       type="xs:boolean"/>
         <xs:element name="timestamp"      type="xs:dateTime" minOccurs="0"/>
       </xs:sequence>
     </xs:complexType>

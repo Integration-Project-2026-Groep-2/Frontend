@@ -1,7 +1,7 @@
 
 <div class="session-grid-wrapper" style="
-    background: linear-gradient(rgba(13, 18, 31, 0.9), rgba(13, 18, 31, 0.9)),
-                url('{{ base_path ~ 'modules/custom/shift_bezoeker/images/event-bg2.jpg' }}');
+    background: linear-gradient(rgba(13, 18, 31, 0.95), rgba(13, 18, 31, 0.95)),
+                url('/themes/custom/shift_theme/images/event-bg.jpg');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -17,10 +17,10 @@
       <a href="#" style="text-decoration: none; color: #6333ea; font-size: 24px; font-weight: bold;">&#10094;</a>
       <div style="text-align: center;">
         <span style="display: block; text-transform: uppercase; letter-spacing: 2px; font-size: 10px; color: #6333ea; font-weight: 800; font-family: 'Barlow', sans-serif;">
-          Dag {{ day_number|default('NVT') }}
+          Dag {{ day_number|default('01') }}
         </span>
         <span style="font-size: 15px; color: #ffffff; font-weight: 600; opacity: 0.9; font-family: 'Barlow', sans-serif;">
-          {{ current_date|default('Onbekend') }}
+          {{ current_date|default('22 April 2026') }}
         </span>
       </div>
       <a href="#" style="text-decoration: none; color: #6333ea; font-size: 24px; font-weight: bold;">&#10095;</a>
@@ -31,70 +31,80 @@
   {# 2. Titels #}
   <div style="margin-bottom: 50px; text-align: center;">
     <h1 style="font-size: 56px; font-weight: 900; margin: 0; line-height: 1.1; font-family: 'Barlow', sans-serif;">
-      {% if logged_in %} Mijn Programma {% else %} Programma Overzicht {% endif %}
+      Programma
     </h1>
     <p style="color: #a0a5b1; font-size: 19px; margin-top: 12px; font-family: 'Inter', sans-serif;">Beleef het Shift Festival 2026.</p>
   </div>
 
   {# 3. De Grid #}
-  <div style="display: grid; grid-template-columns: 120px repeat(3, 1fr); gap: 20px; width: 100%; position: relative; z-index: 2;">
-
+  <div class="session-grid-container" style="--column-count: {{ locations|length }};">
+    
     {# Headers #}
-    <div style="grid-column: 1;"></div>
-    {% for id, name in stages|default([]) %}
-      <div style="background: rgba(99, 51, 234, 0.15); backdrop-filter: blur(10px); border: 1px solid rgba(99, 51, 234, 0.4); padding: 18px; text-align: center; border-radius: 10px; font-weight: 700; text-transform: uppercase; font-size: 12px; letter-spacing: 1.5px;">
-        {{ name }}
+    <div class="time-header" style="grid-column: 1; grid-row: 1;"></div>
+    {% for location in locations %}
+      <div class="timeline-header clickable-location" 
+           style="grid-column: {{ loop.index + 1 }}; cursor: pointer;"
+           data-id="{{ location.location_id }}"
+           data-name="{{ location.room_name }}"
+           data-address="{{ location.address }}"
+           data-capacity="{{ location.capacity }}"
+           data-status="{{ location.status }}">
+        {{ location.room_name }}
       </div>
     {% endfor %}
 
-    {# Tijdslots #}
-    {% for time_id, time_display in time_slots|default([]) %}
-      <div style="padding: 0; color: #8a8f9d; font-weight: 700; font-size: 13px; display: flex; align-items: flex-start; position: relative; height: 180px;">
-        <span style="position: absolute; top: -10px; z-index: 3;">{{ time_display }}</span>
-        <div style="position: absolute; top: 0; left: 0; width: 2000px; height: 1px; background: rgba(255,255,255,0.1); z-index: 1;"></div>
+    {# Tijdlabels en Gridlijnen #}
+    {% for label in time_labels %}
+      <div class="time-label" style="grid-row: {{ loop.index + 1 }}; grid-column: 1;">
+        {{ label }}
       </div>
+      <div class="grid-row-line" style="grid-row: {{ loop.index + 1 }};"></div>
+    {% endfor %}
 
-      {% for stage_id, stage_name in stages|default([]) %}
-        {% set stage_sessions = grid_data[stage_id]|default([]) %}
-        {% set session = stage_sessions[time_id]|default(null) %}
-        <div style="padding: 15px; position: relative; z-index: 2;">
-          {% if session and session.title is defined %}
-            <div style="background: {{ (logged_in and session.type == 'registered') ? 'rgba(99, 51, 234, 0.85)' : 'rgba(26, 31, 46, 0.6)' }};
-                        padding: 22px; border-radius: 14px; border: 1px solid rgba(255,255,255,0.1);
-                        display: flex; flex-direction: column; justify-content: space-between;
-                        min-height: 140px; position: relative;">
-
-              <div>
-                <h3 style="margin: 0 0 8px 0; font-size: 18px; font-weight: 800;">{{ session.title }}</h3>
-                <span style="font-size: 13px; color: rgba(255,255,255,0.7);">{{ session.time }}</span>
-              </div>
-
-              <div style="margin-top: 15px;">
-                {% if logged_in %}
-                  {% if session.type == 'registered' %}
-                    <span style="position: absolute; top: 12px; right: 12px; font-size: 10px; font-weight: 900; color: #fff; background: rgba(0,0,0,0.3); padding: 4px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 1px;">
-                      ✓ Present
-                    </span>
-                    <a href="{{ path('shift_bezoeker.uitschrijven', {'session_id': session.id}) }}" style="display: block; border: 1px solid rgba(255,255,255,0.4); background: transparent; color: white; padding: 8px; border-radius: 8px; font-size: 11px; text-align: center; font-weight: 700; text-decoration: none; letter-spacing: 1px;">
-                      UITSCHRIJVEN
-                    </a>
-                  {% else %}
-                    <a href="{{ path('shift_bezoeker.inschrijven', {'session_id': session.id}) }}" style="display: block; border: 1px solid #6333ea; background: rgba(99, 51, 234, 0.2); color: white; padding: 8px; border-radius: 8px; font-size: 11px; text-align: center; font-weight: 700; text-decoration: none;">
-                      INSCHRIJVEN
-                    </a>
-                  {% endif %}
-                {% else %}
-                  <a href="/bezoeker/account" style="display: block; border: 1px solid #6333ea; background: rgba(99, 51, 234, 0.2); color: white; padding: 8px; border-radius: 8px; font-size: 11px; text-align: center; font-weight: 700; text-decoration: none;">
-                    INSCHRIJVEN
-                  </a>
-                {% endif %}
-              </div>
-
-            </div>
-          {% endif %}
+    {# Sessies #}
+    {% for session in grid_sessions %}
+      <div class="grid-session {{ session.status }} {{ session.registered ? 'registered' : '' }}" 
+           style="grid-row: {{ session.row_start }} / span {{ session.row_span }}; 
+                  grid-column: {{ session.col_index }};"
+           data-id="{{ session.id }}"
+           data-title="{{ session.title }}"
+           data-description="{{ session.description }}"
+           data-time="{{ session.time }}"
+           data-location="{{ locations[session.col_index - 2].room_name }}"
+           data-registered="{{ session.registered ? 'true' : 'false' }}">
+        
+        <div>
+          <h3 title="{{ session.title }}">{{ session.title }}</h3>
+          <span class="time-span">{{ session.time }}</span>
         </div>
-      {% endfor %}
+
+        {% if session.status == 'full' %}
+          <span style="font-size: 10px; color: #ff4d4d; font-weight: 800; text-transform: uppercase;">Volzet</span>
+        {% endif %}
+      </div>
     {% endfor %}
 
   </div>
+
+  {# 4. Modal #}
+  <div class="session-modal-overlay">
+    <div class="session-modal-content">
+      <button class="close-modal">&times;</button>
+      <div class="modal-header">
+        <h2 id="modal-title">Sessie Titel</h2>
+      </div>
+      <div class="modal-info">
+        <span id="modal-time">10:00 - 11:30</span>
+        <span id="modal-location">Locatie Naam</span>
+      </div>
+      <div class="modal-description" id="modal-description">
+        Beschrijving van de sessie komt hier te staan.
+      </div>
+      <div class="modal-actions">
+        <button class="register-btn">Registreer voor deze sessie</button>
+        <button class="cancel-btn" style="display: none; background: #ef4444; color: white; border: none; padding: 12px 25px; border-radius: 10px; cursor: pointer; font-weight: bold;">Uitschrijven</button>
+      </div>
+    </div>
+  </div>
+
 </div>
