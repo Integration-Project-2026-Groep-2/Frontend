@@ -134,7 +134,7 @@ class RabbitMQClient {
       $this->validator->validate($xml, $message->getType());
       \Drupal::logger('rabbitmq')->info('XSD validation successful for "@type"', ['@type' => $message->getType()]);
 
-      $exchange = $this->resolveExchange($message->getRoutingKey());
+      $exchange = $this->resolveExchange($message);
 
       $amqpMessage = new AMQPMessage(
         $xml,
@@ -201,13 +201,23 @@ class RabbitMQClient {
       self::EXCHANGE_HEARTBEAT, 'direct', FALSE, TRUE, FALSE
     );
   }
-  
+
   /**
-   * Determines which exchange to use from the routing key prefix.
+   * Determines which exchange to use from the message metadata.
    */
-  private function resolveExchange(string $routingKey): string {
+  private function resolveExchange(MessageInterface $message): string {
+    $routingKey = $message->getRoutingKey();
+    $type       = $message->getType();
+
     if (str_starts_with($routingKey, 'routing.heartbeat')) {
       return self::EXCHANGE_HEARTBEAT;
+    }
+
+    // User and company related registrations go to user.topic (EXCHANGE_TOPIC).
+    // These messages often share prefixes with planning messages but have 
+    // different destinations.
+    if ($type === 'registration' || $type === 'registration_change' || $type === 'company_created') {
+      return self::EXCHANGE_TOPIC;
     }
 
     // All messages destined for the Planning microservice use frontend.topic.
