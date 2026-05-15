@@ -37,7 +37,7 @@ class RegistratieFormBuildMessagesTest extends UnitTestCase {
     $this->assertStringContainsString('<firstName>Lars</firstName>', $xml);
     $this->assertStringContainsString('<lastName>Cowe</lastName>', $xml);
     $this->assertStringContainsString('<email>lars@example.test</email>', $xml);
-    $this->assertStringContainsString('<role>visitor</role>', $xml);
+    $this->assertStringContainsString('<role>VISITOR</role>', $xml);
     $this->assertStringContainsString('<gdprConsent>true</gdprConsent>', $xml);
     $this->assertStringContainsString('<phone>+32470000001</phone>', $xml);
   }
@@ -61,7 +61,7 @@ class RegistratieFormBuildMessagesTest extends UnitTestCase {
     $this->assertInstanceOf(CompanyCreatedMessage::class, $messages[1]);
 
     $registrationXml = $messages[0]->toXml();
-    $this->assertStringContainsString('<role>company_contact</role>', $registrationXml);
+    $this->assertStringContainsString('<role>COMPANY_CONTACT</role>', $registrationXml);
     $this->assertStringContainsString('<firstName>Lars</firstName>', $registrationXml);
     $this->assertStringContainsString('<lastName>Cowe</lastName>', $registrationXml);
     $this->assertStringContainsString('<phone>+32470000001</phone>', $registrationXml);
@@ -85,7 +85,7 @@ class RegistratieFormBuildMessagesTest extends UnitTestCase {
       'role'             => 'speaker',
       'gdpr_consent'     => 1,
     ]);
-    $this->assertStringContainsString('<role>spreker</role>', $messages[0]->toXml());
+    $this->assertStringContainsString('<role>SPREKER</role>', $messages[0]->toXml());
   }
 
   public function testKassaRoleMapsToKassamedewerker(): void {
@@ -97,7 +97,7 @@ class RegistratieFormBuildMessagesTest extends UnitTestCase {
       'role'             => 'kassa',
       'gdpr_consent'     => 1,
     ]);
-    $this->assertStringContainsString('<role>kassamedewerker</role>', $messages[0]->toXml());
+    $this->assertStringContainsString('<role>KASSAMEDEWERKER</role>', $messages[0]->toXml());
   }
 
   public function testEmptyRoleDefaultsToVisitor(): void {
@@ -108,7 +108,7 @@ class RegistratieFormBuildMessagesTest extends UnitTestCase {
       'email'            => 'x@example.test',
       'gdpr_consent'     => 1,
     ]);
-    $this->assertStringContainsString('<role>visitor</role>', $messages[0]->toXml());
+    $this->assertStringContainsString('<role>VISITOR</role>', $messages[0]->toXml());
   }
 
   public function testBedrijfVatLowercaseGetsUppercasedInMessage(): void {
