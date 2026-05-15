@@ -23,6 +23,7 @@ final class PlanningSessionUpdatedMessage extends Planning {
     private readonly ?string $newLocationId = NULL,
     private readonly ?int    $newCapacity   = NULL,
     private readonly ?string $newStatus     = NULL,
+    private readonly ?string $speakerId     = NULL,
     private readonly ?string $timestamp     = NULL,
   ) {}
 
@@ -58,6 +59,9 @@ final class PlanningSessionUpdatedMessage extends Planning {
     }
     if ($this->newStatus !== NULL) {
       $xml->addChild('newStatus', $this->newStatus);
+    }
+    if ($this->speakerId !== NULL && self::isValidUuid($this->speakerId)) {
+      $xml->addChild('speakerId', $this->speakerId);
     }
     if ($this->timestamp !== NULL) {
       $xml->addChild('timestamp', $this->timestamp);

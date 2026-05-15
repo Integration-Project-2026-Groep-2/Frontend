@@ -108,24 +108,48 @@ public function account(): array {
   /**
    * Overzicht van alle sessies van de spreker.
    */
-public function sessies(): array {
-    // In een echt systeem haal je dit op via de database/User ID.
-    $mijn_sessies = [
-      [
-        'titel' => 'Drupal 11 Masterclass',
-        'status' => 'BEVESTIGD',
-        'locatie' => 'De Aula',
-        'tijd' => '14:00',
-        'status_kleur' => '#00ff88',
-      ],
-      [
-        'titel' => 'Headless Drupal & Next.js',
-        'status' => 'IN AFWACHTING',
-        'locatie' => 'Zaal 2',
-        'tijd' => '16:30',
-        'status_kleur' => '#ffcc00',
-      ],
-    ];
+  public function sessies(): array {
+    $uid = $this->currentUser->id();
+    $account = \Drupal\user\Entity\User::load($uid);
+    $speakerUuid = $account ? $account->uuid() : NULL;
+
+    $mijn_sessies = [];
+    if ($speakerUuid) {
+      try {
+        $database = \Drupal::database();
+        $query = $database->select('session_speaker', 'ss');
+        $query->join('session', 's', 'ss.session_id = s.session_id');
+        $query->leftJoin('location', 'l', 's.location_id = l.location_id');
+        $query->fields('s', ['session_id', 'title', 'status', 'start_time']);
+        $query->fields('l', ['room_name']);
+        $query->condition('ss.speaker_id', $speakerUuid);
+        $query->orderBy('s.date', 'ASC');
+        $query->orderBy('s.start_time', 'ASC');
+        $results = $query->execute()->fetchAll();
+
+        foreach ($results as $result) {
+          $status = strtoupper($result->status);
+          $kleur = match(strtolower($result->status)) {
+            'concept' => '#aaaaaa',
+            'active' => '#00ff88',
+            'cancelled' => '#ff4444',
+            'full' => '#ffaa00',
+            default => '#cccccc',
+          };
+
+          $mijn_sessies[] = [
+            'session_id' => $result->session_id,
+            'titel' => $result->title,
+            'status' => $status,
+            'locatie' => $result->room_name ?: 'Nog te bepalen',
+            'tijd' => substr($result->start_time, 0, 5),
+            'status_kleur' => $kleur,
+          ];
+        }
+      } catch (\Exception $e) {
+        \Drupal::logger('bespreker_controller')->error('Error fetching sessions: @err', ['@err' => $e->getMessage()]);
+      }
+    }
 
     return [
       '#theme' => 'bespreker_sessies',
@@ -184,20 +208,64 @@ public function sessies(): array {
   /**
    * Lijst met bezoekers voor de sessie.
    */
-public function bezoekersDetails(): array {
-    // In een latere fase halen we dit uit de database.
-    // Voor nu maken we een dynamische lijst voor de PR.
-    $bezoekers = [
-      ['naam' => 'Jan Janssen', 'type' => 'Student (EHB)'],
-      ['naam' => 'Sara Peeters', 'type' => 'Bedrijf (Tech solutions)'],
-      ['naam' => 'Mark de Vries', 'type' => 'Docent (KUL)'],
-    ];
+  public function bezoekersDetails(string $sessionId): array {
+    $database = \Drupal::database();
+    
+    // Fetch visitors
+    $query = $database->select('registration', 'r');
+    $query->leftJoin('frontend_user', 'u', 'r.user_id = u.user_id');
+    $query->fields('u', ['first_name', 'last_name']);
+    $query->addField('r', 'user_id', 'registration_user_id');
+    $query->condition('r.session_id', $sessionId);
+    $query->condition('r.is_active', 1);
+    $results = $query->execute()->fetchAll();
+
+    $bezoekers = [];
+    foreach ($results as $row) {
+      $firstName = $row->first_name;
+      $lastName = $row->last_name;
+      
+      // If not in frontend_user table, try loading from Drupal
+      if (empty($firstName) && empty($lastName)) {
+        $registration_user_id = $row->registration_user_id; // from r.user_id
+        
+        // Try loading by UUID
+        $drupal_users = \Drupal::entityTypeManager()->getStorage('user')->loadByProperties(['uuid' => $registration_user_id]);
+        if (!$drupal_users) {
+          // Try loading by CRM ID
+          $drupal_users = \Drupal::entityTypeManager()->getStorage('user')->loadByProperties(['field_crm_id' => $registration_user_id]);
+        }
+        
+        if ($drupal_users) {
+          $account = reset($drupal_users);
+          $firstName = $account->hasField('field_first_name') ? $account->get('field_first_name')->value : '';
+          $lastName  = $account->hasField('field_surname')    ? $account->get('field_surname')->value    : '';
+          if (empty($firstName) && empty($lastName)) {
+            $firstName = $account->getDisplayName();
+          }
+        }
+      }
+
+      $bezoekers[] = [
+        'naam' => trim($firstName . ' ' . $lastName) ?: 'Onbekende bezoeker',
+        'type' => 'Bezoeker',
+      ];
+    }
+
+    // Fetch session capacity
+    $session = $database->select('session', 's')
+      ->fields('s', ['capacity'])
+      ->condition('session_id', $sessionId)
+      ->execute()
+      ->fetchAssoc();
+    
+    $max_capacity = $session ? (int) $session['capacity'] : 0;
 
     return [
       '#theme' => 'bespreker_bezoekers_details',
       '#bezoekers' => $bezoekers,
       '#totaal' => count($bezoekers),
-      '#max_capaciteit' => 50,
+      '#max_capaciteit' => $max_capacity,
     ];
   }
 

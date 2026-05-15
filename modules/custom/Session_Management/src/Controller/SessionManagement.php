@@ -14,8 +14,10 @@ class SessionManagement extends ControllerBase {
       
       $query = $database->select('session', 's');
       $query->leftJoin('location', 'l', 's.location_id = l.location_id');
+      $query->leftJoin('session_speaker', 'ss', 's.session_id = ss.session_id');
       $query->fields('s', ['session_id', 'title', 'date', 'start_time', 'end_time', 'capacity', 'status'])
         ->fields('l', ['room_name'])
+        ->fields('ss', ['speaker_id'])
         ->orderBy('s.date', 'ASC')
         ->orderBy('s.start_time', 'ASC');
       
@@ -27,6 +29,17 @@ class SessionManagement extends ControllerBase {
         $status_class = 'status-' . strtolower($session->status);
         $status_label = ucfirst($session->status);
 
+        $speaker_name = '-';
+        if (!empty($session->speaker_id)) {
+          $users = \Drupal::entityTypeManager()->getStorage('user')->loadByProperties(['uuid' => $session->speaker_id]);
+          if ($users) {
+            $user = reset($users);
+            $firstName = $user->hasField('field_first_name') ? $user->get('field_first_name')->value : '';
+            $lastName  = $user->hasField('field_surname')    ? $user->get('field_surname')->value    : '';
+            $speaker_name = trim($firstName . ' ' . $lastName) ?: $user->getEmail();
+          }
+        }
+
         $rows[] = [
           'data' => [
             $session->title,
@@ -34,6 +47,7 @@ class SessionManagement extends ControllerBase {
             $session->end_time,
             $session->room_name ?: '-',
             $session->capacity,
+            $speaker_name,
             [
               'data' => [
                 '#type' => 'html_tag',
@@ -64,6 +78,7 @@ class SessionManagement extends ControllerBase {
       $this->t('End'),
       $this->t('Location'),
       $this->t('Capacity'),
+      $this->t('Speaker'),
       $this->t('Status'),
       $this->t('Actions'),
     ];

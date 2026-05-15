@@ -6,6 +6,9 @@ RUN apt-get update && apt-get install -y libgmp-dev libxml2-utils \
     && docker-php-ext-install bcmath \
     && rm -rf /var/lib/apt/lists/*
 
+# Suppress PHP deprecation warnings (e.g. from php-amqplib on PHP 8.3)
+RUN echo "error_reporting = E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED" > /usr/local/etc/php/conf.d/error-reporting.ini
+
 RUN composer require \
     "php-amqplib/php-amqplib" \
     "drupal/group:^3.0" \

@@ -230,10 +230,14 @@ class SessionCreateForm extends FormBase {
 
     $speakerId = $form_state->getValue('speaker') ?: NULL;
     $speakerUuid = NULL;
+    $speakerCrmId = NULL;
     if ($speakerId) {
       $speaker = \Drupal::entityTypeManager()->getStorage('user')->load($speakerId);
       if ($speaker) {
         $speakerUuid = $speaker->uuid();
+        $speakerCrmId = $speaker->hasField('field_crm_id') && !$speaker->get('field_crm_id')->isEmpty()
+          ? $speaker->get('field_crm_id')->value
+          : $speakerUuid;
       }
     }
 
@@ -259,11 +263,23 @@ class SessionCreateForm extends FormBase {
           'sync_status'  => 'pending',
         ])
         ->execute();
-      
       $this->messenger->addStatus($this->t('Session "@title" saved to database (Location ID: @loc).', [
         '@title' => $title,
         '@loc' => $locationId ?: 'None',
       ]));
+
+      // Save speaker mapping if provided
+      if ($speakerUuid) {
+        \Drupal::database()->insert('session_speaker')
+          ->fields([
+            'session_speaker_id' => \Drupal::service('uuid')->generate(),
+            'session_id'         => $sessionUuid,
+            'speaker_id'         => $speakerUuid,
+            'role'               => 'speaker',
+            'confirmed'          => 1,
+          ])
+          ->execute();
+      }
     }
     catch (\Exception $e) {
       \Drupal::logger('session_management')->error('Failed to save session to DB: @err', ['@err' => $e->getMessage()]);
@@ -280,7 +296,7 @@ class SessionCreateForm extends FormBase {
       capacity:   (int) $form_state->getValue('capacity'),
       locationId: $locationId,
       location:   $locationLabel,
-      speakerId:  $speakerUuid,
+      speakerId:  $speakerCrmId,
       status:     $form_state->getValue('status'),
       timestamp:  (new \DateTime())->format(\DateTime::ATOM),
     );

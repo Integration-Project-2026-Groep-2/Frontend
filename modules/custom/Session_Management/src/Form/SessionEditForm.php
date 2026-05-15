@@ -42,6 +42,26 @@ class SessionEditForm extends FormBase {
       catch (\Exception $e) {
         $this->messenger()->addError($this->t('Could not load session data.'));
       }
+
+      // Load speaker mapping
+      try {
+        $speakerMapping = \Drupal::database()->select('session_speaker', 'ss')
+          ->fields('ss', ['speaker_id'])
+          ->condition('session_id', $sessionId)
+          ->execute()
+          ->fetchAssoc();
+        
+        if ($speakerMapping && !empty($speakerMapping['speaker_id'])) {
+          // Find the corresponding Drupal User ID (uid) for this UUID
+          $users = \Drupal::entityTypeManager()->getStorage('user')->loadByProperties(['uuid' => $speakerMapping['speaker_id']]);
+          if ($users) {
+            $user = reset($users);
+            $sessionData['speaker'] = $user->id();
+          }
+        }
+      } catch (\Exception $e) {
+        // Ignore if session_speaker table is not available or query fails
+      }
     }
 
     if (empty($sessionData)) {
@@ -101,6 +121,16 @@ class SessionEditForm extends FormBase {
       '#empty_option' => $this->t('- Select -'),
       '#required' => TRUE,
       '#default_value' => $sessionData['location_id'],
+    ];
+
+    $form['speaker'] = [
+      '#type' => 'select',
+      '#title' => $this->t('Speaker'),
+      '#options' => $this->getSpeakerOptions(),
+      '#empty_option' => $this->t('- Select -'),
+      '#required' => FALSE,
+      '#default_value' => $sessionData['speaker'] ?? NULL,
+      '#description' => $this->t('Optional — only users with the Speaker role are shown.'),
     ];
 
     $form['status'] = [
@@ -201,6 +231,19 @@ class SessionEditForm extends FormBase {
       $endTime .= ':00';
     }
 
+    $speakerId = $form_state->getValue('speaker') ?: NULL;
+    $speakerUuid = NULL;
+    $speakerCrmId = NULL;
+    if ($speakerId) {
+      $speaker = \Drupal::entityTypeManager()->getStorage('user')->load($speakerId);
+      if ($speaker) {
+        $speakerUuid = $speaker->uuid();
+        $speakerCrmId = $speaker->hasField('field_crm_id') && !$speaker->get('field_crm_id')->isEmpty()
+          ? $speaker->get('field_crm_id')->value
+          : $speakerUuid;
+      }
+    }
+
     try {
       \Drupal::database()->update('session')
         ->fields([
@@ -216,6 +259,23 @@ class SessionEditForm extends FormBase {
         ->condition('session_id', $sessionId)
         ->execute();
       
+      // Update session_speaker mapping
+      \Drupal::database()->delete('session_speaker')
+        ->condition('session_id', $sessionId)
+        ->execute();
+      
+      if ($speakerUuid) {
+        \Drupal::database()->insert('session_speaker')
+          ->fields([
+            'session_speaker_id' => \Drupal::service('uuid')->generate(),
+            'session_id'         => $sessionId,
+            'speaker_id'         => $speakerUuid,
+            'role'               => 'speaker',
+            'confirmed'          => 1,
+          ])
+          ->execute();
+      }
+
       $this->messenger()->addStatus($this->t('Session "@title" updated in database.', ['@title' => $title]));
     }
     catch (\Exception $e) {
@@ -238,6 +298,7 @@ class SessionEditForm extends FormBase {
       newLocationId: $locationId,
       newCapacity:   (int) $form_state->getValue('capacity'),
       newStatus:     $form_state->getValue('status'),
+      speakerId:     $speakerCrmId,
       timestamp:     (new \DateTime())->format(\DateTime::ATOM),
     );
 
@@ -279,6 +340,28 @@ class SessionEditForm extends FormBase {
     catch (\Exception $e) {
       \Drupal::logger('session_management')->error('Failed to load location options: @err', ['@err' => $e->getMessage()]);
     }
+    return $options;
+  }
+
+  /**
+   * Laadt alle actieve Drupal users met de rol 'speaker'.
+   *
+   * @return array<int, string>
+   */
+  protected function getSpeakerOptions(): array {
+    $storage  = \Drupal::entityTypeManager()->getStorage('user');
+    $accounts = $storage->loadByProperties(['status' => 1]);
+
+    $options = [];
+    foreach ($accounts as $account) {
+      if ($account->hasRole('speaker')) {
+        $firstName = $account->hasField('field_first_name') ? $account->get('field_first_name')->value : '';
+        $lastName  = $account->hasField('field_surname')    ? $account->get('field_surname')->value    : '';
+        $label     = trim($firstName . ' ' . $lastName) ?: $account->getEmail();
+        $options[$account->id()] = $label;
+      }
+    }
+
     return $options;
   }
 
