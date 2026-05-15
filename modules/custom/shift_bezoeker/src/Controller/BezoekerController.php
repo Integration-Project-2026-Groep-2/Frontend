@@ -332,6 +332,12 @@ class BezoekerController extends ControllerBase {
     ];
   }
 
+  public function accountVerwijderdPage() {
+    return [
+      '#theme' => 'account_verwijderd',
+    ];
+  }
+
   public function bedrijvenPage() {
     return [
       '#theme' => 'bedrijven_overzicht_template',

@@ -39,6 +39,10 @@ class CancelAccountConfirmFormTest extends KernelTestBase {
 
     $reloaded = User::load($account->id());
     $this->assertTrue($reloaded->isBlocked(), 'User is blocked after cancel-form submit');
+
+    $redirect = $form_state->getRedirect();
+    $this->assertNotNull($redirect, 'Redirect is set after cancel');
+    $this->assertSame('shift_bezoeker.account_verwijderd', $redirect->getRouteName());
   }
 
   public function testFormQuestionAndConfirmText(): void {
