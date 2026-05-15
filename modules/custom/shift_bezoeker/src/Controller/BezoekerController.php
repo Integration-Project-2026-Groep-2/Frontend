@@ -25,9 +25,47 @@ class BezoekerController extends ControllerBase {
       ];
     }
 
-    // 2. Haal alle sessies op
+    // 2. Bepaal geselecteerde datum
+    $request = \Drupal::request();
+    $selected_date_query = $request->query->get('date');
+
+    // Haal alle unieke datums op
+    $dates = $db->select('session', 's')
+      ->fields('s', ['date'])
+      ->distinct()
+      ->orderBy('date', 'ASC')
+      ->execute()
+      ->fetchCol();
+
+    if (empty($dates)) {
+      return [
+        '#markup' => '<div style="padding: 100px; text-align: center; color: white;">Geen sessies gepland op dit moment.</div>',
+      ];
+    }
+
+    $current_date = in_array($selected_date_query, $dates) ? $selected_date_query : $dates[0];
+    $date_index = array_search($current_date, $dates);
+
+    $prev_date = $date_index > 0 ? $dates[$date_index - 1] : NULL;
+    $next_date = $date_index < count($dates) - 1 ? $dates[$date_index + 1] : NULL;
+    $day_number = sprintf('%02d', $date_index + 1);
+
+    // Formatteer datum in het Nederlands
+    $timestamp = strtotime($current_date);
+    $dutch_months = [
+      '01' => 'Januari', '02' => 'Februari', '03' => 'Maart', '04' => 'April',
+      '05' => 'Mei', '06' => 'Juni', '07' => 'Juli', '08' => 'Augustus',
+      '09' => 'September', '10' => 'Oktober', '11' => 'November', '12' => 'December'
+    ];
+    $current_date_formatted = date('d', $timestamp) . ' ' . $dutch_months[date('m', $timestamp)] . ' ' . date('Y', $timestamp);
+
+    $prev_date_url = $prev_date ? \Drupal\Core\Url::fromRoute('shift_bezoeker.sessions', ['date' => $prev_date])->toString() : NULL;
+    $next_date_url = $next_date ? \Drupal\Core\Url::fromRoute('shift_bezoeker.sessions', ['date' => $next_date])->toString() : NULL;
+
+    // 2. Haal alle sessies op voor geselecteerde datum
     $session_results = $db->select('session', 's')
       ->fields('s')
+      ->condition('date', $current_date)
       ->orderBy('start_time', 'ASC')
       ->execute()
       ->fetchAll();
@@ -118,8 +156,10 @@ class BezoekerController extends ControllerBase {
 
     return [
       '#theme' => 'sessie_overzicht_template',
-      '#current_date' => '22 April 2026',
-      '#day_number' => '01',
+      '#current_date' => $current_date_formatted,
+      '#day_number' => $day_number,
+      '#prev_date_url' => $prev_date_url,
+      '#next_date_url' => $next_date_url,
       '#locations' => $locations,
       '#time_labels' => $time_labels,
       '#grid_sessions' => $grid_sessions,

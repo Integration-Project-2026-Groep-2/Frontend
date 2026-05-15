@@ -30,6 +30,8 @@ function shift_bezoeker_theme($existing, $type, $theme, $path) {
       'variables' => [
         'current_date' => NULL,
         'day_number' => NULL,
+        'prev_date_url' => NULL,
+        'next_date_url' => NULL,
         'locations' => [],
         'time_labels' => [],
         'grid_sessions' => [],
