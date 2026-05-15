@@ -53,12 +53,12 @@ class UserUpdatedPublisher implements MessageInterface {
     }
 
     $roles = $this->user->getRoles();
-    $role = 'visitor';
-    if (in_array('administrator', $roles)) $role = 'sysadmin';
-    elseif (in_array('event_manager', $roles)) $role = 'eventbeheerder';
-    elseif (in_array('speaker', $roles)) $role = 'spreker';
-    elseif (in_array('company', $roles)) $role = 'company_contact';
-    elseif (in_array('kassa', $roles)) $role = 'kassamedewerker';
+    $role = 'VISITOR';
+    if (in_array('administrator', $roles)) $role = 'SYSADMIN';
+    elseif (in_array('event_manager', $roles)) $role = 'EVENTBEHEERDER';
+    elseif (in_array('speaker', $roles)) $role = 'SPREKER';
+    elseif (in_array('company', $roles)) $role = 'COMPANY_CONTACT';
+    elseif (in_array('kassa', $roles)) $role = 'KASSAMEDEWERKER';
 
     $updatedFields->appendChild($dom->createElementNS($ns, 'role', $role));
     $hasFields = true;

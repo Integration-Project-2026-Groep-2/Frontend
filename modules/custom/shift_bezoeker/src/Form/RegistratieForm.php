@@ -352,19 +352,19 @@ class RegistratieForm extends FormBase {
 
   /**
    * Maps form role-values to the frontend-contract.xsd enum.
-   *   form 'visitor' / null      → 'visitor'
-   *   form 'speaker'             → 'spreker'   (Dutch in XSD)
-   *   form 'kassa'               → 'kassamedewerker'
-   *   bedrijf flow (no role)     → 'company_contact'
+   *   form 'visitor' / null      → 'VISITOR'
+   *   form 'speaker'             → 'SPREKER'
+   *   form 'kassa'               → 'KASSAMEDEWERKER'
+   *   bedrijf flow (no role)     → 'COMPANY_CONTACT'
    */
   private static function mapRole(array $values): string {
     if (($values['registratie_type'] ?? '') === 'bedrijf') {
-      return 'company_contact';
+      return 'COMPANY_CONTACT';
     }
     return match ($values['role'] ?? 'visitor') {
-      'speaker' => 'spreker',
-      'kassa'   => 'kassamedewerker',
-      default   => 'visitor',
+      'speaker' => 'SPREKER',
+      'kassa'   => 'KASSAMEDEWERKER',
+      default   => 'VISITOR',
     };
   }
 }

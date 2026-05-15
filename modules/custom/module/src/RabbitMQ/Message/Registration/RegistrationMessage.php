@@ -18,12 +18,12 @@ class RegistrationMessage implements \Drupal\hello_world\RabbitMQ\Message\Messag
 
   // Geldige rollen volgens de frontend-contract XSD.
   public const ROLES = [
-    'visitor',
-    'company_contact',
-    'spreker',
-    'kassamedewerker',
-    'sysadmin',
-    'eventbeheerder',
+    'VISITOR',
+    'COMPANY_CONTACT',
+    'SPREKER',
+    'KASSAMEDEWERKER',
+    'SYSADMIN',
+    'EVENTBEHEERDER',
   ];
 
   public function __construct(
@@ -33,7 +33,7 @@ class RegistrationMessage implements \Drupal\hello_world\RabbitMQ\Message\Messag
     private readonly bool    $gdprConsent,
     private readonly ?string $phone   = NULL,
     private readonly ?string $company = NULL,
-    private readonly string  $role    = 'visitor'
+    private readonly string  $role    = 'VISITOR'
   ) {
     if (!in_array($this->role, self::ROLES, TRUE)) {
       throw new \InvalidArgumentException(

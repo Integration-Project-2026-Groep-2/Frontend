@@ -25,12 +25,12 @@
 
   <xsd:simpleType name="RegistrationRoleType">
     <xsd:restriction base="xsd:string">
-      <xsd:enumeration value="visitor"/>
-      <xsd:enumeration value="company_contact"/>
-      <xsd:enumeration value="spreker"/>
-      <xsd:enumeration value="kassamedewerker"/>
-      <xsd:enumeration value="sysadmin"/>
-      <xsd:enumeration value="eventbeheerder"/>
+      <xsd:enumeration value="VISITOR"/>
+      <xsd:enumeration value="COMPANY_CONTACT"/>
+      <xsd:enumeration value="SPREKER"/>
+      <xsd:enumeration value="KASSAMEDEWERKER"/>
+      <xsd:enumeration value="SYSADMIN"/>
+      <xsd:enumeration value="EVENTBEHEERDER"/>
     </xsd:restriction>
   </xsd:simpleType>
 
