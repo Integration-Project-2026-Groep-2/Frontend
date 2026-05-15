@@ -11,21 +11,7 @@ class BezoekerController extends ControllerBase {
   public function sessionsPage() {
     $db = \Drupal::database();
 
-    // 1. Haal locaties op die minstens één sessie hebben
-    $location_query = $db->select('location', 'l');
-    $location_query->fields('l', ['location_id', 'room_name', 'address', 'capacity', 'status']);
-    $location_query->join('session', 's', 's.location_id = l.location_id');
-    $location_query->distinct();
-    $location_query->orderBy('l.room_name', 'ASC');
-    $locations = $location_query->execute()->fetchAll();
-
-    if (empty($locations)) {
-      return [
-        '#markup' => '<div style="padding: 100px; text-align: center; color: white;">Geen sessies gepland op dit moment.</div>',
-      ];
-    }
-
-    // 2. Bepaal geselecteerde datum
+    // 1. Bepaal geselecteerde datum
     $request = \Drupal::request();
     $selected_date_query = $request->query->get('date');
 
@@ -62,7 +48,22 @@ class BezoekerController extends ControllerBase {
     $prev_date_url = $prev_date ? \Drupal\Core\Url::fromRoute('shift_bezoeker.sessions', ['date' => $prev_date])->toString() : NULL;
     $next_date_url = $next_date ? \Drupal\Core\Url::fromRoute('shift_bezoeker.sessions', ['date' => $next_date])->toString() : NULL;
 
-    // 2. Haal alle sessies op voor geselecteerde datum
+    // 2. Haal locaties op die minstens één sessie hebben OP DE GESELECTEERDE DATUM
+    $location_query = $db->select('location', 'l');
+    $location_query->fields('l', ['location_id', 'room_name', 'address', 'capacity', 'status']);
+    $location_query->join('session', 's', 's.location_id = l.location_id');
+    $location_query->condition('s.date', $current_date);
+    $location_query->distinct();
+    $location_query->orderBy('l.room_name', 'ASC');
+    $locations = $location_query->execute()->fetchAll();
+
+    if (empty($locations)) {
+      return [
+        '#markup' => '<div style="padding: 100px; text-align: center; color: white;">Geen locaties gevonden met sessies voor deze dag.</div>',
+      ];
+    }
+
+    // 3. Haal alle sessies op voor geselecteerde datum
     $session_results = $db->select('session', 's')
       ->fields('s')
       ->condition('date', $current_date)
