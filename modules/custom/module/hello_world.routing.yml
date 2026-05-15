@@ -56,10 +56,10 @@ hello_world.bespreker_sessies:
     _permission: 'access speaker area'
 
 hello_world.bespreker_betalingen:
-  path: '/bespreker/betalingen'
+  path: '/bespreker/account/betalingen'
   defaults:
     _controller: '\Drupal\hello_world\Controller\BesprekerController::betalingen'
-    _title: 'Betalingsgeschiedenis'
+    _title: 'Financiën'
   requirements:
     _permission: 'access speaker area'
     

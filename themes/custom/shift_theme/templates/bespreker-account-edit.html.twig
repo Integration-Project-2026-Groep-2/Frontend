@@ -1,0 +1,24 @@
+{{ attach_library('shift_theme/global-styling') }}
+<div style="background: #0d121f; padding: 60px 5%; min-height: 100vh; color: white; font-family: 'Inter', sans-serif;">
+    <h2 style="font-size: 32px; font-weight: 900; color: #6333ea; font-family: 'Barlow', sans-serif;">Bewerk Profiel</h2>
+    <div style="background: rgba(26,31,46,0.8); border: 1px solid rgba(99,51,234,0.2); border-radius: 16px; padding: 30px; max-width: 600px; margin-top: 20px;">
+        <form style="display: flex; flex-direction: column; gap: 20px;">
+            <div style="display: flex; gap: 15px;">
+                <div style="flex: 1;">
+                    <label style="display: block; color: #a0a5b1; font-size: 12px; margin-bottom: 8px;">VOORNAAM</label>
+                    <input type="text" value="Bespreker" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; color: white;">
+                </div>
+                <div style="flex: 1;">
+                    <label style="display: block; color: #a0a5b1; font-size: 12px; margin-bottom: 8px;">ACHTERNAAM</label>
+                    <input type="text" value="Test" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; color: white;">
+                </div>
+            </div>
+            <div>
+                <label style="display: block; color: #a0a5b1; font-size: 12px; margin-bottom: 8px;">E-MAILADRES</label>
+                <input type="email" value="bespreker@example.com" style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); padding: 12px; border-radius: 8px; color: white;">
+            </div>
+            <button type="submit" style="background: #6333ea; color: white; padding: 14px; border: none; border-radius: 8px; font-weight: 800; cursor: pointer; letter-spacing: 2px;">OPSLAAN</button>
+        </form>
+    </div>
+    <p style="margin-top: 20px;"><a href="/bespreker/account" style="color: #a0a5b1; text-decoration: none;">« Annuleren</a></p>
+</div>

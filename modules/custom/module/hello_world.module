@@ -56,3 +56,36 @@ function hello_world_user_delete(\Drupal\user\UserInterface $account) {
   $publisher = new \Drupal\hello_world\RabbitMQ\Publisher\UserUpdatedPublisher($account, 'cancelled');
   $publisher->publish();
 }
+
+/**
+ * Implements hook_theme().
+ */
+function hello_world_theme($existing, $type, $theme, $path) {
+  return [
+    'bespreker_dashboard' => ['variables' => ['user_name' => NULL]],
+    'bespreker_account' => ['variables' => [
+        'user_name' => NULL,
+        'user_email' => NULL,
+      ],],
+    'bespreker_sessies' => [
+      'variables' => [
+        'sessies' => [],
+      ],
+    ],
+    'bespreker_feedback' => ['variables' => []],
+    'bespreker_logistiek' => ['variables' => []],
+    'bespreker_account_edit' => ['variables' => []],
+    'bespreker_qr' => ['variables' => []],
+    'bespreker_betalingen' => ['variables' => []],
+    'bespreker_feedback_summary' => ['variables' => []],
+    'bespreker_materialen_gehuurd' => ['variables' => []],
+    'bespreker_sessie_details' => ['variables' => []],
+    'bespreker_bezoekers_details' => [
+      'variables' => [
+        'bezoekers' => [],
+        'totaal' => 0,
+        'max_capaciteit' => 0,
+      ],
+    ],
+  ];
+}
