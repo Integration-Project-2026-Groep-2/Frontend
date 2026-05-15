@@ -62,18 +62,17 @@ class BezoekerController extends ControllerBase {
     $account = \Drupal\user\Entity\User::load($uid);
     
     // Gebruik CRM ID als primary, fallback op Drupal UUID voor compatibiliteit/testing
-    $user_id = NULL;
-    if ($account) {
-      $user_id = $account->hasField('field_crm_id') && !$account->get('field_crm_id')->isEmpty()
-        ? $account->get('field_crm_id')->value
-        : $account->uuid();
-    }
+    $crm_id = $account && $account->hasField('field_crm_id') && !$account->get('field_crm_id')->isEmpty()
+      ? $account->get('field_crm_id')->value
+      : NULL;
+    $uuid = $account ? $account->uuid() : NULL;
 
     $active_registrations = [];
-    if ($user_id) {
+    if ($crm_id || $uuid) {
+      $possible_user_ids = array_unique(array_filter([$crm_id, $uuid]));
       $active_registrations = \Drupal::database()->select('registration', 'r')
         ->fields('r', ['session_id'])
-        ->condition('user_id', $user_id)
+        ->condition('user_id', $possible_user_ids, 'IN')
         ->condition('is_active', 1)
         ->execute()
         ->fetchCol();
@@ -126,6 +125,7 @@ class BezoekerController extends ControllerBase {
       '#grid_sessions' => $grid_sessions,
       '#cache' => [
         'contexts' => ['user'],
+        'tags' => ['registration_list:' . $uid],
       ],
       '#attached' => [
         'library' => [
@@ -150,14 +150,17 @@ class BezoekerController extends ControllerBase {
 
     $db = \Drupal::database();
 
-    // 1. Haal gegevens op (Gebruik CRM ID als userId voor Planning, fallback op Drupal UUID)
-    $user_id = $account->hasField('field_crm_id') && !$account->get('field_crm_id')->isEmpty() 
-      ? $account->get('field_crm_id')->value 
-      : $account->uuid();
+    // 1. Haal gegevens op (Gebruik CRM ID als primary, fallback op Drupal UUID)
+    $crm_id = $account->hasField('field_crm_id') && !$account->get('field_crm_id')->isEmpty()
+      ? $account->get('field_crm_id')->value
+      : NULL;
+    $uuid = $account->uuid();
+    $user_id = $crm_id ?: $uuid;
 
-    \Drupal::logger('shift_bezoeker')->debug('Inschrijven started. Session: @session, User ID (CRM/UUID): @user', [
-      '@session' => $session_id,
-      '@user' => $user_id,
+    \Drupal::logger('shift_bezoeker')->debug('Inschrijven started. Session: @session, CRM ID: @crm, UUID: @uuid', [
+      '@session' => (string) $session_id,
+      '@crm' => $crm_id ?: 'NULL',
+      '@uuid' => (string) $uuid,
     ]);
 
     if (!$user_id) {
@@ -165,16 +168,18 @@ class BezoekerController extends ControllerBase {
       return $this->redirect('shift_bezoeker.sessions');
     }
 
-    // 2. Controleer of de gebruiker al is ingeschreven (actief)
-    $existing_active = $db->select('registration', 'r')
-      ->fields('r', ['registration_id'])
-      ->condition('session_id', $session_id)
-      ->condition('user_id', $user_id)
-      ->condition('is_active', 1)
-      ->execute()
-      ->fetchField();
+    // 2. Zoek een bestaande inschrijving (actief of inactief)
+    // We zoeken op zowel CRM ID als UUID om ID-transities te ondersteunen.
+    $possible_user_ids = array_filter([$crm_id, $uuid]);
 
-    if ($existing_active) {
+    $existing = $db->select('registration', 'r')
+      ->fields('r', ['registration_id', 'is_active'])
+      ->condition('session_id', $session_id)
+      ->condition('user_id', $possible_user_ids, 'IN')
+      ->execute()
+      ->fetchAssoc();
+
+    if ($existing && $existing['is_active']) {
       $session_title = $db->select('session', 's')
         ->fields('s', ['title'])
         ->condition('session_id', $session_id)
@@ -186,25 +191,42 @@ class BezoekerController extends ControllerBase {
         '#theme' => 'inschrijving_bevestigd',
         '#session_id' => $session_id,
         '#session_title' => $session_title,
+        '#cache' => ['max-age' => 0],
       ];
     }
 
-    // 4. Maak de inschrijving aan
-    $registration_id = \Drupal::service('uuid')->generate();
+    // 4. Maak of update de inschrijving
+    $registration_id = $existing ? $existing['registration_id'] : \Drupal::service('uuid')->generate();
     $timestamp = (new \DateTime())->format(\DateTime::ATOM);
 
     try {
-      \Drupal::logger('shift_bezoeker')->debug('Inserting registration @id into database.', ['@id' => $registration_id]);
-      $db->insert('registration')
-        ->fields([
-          'registration_id' => $registration_id,
-          'session_id'      => $session_id,
-          'user_id'         => $user_id,
-          'registration_time' => date('Y-m-d H:i:s'),
-          'is_active'       => 1,
-        ])
-        ->execute();
-      \Drupal::logger('shift_bezoeker')->debug('Registration @id successfully inserted.', ['@id' => $registration_id]);
+      if ($existing) {
+        \Drupal::logger('shift_bezoeker')->debug('Reactivating registration @id for user @user.', [
+          '@id' => $registration_id,
+          '@user' => $user_id,
+        ]);
+        $num_updated = $db->update('registration')
+          ->fields([
+            'is_active' => 1,
+            'user_id' => $user_id, // Update naar de meest actuele ID (bijv. van UUID naar CRM ID)
+            'registration_time' => date('Y-m-d H:i:s'),
+          ])
+          ->condition('registration_id', $registration_id)
+          ->execute();
+        \Drupal::logger('shift_bezoeker')->debug('Reactivation complete. Rows updated: @count', ['@count' => $num_updated]);
+      }
+      else {
+        \Drupal::logger('shift_bezoeker')->debug('Inserting new registration @id into database.', ['@id' => $registration_id]);
+        $db->insert('registration')
+          ->fields([
+            'registration_id' => $registration_id,
+            'session_id'      => $session_id,
+            'user_id'         => $user_id,
+            'registration_time' => date('Y-m-d H:i:s'),
+            'is_active'       => 1,
+          ])
+          ->execute();
+      }
     }
     catch (\Exception $e) {
       \Drupal::logger('shift_bezoeker')->error('Failed to save registration: @err', ['@err' => $e->getMessage()]);
@@ -234,6 +256,9 @@ class BezoekerController extends ControllerBase {
       $client->disconnect();
     }
 
+    // Invalideer cache zodat de sessie-overzicht pagina wordt bijgewerkt
+    \Drupal::service('cache_tags.invalidator')->invalidateTags(['registration_list:' . $uid]);
+
     $session_title = $db->select('session', 's')
       ->fields('s', ['title'])
       ->condition('session_id', $session_id)
@@ -244,6 +269,7 @@ class BezoekerController extends ControllerBase {
       '#theme' => 'inschrijving_bevestigd',
       '#session_id' => $session_id,
       '#session_title' => $session_title,
+      '#cache' => ['max-age' => 0],
     ];
   }
 
@@ -252,12 +278,11 @@ class BezoekerController extends ControllerBase {
     $account = \Drupal\user\Entity\User::load($uid);
     
     // Gebruik CRM ID als primary, fallback op Drupal UUID
-    $user_id = NULL;
-    if ($account) {
-      $user_id = $account->hasField('field_crm_id') && !$account->get('field_crm_id')->isEmpty()
-        ? $account->get('field_crm_id')->value
-        : $account->uuid();
-    }
+    $crm_id = $account->hasField('field_crm_id') && !$account->get('field_crm_id')->isEmpty()
+      ? $account->get('field_crm_id')->value
+      : NULL;
+    $uuid = $account->uuid();
+    $user_id = $crm_id ?: $uuid;
 
     if (!$user_id) {
       $this->messenger()->addError($this->t('Gebruikers-ID niet gevonden.'));
@@ -265,12 +290,13 @@ class BezoekerController extends ControllerBase {
     }
 
     $db = \Drupal::database();
+    $possible_user_ids = array_filter([$crm_id, $uuid]);
 
-    // 1. Zoek de actieve inschrijving
+    // 1. Zoek de actieve inschrijving (ondersteun ID-transitie)
     $registration = $db->select('registration', 'r')
       ->fields('r', ['registration_id'])
       ->condition('session_id', $session_id)
-      ->condition('user_id', $user_id)
+      ->condition('user_id', $possible_user_ids, 'IN')
       ->condition('is_active', 1)
       ->execute()
       ->fetchAssoc();
@@ -290,10 +316,15 @@ class BezoekerController extends ControllerBase {
 
     // 2. Zet op inactief in DB
     try {
-      $db->update('registration')
+      $num_updated = $db->update('registration')
         ->fields(['is_active' => 0])
         ->condition('registration_id', $registration_id)
         ->execute();
+      
+      \Drupal::logger('shift_bezoeker')->debug('Cancellation complete. Rows updated: @count for reg @id', [
+        '@count' => $num_updated,
+        '@id' => $registration_id
+      ]);
       
       $this->messenger()->addStatus($this->t('Je bent succesvol uitgeschreven.'));
     }
@@ -314,7 +345,9 @@ class BezoekerController extends ControllerBase {
 
     $client = \Drupal\hello_world\RabbitMQ\RabbitMQClient::fromEnv();
     try {
+      \Drupal::logger('shift_bezoeker')->debug('Attempting to publish RegistrationCancelled message.');
       $client->publish($message);
+      \Drupal::logger('shift_bezoeker')->info('RegistrationCancelled message sent for session @session', ['@session' => $session_id]);
     }
     catch (\Exception $e) {
       \Drupal::logger('shift_bezoeker')->error('RabbitMQ cancellation publish failed: @err', ['@err' => $e->getMessage()]);
@@ -322,6 +355,9 @@ class BezoekerController extends ControllerBase {
     finally {
       $client->disconnect();
     }
+
+    // Invalideer cache
+    \Drupal::service('cache_tags.invalidator')->invalidateTags(['registration_list:' . $uid]);
 
     return $this->redirect('shift_bezoeker.sessions');
   }
