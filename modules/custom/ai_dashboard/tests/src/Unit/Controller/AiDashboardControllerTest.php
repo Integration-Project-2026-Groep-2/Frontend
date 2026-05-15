@@ -28,14 +28,24 @@ class AiDashboardControllerTest extends UnitTestCase {
 
   private function fakeEntity(array $fields, int $id): object {
     return new class($fields, $id) {
-      public function __construct(private array $fields, private int $id) {}
-      public function id(): int { return $this->id; }
+
+      public function __construct(private array $fields, private int $id) {
+      }
+
+      public function id(): int {
+        return $this->id;
+      }
+
       public function get(string $name): object {
         $value = $this->fields[$name] ?? NULL;
         return new class($value) {
-          public function __construct(public mixed $value) {}
+
+          public function __construct(public mixed $value) {
+          }
+
         };
       }
+
     };
   }
 

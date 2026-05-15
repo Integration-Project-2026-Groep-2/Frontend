@@ -232,4 +232,5 @@ class RegistratieFormTest extends KernelTestBase {
     $this->assertNotSame('plaintext1234', $stored);
     $this->assertNotEmpty($stored);
   }
+
 }

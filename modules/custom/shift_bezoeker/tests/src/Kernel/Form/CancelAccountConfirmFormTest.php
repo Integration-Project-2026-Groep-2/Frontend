@@ -15,7 +15,6 @@ class CancelAccountConfirmFormTest extends KernelTestBase {
   protected static $modules = [
     'system',
     'user',
-    'hello_world',
     'shift_bezoeker',
   ];
 

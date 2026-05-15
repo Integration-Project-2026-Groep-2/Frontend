@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<ruleset name="Frontend Tests">
+  <description>Drupal coding standards voor test bestanden — doc comments uitgesloten omdat testnamen zelf-beschrijvend zijn.</description>
+
+  <rule ref="Drupal">
+    <!-- Test methodes zijn zelf-beschrijvend via hun naam -->
+    <exclude name="Drupal.Commenting.FunctionComment"/>
+    <exclude name="Drupal.Commenting.ClassComment"/>
+    <exclude name="Drupal.Commenting.VariableComment"/>
+    <exclude name="Drupal.Commenting.InlineComment"/>
+    <exclude name="Drupal.Commenting.DocComment"/>
+    <!-- Moderne PHP stijl gebruikt lowercase null/true/false -->
+    <exclude name="Generic.PHP.UpperCaseConstant"/>
+    <!-- Lange regels in test-data zijn aanvaardbaar -->
+    <exclude name="Generic.Files.LineLength"/>
+    <!-- Array opmaak is flexibeler in tests -->
+    <exclude name="Drupal.Arrays.Array"/>
+  </rule>
+
+  <file>modules/custom/ai_dashboard/tests</file>
+  <file>modules/custom/jarvis_chat/tests</file>
+  <file>modules/custom/Session_Management/tests</file>
+  <file>modules/custom/custom_roles/tests</file>
+  <file>modules/custom/shift_bezoeker/tests</file>
+  <file>modules/custom/module/tests</file>
+
+  <arg name="extensions" value="php"/>
+  <arg name="warning-severity" value="0"/>
+  <arg name="colors"/>
+</ruleset>
