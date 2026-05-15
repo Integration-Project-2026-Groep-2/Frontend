@@ -47,6 +47,17 @@ if ! grep -q "drupal_db_configured" "$SETTINGS_FILE"; then
 SETTINGS
 fi
 
+# ── Deprecation warnings onderdrukken ────────────────────────────────────────
+if ! grep -q "suppress_deprecations" "$SETTINGS_FILE"; then
+  cat >> "$SETTINGS_FILE" << SETTINGS
+
+// suppress_deprecations
+// Verberg PHP 8.3 deprecation warnings die de UI vervuilen (o.a. van php-amqplib)
+error_reporting(E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED);
+\$config['system.logging']['error_level'] = 'some';
+SETTINGS
+fi
+
 # ── Drupal install (expliciete opt-in) + install.php verwijderen na succesvolle installatie ──
 # ALLOW_AUTO_INSTALL is bewust opt-in en uitsluitend bedoeld om een nieuwe omgeving
 # eenmalig te bootstrapen. Zet dit nooit aan in productie, omdat een foutieve
