@@ -36,6 +36,9 @@ function hello_world_user_insert(\Drupal\user\UserInterface $account) {
   if (!empty($account->_is_rabbitmq_sync)) {
     return;
   }
+  if (!empty($_ENV['SHIFT_BEZOEKER_DISABLE_AMQP']) || getenv('SHIFT_BEZOEKER_DISABLE_AMQP')) {
+    return;
+  }
   $publisher = new \Drupal\hello_world\RabbitMQ\Publisher\UserCreatedPublisher($account);
   $publisher->publish();
 }
@@ -45,6 +48,9 @@ function hello_world_user_insert(\Drupal\user\UserInterface $account) {
  */
 function hello_world_user_update(\Drupal\user\UserInterface $account) {
   if (!empty($account->_is_rabbitmq_sync)) {
+    return;
+  }
+  if (!empty($_ENV['SHIFT_BEZOEKER_DISABLE_AMQP']) || getenv('SHIFT_BEZOEKER_DISABLE_AMQP')) {
     return;
   }
   // Check if status changed to inactive
@@ -62,6 +68,9 @@ function hello_world_user_update(\Drupal\user\UserInterface $account) {
  */
 function hello_world_user_delete(\Drupal\user\UserInterface $account) {
   if (!empty($account->_is_rabbitmq_sync)) {
+    return;
+  }
+  if (!empty($_ENV['SHIFT_BEZOEKER_DISABLE_AMQP']) || getenv('SHIFT_BEZOEKER_DISABLE_AMQP')) {
     return;
   }
   $publisher = new \Drupal\hello_world\RabbitMQ\Publisher\UserUpdatedPublisher($account, 'cancelled');
