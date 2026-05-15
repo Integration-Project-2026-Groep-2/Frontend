@@ -55,9 +55,9 @@ class XsdRegistry {
     'mailing_user_deactivated'  => 'MailingUserDeactivated',
 
     // Planning.
-    'planning_user_created'     => 'PlanningUserCreated',
-    'planning_user_updated'     => 'PlanningUserUpdated',
     'planning_user_deactivated' => 'PlanningUserDeactivated',
+    'planning_location_created'   => 'LocationCreated',
+    'planning_location_updated'   => 'LocationUpdated',
     'planning_session_created'     => 'SessionCreated',
     'planning_session_updated'     => 'SessionUpdated',
     'planning_session_cancelled'   => 'SessionCancelled',
@@ -98,6 +98,8 @@ class XsdRegistry {
     'registration'                 => 'frontend-contract.xsd',
     'registration_change'          => 'frontend-contract.xsd',
     'company_created'              => 'frontend-contract.xsd',
+    'planning_location_created'    => 'location.xsd',
+    'planning_location_updated'    => 'location.xsd',
     'planning_session_created'     => 'session.xsd',
     'planning_session_updated'     => 'session.xsd',
     'planning_session_cancelled'   => 'session.xsd',

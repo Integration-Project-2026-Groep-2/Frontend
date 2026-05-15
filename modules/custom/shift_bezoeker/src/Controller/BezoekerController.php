@@ -9,67 +9,320 @@ use Drupal\shift_bezoeker\Form\EditAccountForm;
 class BezoekerController extends ControllerBase {
 
   public function sessionsPage() {
-    // 1. Haal alle sessies op die Team Planning heeft aangemaakt
-    $query = \Drupal::entityQuery('node')
-      ->accessCheck(TRUE)
-      ->condition('status', 1)
-      ->condition('type', 'session'); // Check of ze het 'session' of 'sessie' hebben genoemd!
+    $db = \Drupal::database();
 
-    $nids = $query->execute();
-    $nodes = \Drupal\node\Entity\Node::loadMultiple($nids);
+    // 1. Haal locaties op die minstens één sessie hebben
+    $location_query = $db->select('location', 'l');
+    $location_query->fields('l', ['location_id', 'room_name', 'address', 'capacity', 'status']);
+    $location_query->join('session', 's', 's.location_id = l.location_id');
+    $location_query->distinct();
+    $location_query->orderBy('l.room_name', 'ASC');
+    $locations = $location_query->execute()->fetchAll();
 
-    $grid_data = [];
-
-    // 2. Loop door de database resultaten
-    foreach ($nodes as $node) {
-      // Haal de waarden op uit de velden van Team Planning
-      // Let op: vervang 'field_...' door de echte machine-namen van hun velden!
-      $start_time = $node->get('field_start_time')->value; // Bijv: '10:00'
-      $end_time = $node->get('field_end_time')->value;     // Bijv: '11:30'
-      $stage_key = $node->get('field_stage')->value;      // Bijv: 'main', 'zaal_a', 'zaal_b'
-
-      // Vul de grid_data array dynamisch
-      $grid_data[$stage_key][$start_time] = [
-        'id'    => $node->id(),
-        'title' => $node->getTitle(),
-        'time'  => $start_time . ' - ' . $end_time,
-        'type'  => 'open', // Dit kun je later linken aan inschrijvingen
+    if (empty($locations)) {
+      return [
+        '#markup' => '<div style="padding: 100px; text-align: center; color: white;">Geen sessies gepland op dit moment.</div>',
       ];
     }
 
-    // De definities van je grid blijven hier staan
-    $time_slots = [
-      '10:00' => '10:00', '11:00' => '11:00', '12:00' => '12:00',
-      '13:00' => '13:00', '14:00' => '14:00', '15:00' => '15:00', '16:00' => '16:00',
-    ];
+    // 2. Haal alle sessies op
+    $session_results = $db->select('session', 's')
+      ->fields('s')
+      ->orderBy('start_time', 'ASC')
+      ->execute()
+      ->fetchAll();
 
-    $stages = [
-      'main' => 'Main Stage',
-      'zaal_a' => 'Zaal A',
-      'zaal_b' => 'Zaal B',
-    ];
+    // 3. Bepaal tijdspanne voor de grid
+    $min_hour = 24;
+    $max_hour = 0;
+
+    foreach ($session_results as $s) {
+      $start = (int) substr($s->start_time, 0, 2);
+      $end = (int) substr($s->end_time, 0, 2);
+      if ($start < $min_hour) $min_hour = $start;
+      if ($end > $max_hour) $max_hour = $end;
+    }
+
+    // Buffer van 1 uur aan beide kanten
+    $min_hour = max(0, $min_hour - 1);
+    $max_hour = min(23, $max_hour + 1);
+
+    // 4. Bouw tijdslots (elke 15 min)
+    $interval = 15; // minuten
+    $time_labels = [];
+    for ($h = $min_hour; $h <= $max_hour; $h++) {
+      $time_labels[] = sprintf('%02d:00', $h);
+      $time_labels[] = sprintf('%02d:15', $h);
+      $time_labels[] = sprintf('%02d:30', $h);
+      $time_labels[] = sprintf('%02d:45', $h);
+    }
+
+    // 5. Formatteer sessies voor de grid
+    $uid = (int) $this->currentUser()->id();
+    $account = \Drupal\user\Entity\User::load($uid);
+    
+    // Gebruik CRM ID als primary, fallback op Drupal UUID voor compatibiliteit/testing
+    $user_id = NULL;
+    if ($account) {
+      $user_id = $account->hasField('field_crm_id') && !$account->get('field_crm_id')->isEmpty()
+        ? $account->get('field_crm_id')->value
+        : $account->uuid();
+    }
+
+    $active_registrations = [];
+    if ($user_id) {
+      $active_registrations = \Drupal::database()->select('registration', 'r')
+        ->fields('r', ['session_id'])
+        ->condition('user_id', $user_id)
+        ->condition('is_active', 1)
+        ->execute()
+        ->fetchCol();
+    }
+
+    $grid_sessions = [];
+    foreach ($session_results as $s) {
+      $start_parts = explode(':', $s->start_time);
+      $end_parts = explode(':', $s->end_time);
+
+      $start_m = (int)$start_parts[0] * 60 + (int)$start_parts[1];
+      $end_m = (int)$end_parts[0] * 60 + (int)$end_parts[1];
+      $grid_start_m = $min_hour * 60;
+
+      // Bereken grid rij (Rij 1 = Header, dus +2)
+      $row_start = (($start_m - $grid_start_m) / $interval) + 2;
+      $row_span = ($end_m - $start_m) / $interval;
+
+      // Zoek kolom index van locatie
+      $col_index = 0;
+      foreach ($locations as $idx => $loc) {
+        if ($loc->location_id == $s->location_id) {
+          $col_index = $idx + 2; // +1 voor tijdlabel kolom, +1 voor 1-based index
+          break;
+        }
+      }
+
+      if ($col_index > 0) {
+        $grid_sessions[] = [
+          'id' => $s->session_id,
+          'title' => $s->title,
+          'description' => $s->description,
+          'time' => substr($s->start_time, 0, 5) . ' - ' . substr($s->end_time, 0, 5),
+          'location' => '', // Wordt in template gezet of hier gezocht
+          'row_start' => $row_start,
+          'row_span' => $row_span,
+          'col_index' => $col_index,
+          'status' => $s->status,
+          'registered' => in_array($s->session_id, $active_registrations),
+        ];
+      }
+    }
 
     return [
       '#theme' => 'sessie_overzicht_template',
       '#current_date' => '22 April 2026',
       '#day_number' => '01',
-      '#time_slots' => $time_slots,
-      '#stages' => $stages,
-      '#grid_data' => $grid_data,
+      '#locations' => $locations,
+      '#time_labels' => $time_labels,
+      '#grid_sessions' => $grid_sessions,
+      '#cache' => [
+        'contexts' => ['user'],
+      ],
+      '#attached' => [
+        'library' => [
+          'shift_bezoeker/sessions',
+        ],
+      ],
     ];
   }
 
   public function accountPage() {
     return $this->formBuilder()->getForm(EditAccountForm::class);
   }
+
   public function inschrijven($session_id) {
+    $uid = (int) $this->currentUser()->id();
+    $account = \Drupal\user\Entity\User::load($uid);
+
+    if (!$account) {
+      $this->messenger()->addError($this->t('User not found.'));
+      return $this->redirect('shift_bezoeker.sessions');
+    }
+
+    $db = \Drupal::database();
+
+    // 1. Haal gegevens op (Gebruik CRM ID als userId voor Planning, fallback op Drupal UUID)
+    $user_id = $account->hasField('field_crm_id') && !$account->get('field_crm_id')->isEmpty() 
+      ? $account->get('field_crm_id')->value 
+      : $account->uuid();
+
+    \Drupal::logger('shift_bezoeker')->debug('Inschrijven started. Session: @session, User ID (CRM/UUID): @user', [
+      '@session' => $session_id,
+      '@user' => $user_id,
+    ]);
+
+    if (!$user_id) {
+      $this->messenger()->addError($this->t('Geen geldig gebruikers-ID gevonden. Neem contact op met de beheerder.'));
+      return $this->redirect('shift_bezoeker.sessions');
+    }
+
+    // 2. Controleer of de gebruiker al is ingeschreven (actief)
+    $existing_active = $db->select('registration', 'r')
+      ->fields('r', ['registration_id'])
+      ->condition('session_id', $session_id)
+      ->condition('user_id', $user_id)
+      ->condition('is_active', 1)
+      ->execute()
+      ->fetchField();
+
+    if ($existing_active) {
+      $session_title = $db->select('session', 's')
+        ->fields('s', ['title'])
+        ->condition('session_id', $session_id)
+        ->execute()
+        ->fetchField() ?: $session_id;
+
+      $this->messenger()->addWarning($this->t('Je bent al ingeschreven voor deze sessie.'));
+      return [
+        '#theme' => 'inschrijving_bevestigd',
+        '#session_id' => $session_id,
+        '#session_title' => $session_title,
+      ];
+    }
+
+    // 4. Maak de inschrijving aan
+    $registration_id = \Drupal::service('uuid')->generate();
+    $timestamp = (new \DateTime())->format(\DateTime::ATOM);
+
+    try {
+      \Drupal::logger('shift_bezoeker')->debug('Inserting registration @id into database.', ['@id' => $registration_id]);
+      $db->insert('registration')
+        ->fields([
+          'registration_id' => $registration_id,
+          'session_id'      => $session_id,
+          'user_id'         => $user_id,
+          'registration_time' => date('Y-m-d H:i:s'),
+          'is_active'       => 1,
+        ])
+        ->execute();
+      \Drupal::logger('shift_bezoeker')->debug('Registration @id successfully inserted.', ['@id' => $registration_id]);
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('shift_bezoeker')->error('Failed to save registration: @err', ['@err' => $e->getMessage()]);
+      $this->messenger()->addError($this->t('Er ging iets mis bij het opslaan van je inschrijving.'));
+      return $this->redirect('shift_bezoeker.sessions');
+    }
+
+    // 5. Stuur XML bericht naar RabbitMQ
+    $message = new \Drupal\hello_world\RabbitMQ\Message\Planning\RegistrationCreatedMessage(
+      registrationId: $registration_id,
+      sessionId:      $session_id,
+      userId:         $user_id,
+      isActive:       TRUE,
+      timestamp:      $timestamp,
+    );
+
+    $client = \Drupal\hello_world\RabbitMQ\RabbitMQClient::fromEnv();
+    try {
+      \Drupal::logger('shift_bezoeker')->debug('Attempting to publish RegistrationCreated message.');
+      $client->publish($message);
+      \Drupal::logger('shift_bezoeker')->info('RegistrationCreated message sent for session @session', ['@session' => $session_id]);
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('shift_bezoeker')->error('RabbitMQ publish failed: @err', ['@err' => $e->getMessage()]);
+    }
+    finally {
+      $client->disconnect();
+    }
+
+    $session_title = $db->select('session', 's')
+      ->fields('s', ['title'])
+      ->condition('session_id', $session_id)
+      ->execute()
+      ->fetchField() ?: $session_id;
+
     return [
       '#theme' => 'inschrijving_bevestigd',
       '#session_id' => $session_id,
+      '#session_title' => $session_title,
     ];
   }
 
   public function uitschrijven($session_id) {
+    $uid = (int) $this->currentUser()->id();
+    $account = \Drupal\user\Entity\User::load($uid);
+    
+    // Gebruik CRM ID als primary, fallback op Drupal UUID
+    $user_id = NULL;
+    if ($account) {
+      $user_id = $account->hasField('field_crm_id') && !$account->get('field_crm_id')->isEmpty()
+        ? $account->get('field_crm_id')->value
+        : $account->uuid();
+    }
+
+    if (!$user_id) {
+      $this->messenger()->addError($this->t('Gebruikers-ID niet gevonden.'));
+      return $this->redirect('shift_bezoeker.sessions');
+    }
+
+    $db = \Drupal::database();
+
+    // 1. Zoek de actieve inschrijving
+    $registration = $db->select('registration', 'r')
+      ->fields('r', ['registration_id'])
+      ->condition('session_id', $session_id)
+      ->condition('user_id', $user_id)
+      ->condition('is_active', 1)
+      ->execute()
+      ->fetchAssoc();
+
+    if (!$registration) {
+      $this->messenger()->addWarning($this->t('Geen actieve inschrijving gevonden voor deze sessie.'));
+      return $this->redirect('shift_bezoeker.sessions');
+    }
+
+    $registration_id = $registration['registration_id'];
+    $timestamp = (new \DateTime())->format(\DateTime::ATOM);
+
+    \Drupal::logger('shift_bezoeker')->debug('Uitschrijven started. Session: @session, Registration: @reg', [
+      '@session' => $session_id,
+      '@reg' => $registration_id,
+    ]);
+
+    // 2. Zet op inactief in DB
+    try {
+      $db->update('registration')
+        ->fields(['is_active' => 0])
+        ->condition('registration_id', $registration_id)
+        ->execute();
+      
+      $this->messenger()->addStatus($this->t('Je bent succesvol uitgeschreven.'));
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('shift_bezoeker')->error('Failed to cancel registration: @err', ['@err' => $e->getMessage()]);
+      $this->messenger()->addError($this->t('Er ging iets mis bij het annuleren van je inschrijving.'));
+      return $this->redirect('shift_bezoeker.sessions');
+    }
+
+    // 3. Stuur bericht naar RabbitMQ
+    $message = new \Drupal\hello_world\RabbitMQ\Message\Planning\RegistrationCreatedMessage(
+      registrationId: $registration_id,
+      sessionId:      $session_id,
+      userId:         $user_id,
+      isActive:       FALSE,
+      timestamp:      $timestamp,
+    );
+
+    $client = \Drupal\hello_world\RabbitMQ\RabbitMQClient::fromEnv();
+    try {
+      $client->publish($message);
+    }
+    catch (\Exception $e) {
+      \Drupal::logger('shift_bezoeker')->error('RabbitMQ cancellation publish failed: @err', ['@err' => $e->getMessage()]);
+    }
+    finally {
+      $client->disconnect();
+    }
+
     return $this->redirect('shift_bezoeker.sessions');
   }
 
@@ -79,85 +332,16 @@ class BezoekerController extends ControllerBase {
     ];
   }
 
-  public function bedrijvenPage() {
-    $bedrijven = $this->getBedrijven();
-
+  public function accountVerwijderdPage() {
     return [
-      '#theme' => 'bezoeker_bedrijven',
-      '#bedrijven' => $bedrijven,
-      '#attached' => [
-        'library' => [
-          'shift_theme/global-styling',
-          'shift_theme/companies-page',
-        ],
-      ],
+      '#theme' => 'account_verwijderd',
     ];
   }
 
-  /**
-   * Helper to load groups of type 'company' (optimized: load files in bulk).
-   */
-  private function getBedrijven() {
-    $query = \Drupal::entityQuery('group')
-      ->accessCheck(false)// zorgt dat ook niet ingelogde gebruikers de bedrijven kunnen zien op de onze partners pagina
-      ->condition('type', 'company');//checked op groepeen met type company
-
-    $gids = $query->execute();
-    $groepen = \Drupal::entityTypeManager()->getStorage('group')->loadMultiple($gids);
-
-    // Verzamel alle fids eerst.
-    $fids = [];
-    foreach ($groepen as $groep) {
-      if ($groep->hasField('field_logo')) {
-        $field = $groep->get('field_logo');
-        if (!$field->isEmpty()) {
-          $fid = $field->target_id ?? NULL;
-          if ($fid) {
-            $fids[$fid] = $fid;
-          }
-        }
-      }
-    }
-
-    // Laad bestanden in één keer.
-    $files = [];
-    if (!empty($fids)) {
-      $files = File::loadMultiple($fids);
-    }
-
-    $result = [];
-    $url_generator = \Drupal::service('file_url_generator');
-
-    foreach ($groepen as $groep) {
-      $naam = $groep->label();
-
-      $beschrijving = '';
-      if ($groep->hasField('field_description')) {
-        $desc_field = $groep->get('field_description');
-        if (!$desc_field->isEmpty()) {
-          $beschrijving = $desc_field->value ?? '';
-        }
-      }
-
-      $logo_url = NULL;
-      if ($groep->hasField('field_logo')) {
-        $logo_field = $groep->get('field_logo');
-        if (!$logo_field->isEmpty()) {
-          $fid = $logo_field->target_id ?? NULL;
-          if ($fid && isset($files[$fid])) {
-            $file = $files[$fid];
-            $logo_url = $url_generator->generateAbsoluteString($file->getFileUri());
-          }
-        }
-      }
-
-      $result[] = [
-        'naam' => $naam,
-        'beschrijving' => $beschrijving,
-        'logo' => $logo_url,
-      ];
-    }
-
-    return $result;
+  public function bedrijvenPage() {
+    return [
+      '#theme' => 'bedrijven_overzicht_template',
+    ];
   }
+
 }

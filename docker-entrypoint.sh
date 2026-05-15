@@ -80,6 +80,12 @@ if [ -x "$DRUSH" ]; then
 
   "$DRUSH" en hello_world custom_roles ai_dashboard -y || true
   "$DRUSH" cr || true
+
+  # Apply custom database schema for sessions, locations, etc.
+  if [ -f "/opt/drupal/web/modules/custom/Session_Management/apply_schema.php" ]; then
+    echo "Applying custom database schema..."
+    "$DRUSH" scr /opt/drupal/web/modules/custom/Session_Management/apply_schema.php || echo "Schema application failed."
+  fi
 else
   echo "Drush niet gevonden — sla Drupal init over."
 fi

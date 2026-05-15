@@ -65,6 +65,10 @@ class XsdValidator {
         fn(\LibXMLError $e) => trim($e->message) . ' (regel ' . $e->line . ')',
         $errors
       );
+      
+      // Log the failing XML for debugging.
+      \Drupal::logger('rabbitmq')->debug('Validatie mislukt voor XML: @xml', ['@xml' => $xml]);
+
       throw new \RuntimeException(
         sprintf(
           'XSD-validatie mislukt voor type "%s" (element <%s>):%s%s',
