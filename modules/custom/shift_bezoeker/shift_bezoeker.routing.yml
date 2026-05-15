@@ -69,3 +69,19 @@ shift_bezoeker.bedrijven_overzicht:
     _title: 'Onze Partners & Exposanten'
   requirements:
     _permission: 'access content'
+
+shift_bezoeker.qr_code:
+  path: '/bezoeker/qr-code'
+  defaults:
+    _controller: '\Drupal\shift_bezoeker\Controller\QrCodeController::displayQrCode'
+    _title: 'Your Festival Pass'
+  requirements:
+    _user_is_logged_in: 'TRUE'
+
+shift_bezoeker.qr_download:
+  path: '/bezoeker/qr-code/download'
+  defaults:
+    _controller: '\Drupal\shift_bezoeker\Controller\QrCodeController::downloadQrCode'
+  methods: [POST]
+  requirements:
+    _user_is_logged_in: 'TRUE'
