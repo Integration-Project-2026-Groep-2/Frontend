@@ -8,3 +8,10 @@ hello_world.admin_page:       # Unique key for the menu link
   menu_name: admin            # Places the link in the admin menu
   parent: system.admin        # Places the link next to Content, Structure, Appearance...
   weight: 10                  # Order in the toolbar, higher number = further to the right
+
+hello_world.register_account:
+  title: 'Register'
+  description: 'Company/visitor registration choice'
+  route_name: hello_world.registration_choice
+  menu_name: main
+  weight: 10

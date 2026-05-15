@@ -59,6 +59,16 @@
   box-shadow: 0 4px 15px rgba(0,0,0,0.1);
 }
 
+/* main a { … } in global.css — links in lichte kaarten leesbaar houden */
+.info-card a {
+  color: #5b21b6;
+}
+
+.info-card a:hover,
+.info-card a:focus-visible {
+  color: #6333ea;
+}
+
 .hero-buttons {
   display: flex;
   justify-content: center;

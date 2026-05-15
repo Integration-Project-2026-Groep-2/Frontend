@@ -19,6 +19,13 @@ function custom_roles_update_9001(): void {
 }
 
 /**
+ * Grant company-area access to administrator (bedrijf_registratie routes).
+ */
+function custom_roles_update_9002(): void {
+  _custom_roles_ensure_roles_and_permissions();
+}
+
+/**
  * Create/update project roles and permissions (idempotent).
  */
 function _custom_roles_ensure_roles_and_permissions(): void {
@@ -80,5 +87,12 @@ function _custom_roles_ensure_roles_and_permissions(): void {
     }
 
     $role->save();
+  }
+
+  // Site admins moeten bedrijfsroutes kunnen openen (tests, support).
+  $admin_role = Role::load('administrator');
+  if ($admin_role) {
+    $admin_role->grantPermission('access company area');
+    $admin_role->save();
   }
 }

@@ -171,7 +171,7 @@ class RegistratieForm extends FormBase {
     $values = $form_state->getValues();
     $type = $values['registratie_type'];
     $email = trim($values['email'] ?? '');
-    $password = $values['pass'] ?? '';
+    $password_plain = self::passwordConfirmPass1($values['pass'] ?? NULL);
 
     if ($email === '') {
       $form_state->setErrorByName('email', $this->t('E-mailadres is verplicht.'));
@@ -180,7 +180,7 @@ class RegistratieForm extends FormBase {
       $form_state->setErrorByName('email', $this->t('Dit e-mailadres is al geregistreerd.'));
     }
 
-    if (strlen($password) < 8) {
+    if (strlen($password_plain) < 8) {
       $form_state->setErrorByName('pass', $this->t('Wachtwoord moet minstens 8 karakters bevatten.'));
     }
 
@@ -209,7 +209,7 @@ class RegistratieForm extends FormBase {
     $values = $form_state->getValues();
     $type = $values['registratie_type'];
     $email = trim($values['email']);
-    $password = $values['pass'];
+    $password = self::passwordConfirmPass1($values['pass'] ?? NULL);
     $gdpr = (bool) $values['gdpr_consent'];
 
     $account = User::create([
@@ -281,6 +281,16 @@ class RegistratieForm extends FormBase {
   }
 
   /**
+   * Plain password from #type password_confirm (array pass1/pass2).
+   */
+  private static function passwordConfirmPass1(mixed $value): string {
+    if (is_array($value)) {
+      return (string) ($value['pass1'] ?? '');
+    }
+    return (string) $value;
+  }
+
+  /**
    * Publishes Registration (+ CompanyCreated for bedrijf) on user.topic.
    *
    * Soft-fail: any RabbitMQ / XSD failure is logged but does NOT roll back
@@ -295,12 +305,11 @@ class RegistratieForm extends FormBase {
       return;
     }
 
+    $client = RabbitMQClient::fromEnv();
     try {
-      $client = RabbitMQClient::fromEnv();
       foreach (self::buildMessages($values) as $message) {
         $client->publish($message);
       }
-      $client->disconnect();
     }
     catch (\Throwable $e) {
       \Drupal::logger('shift_bezoeker')->error(
@@ -311,6 +320,9 @@ class RegistratieForm extends FormBase {
           '@msg'   => $e->getMessage(),
         ],
       );
+    }
+    finally {
+      $client->disconnect();
     }
   }
 

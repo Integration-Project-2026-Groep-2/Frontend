@@ -64,13 +64,17 @@ class UserCreatedPublisher implements MessageInterface {
   }
 
   public function publish(): void {
+    $client = RabbitMQClient::fromEnv();
     try {
-      $client = RabbitMQClient::fromEnv();
       $client->publish($this);
-    } catch (\Exception $e) {
+    }
+    catch (\Throwable $e) {
       \Drupal::logger('rabbitmq')->error(
         'UserCreatedPublisher mislukt: @err', ['@err' => $e->getMessage()]
       );
+    }
+    finally {
+      $client->disconnect();
     }
   }
 
