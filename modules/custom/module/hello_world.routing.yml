@@ -112,7 +112,7 @@ hello_world.bespreker_sessies_details:
     _permission: 'access speaker area'
 
 hello_world.bespreker_sessies_bezoekers:
-  path: '/bespreker/sessies/bezoekers'
+  path: '/bespreker/sessies/bezoekers/{sessionId}'
   defaults:
     _controller: '\Drupal\hello_world\Controller\BesprekerController::bezoekersDetails'
     _title: 'Bezoekers Lijst'

@@ -47,6 +47,7 @@
         <xs:element name="newLocationId" type="uuid"      minOccurs="0"/>
         <xs:element name="newCapacity"   type="xs:int"    minOccurs="0"/>
         <xs:element name="newStatus"     type="xs:string" minOccurs="0"/>
+        <xs:element name="speakerId"     type="uuid"      minOccurs="0"/>
         <xs:element name="participantIds" minOccurs="0">
           <xs:complexType>
             <xs:sequence>

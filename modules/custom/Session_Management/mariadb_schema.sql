@@ -37,7 +37,7 @@ CREATE TABLE {speaker} (
     last_name     VARCHAR(100) NOT NULL,
     email         VARCHAR(255) NOT NULL UNIQUE,
     phone_number  VARCHAR(20),
-    company       VARCHAR(255),
+    companyId     VARCHAR(36),
     is_active     BOOLEAN      NOT NULL DEFAULT true,
     gdpr_consent  BOOLEAN      NOT NULL DEFAULT false
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -63,8 +63,7 @@ CREATE TABLE {session_speaker} (
     speaker_id         VARCHAR(36)  NOT NULL,
     role               VARCHAR(100),
     confirmed          BOOLEAN      NOT NULL DEFAULT false,
-    FOREIGN KEY (session_id) REFERENCES {session}(session_id) ON DELETE CASCADE,
-    FOREIGN KEY (speaker_id) REFERENCES {speaker}(speaker_id) ON DELETE CASCADE
+    FOREIGN KEY (session_id) REFERENCES {session}(session_id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE {participant} (
