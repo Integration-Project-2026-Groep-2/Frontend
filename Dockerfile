@@ -12,6 +12,7 @@ RUN echo "error_reporting = E_ALL & ~E_DEPRECATED & ~E_USER_DEPRECATED" > /usr/l
 RUN composer require \
     "php-amqplib/php-amqplib" \
     "drupal/group:^3.0" \
+    "drupal/endroid_qr_code:^4.0" \
     "drupal/ginvite" \
     "drush/drush" \
     "endroid/qr-code:^6.0"
