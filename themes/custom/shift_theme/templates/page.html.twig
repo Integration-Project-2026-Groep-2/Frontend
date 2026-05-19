@@ -13,6 +13,9 @@
         <li><a href="/bezoeker/sessies">Programma</a></li>
         <li><a href="/bedrijven" class="nav-link">Partners</a></li>
         <li><a href="{{ front_page }}#locatie-sectie">Locatie</a></li>
+        {% if logged_in %}
+        <li><a href="/bezoeker/qr-code" class="qr-button">QR code</a></li>
+        {% endif %}
         {% if can_view_ai_dashboard %}
           <li><a href="/ai/incidents" class="nav-link">AI dashboard</a></li>
         {% endif %}
